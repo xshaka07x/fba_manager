@@ -10,10 +10,15 @@ import pytz  # 🕒 Ajout pour le fuseau horaire
 products_bp = Blueprint('products', __name__)
 paris_tz = pytz.timezone('Europe/Paris')
 
-@products_bp.route('/')  # ✅ Corrigé : chemin racine pour /products
-def products():
-    produits = Product.query.order_by(Product.updated_at.desc()).all()
-    return render_template('products.html', produits=produits)
+@products_bp.route('/')
+def show_products():
+    products = Product.query.order_by(Product.updated_at.desc()).all()
+    return render_template('products.html', produits=[
+        {
+            **vars(product),
+            "updated_at": product.updated_at.strftime("%d/%m/%Y %H:%M")  # 🕒 Sans décalage
+        } for product in products
+    ])
 
 
 @products_bp.route('/import_json', methods=['POST'])

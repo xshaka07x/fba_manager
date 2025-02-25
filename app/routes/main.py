@@ -16,6 +16,7 @@ def index():
 def dashboard():
     recent_items = Product.query.order_by(Product.updated_at.desc()).limit(10).all()
 
+    # 📅 Affichage de la date/heure exactement comme en BDD
     formatted_items = [
         {
             "name": item.nom,
@@ -25,7 +26,7 @@ def dashboard():
             "profit": f"${item.profit:.2f}",
             "sales_estimation": item.sales_estimation,
             "url": item.url,
-            "scanned_at": item.updated_at.replace(tzinfo=pytz.utc).astimezone(paris_tz).strftime("%d/%m/%Y %H:%M")
+            "scanned_at": item.updated_at.strftime("%d/%m/%Y %H:%M")  # 🕒 Sans décalage
         }
         for item in recent_items
     ]
