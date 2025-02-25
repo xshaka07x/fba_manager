@@ -29,6 +29,7 @@ from mysql.connector import Error
 from app.utils.db import get_db_connection
 from datetime import datetime
 import pytz
+from datetime import timedelta  # 🔥 Ajout nécessaire en haut du fichier
 
 # 🔗 Initialisation Flask
 app = create_app()
@@ -93,7 +94,8 @@ def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, roi, profi
         cursor.execute("SELECT id FROM products WHERE ean = %s AND url = %s", (ean, url))
         result = cursor.fetchone()
         paris_timezone = pytz.timezone("Europe/Paris")
-        updated_at = datetime.now(paris_timezone)
+        updated_at = datetime.now(paris_timezone) + timedelta(hours=1)  # 🕒 ✅ On ajoute 1h ici
+
         if result:
             cursor.execute("""
                 UPDATE products 
