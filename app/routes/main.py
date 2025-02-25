@@ -1,5 +1,5 @@
 # app/routes/main.py
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for  # ✨ Ajout de redirect et url_for
 from app.models import Product
 from datetime import datetime
 
