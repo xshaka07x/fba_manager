@@ -8,7 +8,7 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
     produits = Product.query.order_by(Product.id.desc()).limit(10).all()  # Derniers 10 produits
-    return render_template('index.html', produits=produits)
+    return render_template('dashboard.html', produits=produits)
 
 @main_bp.route('/dashboard')
 def dashboard():
