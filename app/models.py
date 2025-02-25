@@ -1,5 +1,6 @@
 # app/models.py
 from app import db  # ✅ Après correction app.py, cette ligne fonctionnera
+from datetime import datetime
 
 class Product(db.Model):
     __tablename__ = 'products'  # ✅ Forcer le nom exact de la table
