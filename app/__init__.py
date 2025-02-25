@@ -1,3 +1,6 @@
+import pymysql
+pymysql.install_as_MySQLdb()
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from app.config import Config
