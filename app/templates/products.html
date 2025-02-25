@@ -1,46 +1,41 @@
-<!-- templates/products.html -->
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Products List</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #121212; color: #ffffff; }
-        .table { color: #ffffff; }
-        .table th, .table td { border-color: #333333; }
-    </style>
-</head>
-<body>
-    <div class="container mt-5">
-        <h2 class="text-center mb-4">📦 Liste des Produits</h2>
-        <table class="table table-dark table-hover">
-            <thead>
-                <tr>
-                    <th>Nom</th>
-                    <th>Prix (€)</th>
-                    <th>EAN</th>
-                    <th>Prix Amazon (€)</th>
-                    <th>ROI (%)</th>
-                    <th>Profit (€)</th>
-                    <th>Lien</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for product in products %}
-                <tr>
-                    <td>{{ product.nom }}</td>
-                    <td>{{ product.prix }}</td>
-                    <td>{{ product.ean }}</td>
-                    <td>{{ product.prix_amazon or 'N/A' }}</td>
-                    <td>{{ product.roi or 'N/A' }}</td>
-                    <td>{{ product.profit or 'N/A' }}</td>
-                    <td><a href="{{ product.url }}" target="_blank" class="btn btn-outline-light btn-sm">Voir</a></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</body>
-</html>
+{% block title %}Produits - FBA Manager{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">📦 Gestion des Produits</h1>
+    <table class="table table-dark table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Nom</th>
+                <th>EAN</th>
+                <th>Prix Retail</th>
+                <th>Prix Amazon</th>
+                <th>ROI</th>
+                <th>Profit</th>
+                <th>Ventes Estimées</th>
+                <th>Lien</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in produits %}
+            <tr>
+                <th scope="row">{{ loop.index }}</th>
+                <td>{{ product.nom }}</td>
+                <td>{{ product.ean }}</td>
+                <td>${{ product.prix_retail }}</td>
+                <td>${{ product.prix_amazon }}</td>
+                <td>{{ product.roi }}%</td>
+                <td>${{ product.profit }}</td>
+                <td>{{ product.sales_estimation }}</td>
+                <td><a href="{{ product.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
+                <td>{{ product.updated_at.strftime("%d/%m/%Y %H:%M") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
