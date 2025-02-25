@@ -7,21 +7,22 @@
 
 <style>
     .table td, .table th {
-        font-size: 0.9rem; /* Réduction légère de la taille des polices */
-        white-space: nowrap; /* Empêche le texte de passer à la ligne */
+        font-size: 0.9rem; 
+        white-space: nowrap;
     }
-    
     .card-body {
-        overflow-x: auto; /* Ajoute un scroll horizontal si la table déborde */
+        overflow-x: auto;
     }
     .nom-col {
-        max-width: 300px; /* ✅ Largeur maximale ajustable selon tes besoins */
-        white-space: nowrap; /* Empêche le texte de passer à la ligne */
-        overflow: hidden; /* Cache le texte qui dépasse */
-        text-overflow: ellipsis; /* Ajoute "..." si le texte est trop long */
+        max-width: 300px; 
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    
-
+    .roi-low { background-color: rgba(255, 0, 0, 0.2); }
+    .roi-medium { background-color: rgba(144, 238, 144, 0.2); }
+    .roi-high { background-color: rgba(0, 128, 0, 0.2); }
+    .roi-excellent { background-color: rgba(128, 0, 128, 0.2); }
 </style>
 
 <div class="container">
@@ -61,7 +62,7 @@
     <!-- 5 derniers objets scannés -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-dark text-white shadow" style="overflow-x:auto;"> <!-- Scroll horizontal si nécessaire -->
+            <div class="card bg-dark text-white shadow" style="overflow-x:auto;">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5>📝 Derniers Objets Scrapés</h5>
                     <a href="/products" class="btn btn-outline-light btn-sm">Voir tous les produits</a>
@@ -84,11 +85,12 @@
                         <tbody>
                             {% for item in recent_items %}
                             <tr class="
-                                {% if product.roi < 19 %}
+                                {% set roi_value = item.roi | replace('%', '') | float %}
+                                {% if roi_value < 19 %}
                                     roi-low
-                                {% elif product.roi >= 20 and product.roi <= 59 %}
+                                {% elif roi_value >= 20 and roi_value <= 59 %}
                                     roi-medium
-                                {% elif product.roi >= 60 and product.roi <= 80 %}
+                                {% elif roi_value >= 60 and roi_value <= 80 %}
                                     roi-high
                                 {% else %}
                                     roi-excellent
@@ -102,11 +104,10 @@
                                 <td>{{ item.profit }}</td>
                                 <td>{{ item.sales_estimation }}</td>
                                 <td><a href="{{ item.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                                <td>{{ item.scanned_at }}</td> <!-- ✅ Affichage direct -->
-
+                                <td>{{ item.scanned_at }}</td>
                             </tr>
                             {% endfor %}
-                        </tbody>                       
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -114,7 +115,7 @@
     </div>
     
 
-    <!-- Informations clés -->
+    <!-- Informations clés ✅ Gardée comme demandée -->
     <div class="row">
         <div class="col-md-6">
             <div class="card bg-dark text-white shadow">
