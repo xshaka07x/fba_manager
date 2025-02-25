@@ -7,6 +7,8 @@ import os
 from datetime import datetime
 import pytz  # 🕒 Pour la gestion du fuseau horaire
 
+from datetime import timedelta  # ✅ Pour ajouter une heure
+
 products_bp = Blueprint('products', __name__)
 paris_tz = pytz.timezone('Europe/Paris')  # ✅ Fuseau horaire Paris
 
@@ -14,9 +16,9 @@ paris_tz = pytz.timezone('Europe/Paris')  # ✅ Fuseau horaire Paris
 def show_products():
     products = Product.query.order_by(Product.updated_at.desc()).all()
 
-    # ✅ Conversion de updated_at pour chaque produit
+    # ✅ Ajout d'une heure lors de l'affichage
     for product in products:
-        product.updated_at = product.updated_at.astimezone(paris_tz).strftime("%d/%m/%Y %H:%M")
+        product.updated_at = (product.updated_at + timedelta(hours=1)).strftime("%d/%m/%Y %H:%M")
 
     return render_template('products.html', produits=products)
 

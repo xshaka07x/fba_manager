@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template, redirect, url_for  # ✨ Ajout de redirect et url_for
 from app.models import Product
 from datetime import datetime
-
+from datetime import timedelta  # ✅ Pour ajouter une heure
 
 
 main_bp = Blueprint('main', __name__)
@@ -16,7 +16,6 @@ def index():
 def dashboard():
     recent_items = Product.query.order_by(Product.updated_at.desc()).limit(10).all()
 
-    # 📅 Affichage de la date/heure exactement comme en BDD
     formatted_items = [
         {
             "name": item.nom,
@@ -26,9 +25,8 @@ def dashboard():
             "profit": f"${item.profit:.2f}",
             "sales_estimation": item.sales_estimation,
             "url": item.url,
-            "scanned_at": item.updated_at.astimezone(paris_tz).strftime("%d/%m/%Y %H:%M")
-
-
+            # ✅ On ajoute une heure ici
+            "scanned_at": (item.updated_at + timedelta(hours=1)).strftime("%d/%m/%Y %H:%M")
         }
         for item in recent_items
     ]
