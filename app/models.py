@@ -14,6 +14,7 @@ class Product(db.Model):
     sales_estimation = db.Column(db.String(50))
     alerts = db.Column(db.String(255))
     url = db.Column(db.String(500))
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
         return f'<Product {self.nom} - EAN: {self.ean}>'

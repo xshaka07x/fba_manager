@@ -12,17 +12,21 @@ def index():
 
 @main_bp.route('/dashboard')
 def dashboard():
-    """🏠 Route du dashboard principal avec les derniers produits ajoutés."""
-    recent_items = Product.query.order_by(Product.id.desc()).limit(5).all()
-    recent_items_data = [
+    # Récupérer les 10 derniers produits par date de mise à jour
+    recent_items = Product.query.order_by(Product.updated_at.desc()).limit(10).all()
+
+    # Adapter les données pour le template
+    formatted_items = [
         {
             "name": item.nom,
             "sku": item.ean,
-            "price": item.prix_retail,
-            "scanned_at": datetime.now().strftime("%Y-%m-%d")
-        } for item in recent_items
+            "price": item.prix_amazon,
+            "scanned_at": item.updated_at.strftime("%d/%m/%Y %H:%M")
+        }
+        for item in recent_items
     ]
-    return render_template('dashboard.html', recent_items=recent_items_data)
+
+    return render_template('dashboard.html', recent_items=formatted_items)
 
 
 
