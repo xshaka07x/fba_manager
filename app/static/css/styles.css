@@ -1,16 +1,26 @@
-/* 🌈 Styles modernes pour la colorisation des lignes */
+/* 🌈 Styles modernes adaptés au thème sombre */
 .roi-low {
-    background-color: #ffcccc !important; /* Rouge pâle */
+    background-color: rgba(255, 99, 132, 0.2) !important; /* Rouge pâle translucide */
+    color: #ff6384 !important;
 }
 
 .roi-medium {
-    background-color: #d4edda !important; /* Vert clair */
+    background-color: rgba(75, 192, 192, 0.2) !important; /* Vert clair translucide */
+    color: #4bc0c0 !important;
 }
 
 .roi-high {
-    background-color: #a3d9a5 !important; /* Vert foncé */
+    background-color: rgba(54, 162, 235, 0.2) !important; /* Bleu/vert foncé translucide */
+    color: #36a2eb !important;
 }
 
 .roi-excellent {
-    background-color: #e3d4ff !important; /* Violet pâle */
+    background-color: rgba(153, 102, 255, 0.2) !important; /* Violet translucide */
+    color: #9966ff !important;
+}
+
+/* ✨ Ajout d'une transition fluide pour un effet moderne */
+.table-hover tbody tr:hover {
+    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.1) !important;
 }
