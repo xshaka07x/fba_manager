@@ -7,16 +7,13 @@ import os
 
 products_bp = Blueprint('products', __name__)
 
-@products_bp.route('/')
-def show_products():
-    """📦 Affiche la liste de tous les produits stockés dans la BDD."""
-    products = Product.query.all()
-    return render_template('products.html', products=products)
-
+@products_bp.route('/products')
+def products():
+    produits = Product.query.order_by(Product.updated_at.desc()).all()
+    return render_template('products.html', produits=produits)
 
 @products_bp.route('/import_json', methods=['POST'])
 def import_json():
-    """📝 Importe des produits depuis un fichier JSON en évitant les doublons."""
     if 'file' not in request.files:
         return jsonify({'error': '❌ Aucun fichier trouvé'}), 400
 
@@ -31,7 +28,6 @@ def import_json():
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
-            # ✅ Insertion sans doublon grâce à l’EAN
             inserted_count = 0
             for item in data:
                 if not Product.query.filter_by(ean=item.get("EAN")).first():

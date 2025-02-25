@@ -7,15 +7,12 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    produits = Product.query.order_by(Product.id.desc()).limit(10).all()  # Derniers 10 produits
-    return render_template('dashboard.html', produits=produits)
+    return redirect(url_for('main.dashboard'))  # 🚀 Redirection vers /dashboard
 
 @main_bp.route('/dashboard')
 def dashboard():
-    # Récupérer les 10 derniers produits par date de mise à jour
     recent_items = Product.query.order_by(Product.updated_at.desc()).limit(10).all()
 
-    # Adapter les données pour le template avec les nouvelles colonnes
     formatted_items = [
         {
             "name": item.nom,
