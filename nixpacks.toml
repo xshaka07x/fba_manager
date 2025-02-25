@@ -1,14 +1,12 @@
-[phases.setup]
-nixPkgs = ['python310', 'gcc']
+[build]
+nixpkgs = ["python310", "gcc"]
+shell = """
+python -m venv /opt/venv
+export PATH="/opt/venv/bin:$PATH"
+pip install --upgrade pip
+pip install --prefer-binary numpy==1.22.0 pandas==1.5.3
+pip install -r requirements.txt
+"""
 
-[phases.install]
-cmds = [
-  "python -m venv /opt/venv",
-  ". /opt/venv/bin/activate",
-  "pip install --prefer-binary numpy==1.22.0",
-  "pip install --prefer-binary pandas==1.5.3",
-  "pip install -r requirements.txt"
-]
-
-[phases.start]
+[start]
 cmd = "gunicorn app:app"
