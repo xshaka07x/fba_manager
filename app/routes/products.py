@@ -13,12 +13,7 @@ paris_tz = pytz.timezone('Europe/Paris')
 @products_bp.route('/')
 def show_products():
     products = Product.query.order_by(Product.updated_at.desc()).all()
-    return render_template('products.html', produits=[
-        {
-            **vars(product),
-            "updated_at": product.updated_at.strftime("%d/%m/%Y %H:%M")  # 🕒 Sans décalage
-        } for product in products
-    ])
+    return render_template('products.html', produits=products)  # ✅ On passe directement l'objet
 
 
 @products_bp.route('/import_json', methods=['POST'])

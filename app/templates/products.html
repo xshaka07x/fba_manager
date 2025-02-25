@@ -46,7 +46,8 @@
                     <td>${{ product.profit }}</td>
                     <td>{{ product.sales_estimation }}</td>
                     <td><a href="{{ product.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                    <td>{{ product.updated_at.strftime("%d/%m/%Y %H:%M") }}</td>
+                    <td>{{ product.updated_at.strftime("%d/%m/%Y %H:%M") }}</td>  <!-- ✅ Correct -->
+
                 </tr>
                 {% endfor %}
             </tbody>
