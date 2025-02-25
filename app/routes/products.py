@@ -7,10 +7,11 @@ import os
 
 products_bp = Blueprint('products', __name__)
 
-@products_bp.route('/products')
+@products_bp.route('/')  # ✅ Corrigé : chemin racine pour /products
 def products():
     produits = Product.query.order_by(Product.updated_at.desc()).all()
     return render_template('products.html', produits=produits)
+
 
 @products_bp.route('/import_json', methods=['POST'])
 def import_json():
