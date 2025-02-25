@@ -1,0 +1,16 @@
+/* 🌈 Styles modernes pour la colorisation des lignes */
+.roi-low {
+    background-color: #ffcccc !important; /* Rouge pâle */
+}
+
+.roi-medium {
+    background-color: #d4edda !important; /* Vert clair */
+}
+
+.roi-high {
+    background-color: #a3d9a5 !important; /* Vert foncé */
+}
+
+.roi-excellent {
+    background-color: #e3d4ff !important; /* Violet pâle */
+}

@@ -76,7 +76,17 @@
                         </thead>
                         <tbody>
                             {% for item in recent_items %}
-                            <tr>
+                            <tr class="
+                                {% if item.roi | replace('%', '') | float < 19 %}
+                                    roi-low
+                                {% elif item.roi | replace('%', '') | float >= 20 and item.roi | replace('%', '') | float <= 59 %}
+                                    roi-medium
+                                {% elif item.roi | replace('%', '') | float >= 60 and item.roi | replace('%', '') | float <= 80 %}
+                                    roi-high
+                                {% else %}
+                                    roi-excellent
+                                {% endif %}
+                            ">
                                 <th scope="row">{{ loop.index }}</th>
                                 <td>{{ item.name }}</td>
                                 <td>{{ item.sku }}</td>
@@ -88,7 +98,7 @@
                                 <td>{{ item.scanned_at }}</td>
                             </tr>
                             {% endfor %}
-                        </tbody>
+                        </tbody>                        
                     </table>
                 </div>
             </div>

@@ -21,20 +21,33 @@
             </tr>
         </thead>
         <tbody>
-            {% for product in produits %}
-            <tr>
-                <th scope="row">{{ loop.index }}</th>
-                <td>{{ product.nom }}</td>
-                <td>{{ product.ean }}</td>
-                <td>${{ product.prix_retail }}</td>
-                <td>${{ product.prix_amazon }}</td>
-                <td>{{ product.roi }}%</td>
-                <td>${{ product.profit }}</td>
-                <td>{{ product.sales_estimation }}</td>
-                <td><a href="{{ product.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                <td>{{ product.updated_at.strftime("%d/%m/%Y %H:%M") }}</td>
-            </tr>
-            {% endfor %}
+            <tbody>
+                {% for product in produits %}
+                <tr class="
+                    {% if product.roi < 19 %}
+                        roi-low
+                    {% elif product.roi >= 20 and product.roi <= 59 %}
+                        roi-medium
+                    {% elif product.roi >= 60 and product.roi <= 80 %}
+                        roi-high
+                    {% else %}
+                        roi-excellent
+                    {% endif %}
+                ">
+                    <th scope="row">{{ loop.index }}</th>
+                    <td>{{ product.nom }}</td>
+                    <td>{{ product.ean }}</td>
+                    <td>${{ product.prix_retail }}</td>
+                    <td>${{ product.prix_amazon }}</td>
+                    <td>{{ product.roi }}%</td>
+                    <td>${{ product.profit }}</td>
+                    <td>{{ product.sales_estimation }}</td>
+                    <td><a href="{{ product.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
+                    <td>{{ product.updated_at.strftime("%d/%m/%Y %H:%M") }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            
         </tbody>
     </table>
 </div>
