@@ -1,0 +1,38 @@
+[
+    {
+        "Nom": "Twister au meilleur prix | E.Leclerc",
+        "Prix": "14.79 €",
+        "EAN": "5010993624492",
+        "URL": "https://www.e.leclerc/fp/twister-5010993624492",
+        "Prix_Amazon": "14.79",
+        "ROI": "- 70.99%",
+        "Profit": "- € 10.50"
+    },
+    {
+        "Nom": "TopSpin 2K25 - Édition Standard (PS5) au meilleur prix | E.Leclerc",
+        "Prix": "31.25 €",
+        "EAN": "5026555437608",
+        "URL": "https://www.e.leclerc/fp/topspin-2k25-edition-standard-ps5-5026555437608",
+        "Prix_Amazon": "32.98",
+        "ROI": "- 27.46%",
+        "Profit": "- € 8.58"
+    },
+    {
+        "Nom": "Samsung Galaxy Watch7 BT 44mm Vert au meilleur prix | E.Leclerc",
+        "Prix": "279.00 €",
+        "EAN": "8806095654843",
+        "URL": "https://www.e.leclerc/fp/samsung-galaxy-watch7-bt-44mm-vert-8806095654843",
+        "Prix_Amazon": "264.95",
+        "ROI": "- 15.24%",
+        "Profit": "- € 42.53"
+    },
+    {
+        "Nom": "Star Wars : Outlaws (PS5) au meilleur prix | E.Leclerc",
+        "Prix": "39.90 €",
+        "EAN": "3307216284123",
+        "URL": "https://www.e.leclerc/fp/star-wars-outlaws-ps5-3307216284123",
+        "Prix_Amazon": "102.40",
+        "ROI": "98.77%",
+        "Profit": "€ 39.41"
+    }
+]

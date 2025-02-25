@@ -1,0 +1,171 @@
+# compare.py
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from concurrent.futures import ThreadPoolExecutor
+from selenium.common.exceptions import SessionNotCreatedException
+
+import pandas as pd
+import json
+import os
+import re
+import sys
+import time
+import subprocess
+import psutils
+
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from webdriver_manager.chrome import ChromeDriverManager
+import chromedriver_autoinstaller
+
+# 🔄 Installation automatique de ChromeDriver
+chromedriver_autoinstaller.install()
+
+# ⚡ Supprimer tous les processus Chrome/Chromedriver pour éviter les conflits
+def kill_chromedriver_processes():
+    """💀 Tuer uniquement chromedriver.exe si présent."""
+    for proc in psutil.process_iter(['pid', 'name']):
+        if proc.info['name'] == 'chromedriver.exe':
+            try:
+                proc.kill()
+                print(f"✅ chromedriver.exe (PID: {proc.info['pid']}) arrêté.")
+            except Exception as e:
+                print(f"⚠️ Erreur fermeture chromedriver.exe : {e}")
+
+# ⚙️ Configuration Selenium améliorée
+chrome_options = Options()
+chrome_options.add_argument("--headless=new")  # Nouvelle implémentation headless plus stable
+chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+chrome_options.add_argument("--disable-software-rasterizer")
+chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+chrome_options.add_argument("--disable-webgl")
+chrome_options.add_argument("--disable-extensions")
+chrome_options.add_argument(f"--remote-debugging-port=9223")  # Port alternatif
+chrome_options.page_load_strategy = 'eager'
+
+caps = DesiredCapabilities.CHROME
+caps["goog:loggingPrefs"] = {"performance": "ALL"}
+
+# 🚀 Fonction robuste pour démarrer ChromeDriver
+def start_chrome_driver():
+    """🚀 Démarrer Chrome avec gestion robuste et sans GPU."""
+    try:
+        kill_chromedriver_processes()
+        chrome_options = Options()
+        chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--disable-software-rasterizer")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.page_load_strategy = 'eager'
+        return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    except SessionNotCreatedException as e:
+        print(f"❌ Chrome non lancé : {e}")
+        kill_chromedriver_processes()
+        return None
+
+
+# 💡 Fonction principale pour récupérer les données SellerAmp
+def get_selleramp_data(ean, prix_magasin, max_retries=3):
+    """🔍 Scrape SellerAmp avec gestion stable de connexion et délais croissants."""
+    delays = [3, 5, 10]  # ⏳ Augmentation progressive du délai
+
+    for attempt in range(max_retries):
+        try:
+            print(f"⚡ Tentative {attempt + 1} pour {ean}...", flush=True)
+            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+            driver.set_page_load_timeout(30)
+            driver.get('https://sas.selleramp.com/')
+            time.sleep(delays[attempt])  # ⏳ Delai croissant
+
+            WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, "loginform-email")))
+            driver.find_element(By.ID, "loginform-email").send_keys("thomasroger1189@gmail.com")
+            driver.find_element(By.ID, "loginform-password").send_keys("Gintoki62")
+            driver.find_element(By.NAME, "login-button").click()
+
+            WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, 'saslookup-search_term')))
+            search_box = driver.find_element(By.ID, 'saslookup-search_term')
+            search_box.send_keys(ean + Keys.RETURN)
+            time.sleep(3)
+
+            WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, 'qi_sale_price')))
+            prix_amazon = driver.find_element(By.ID, 'qi_sale_price').get_attribute('value')
+            cost_input = driver.find_element(By.ID, 'qi_cost')
+            cost_input.clear()
+            cost_input.send_keys(str(prix_magasin))
+            cost_input.send_keys(Keys.RETURN)
+
+            WebDriverWait(driver, 10).until(lambda d: d.find_element(By.ID, 'qi-roi').text != '- ∞%')
+            roi = driver.find_element(By.ID, 'qi-roi').text
+            profit = driver.find_element(By.ID, 'qi-profit').text
+            driver.quit()
+
+            return prix_amazon, roi, profit
+
+        except Exception as e:
+            print(f"⚠️ Erreur SellerAmp (Tentative {attempt + 1}/{max_retries}) : {e}", flush=True)
+            time.sleep(delays[attempt])
+
+        finally:
+            kill_chromedriver_processes()  # 🔄 Nettoyage ciblé
+
+    return "Non disponible", "Non disponible", "Non disponible"
+
+
+# 📊 Générer les rapports
+def generer_rapport(produits, dossier):
+    """📊 Génère rapport Excel et HTML colorés selon ROI."""
+    df = pd.DataFrame(produits)
+    df = df[df['ROI'] != "Non disponible"]
+    df['ROI'] = pd.to_numeric(df['ROI'].str.replace('%', '', regex=False), errors='coerce')
+    df.dropna(subset=['ROI'], inplace=True)
+
+    # ✅ Rapport Excel
+    excel_path = os.path.join(dossier, 'rapport.xlsx')
+    df.to_excel(excel_path, index=False)
+    print(f"📁 Rapport Excel généré : {excel_path}")
+
+    # 🌐 Rapport HTML
+    html_path = os.path.join(dossier, 'rapport.html')
+    df.style.apply(lambda row: ['background-color: #2fbd61' if row['ROI'] > 40 else '' for _ in row], axis=1).to_html(html_path)
+    print(f"🌐 Rapport HTML généré : {html_path}")
+
+
+# 🔄 Enrichissement des données avec SellerAmp
+def enrichir_avec_selleramp(fichier_produits, dossier_export):
+    """💡 Enrichit données avec SellerAmp sans répétitions et stabilité accrue."""
+    with open(fichier_produits, 'r', encoding='utf-8') as f:
+        produits = json.load(f)
+
+    def process_produit(produit):
+        ean = produit.get('EAN', None)
+        prix_str = re.sub(r'[^\d.,]', '', produit.get('Prix', "0")).replace(",", ".")
+        prix_magasin = float(prix_str) if prix_str else 0.0
+        if ean and prix_magasin > 0:
+            prix_amazon, roi, profit = get_selleramp_data(ean, prix_magasin)
+            if roi != "Non disponible":
+                produit.update({'Prix_Amazon': prix_amazon, 'ROI': roi, 'Profit': profit})
+                return produit
+        return None
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        produits = [p for p in executor.map(process_produit, produits) if p is not None]
+
+    with open(fichier_produits, 'w', encoding='utf-8') as f:
+        json.dump(produits, f, ensure_ascii=False, indent=4)
+
+    generer_rapport(produits, dossier_export)
+    print(f"🎯 Analyse SellerAmp terminée. Rapports sauvegardés dans : {dossier_export}")
+
+# 🚀 Point d'entrée principal
+if __name__ == "__main__":
+    fichier_json = sys.argv[1]
+    dossier_export = sys.argv[2]
+    enrichir_avec_selleramp(fichier_json, dossier_export)
+    kill_chrome_processes()  # ✅ Nettoyage final

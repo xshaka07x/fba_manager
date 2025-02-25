@@ -1,0 +1,29 @@
+[
+    {
+        "Nom": "CONNECT 4 GRID au meilleur prix | E.Leclerc",
+        "Prix": "11.56 €",
+        "EAN": "5010993697601",
+        "URL": "https://www.e.leclerc/fp/connect-4-grid-5010993697601",
+        "Prix_Amazon": "Non disponible",
+        "ROI": "Non disponible",
+        "Profit": "Non disponible"
+    },
+    {
+        "Nom": "Twister au meilleur prix | E.Leclerc",
+        "Prix": "14.79 €",
+        "EAN": "5010993624492",
+        "URL": "https://www.e.leclerc/fp/twister-5010993624492",
+        "Prix_Amazon": "14.79",
+        "ROI": "- 70.99%",
+        "Profit": "- € 10.50"
+    },
+    {
+        "Nom": "TopSpin 2K25 - Édition Standard (PS5) au meilleur prix | E.Leclerc",
+        "Prix": "31.25 €",
+        "EAN": "5026555437608",
+        "URL": "https://www.e.leclerc/fp/topspin-2k25-edition-standard-ps5-5026555437608",
+        "Prix_Amazon": "32.98",
+        "ROI": "- 27.46%",
+        "Profit": "- € 8.58"
+    }
+]
