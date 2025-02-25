@@ -1,3 +1,4 @@
+<!-- templates/products.html -->
 {% extends "base.html" %}
 
 {% block title %}Produits - FBA Manager{% endblock %}
@@ -5,11 +6,12 @@
 {% block content %}
 
 <style>
-    .roi-low { background-color: rgba(255, 0, 0, 0.2); }
-    .roi-medium { background-color: rgba(144, 238, 144, 0.2); }
-    .roi-high { background-color: rgba(0, 128, 0, 0.2); }
-    .roi-excellent { background-color: rgba(128, 0, 128, 0.2); }
-
+    .nom-col {
+        max-width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 </style>
 
 <div class="container mt-4">
@@ -30,35 +32,30 @@
             </tr>
         </thead>
         <tbody>
-            <tbody>
-                {% for product in produits %}
-                <tr class="
-                    {% if product.roi < 19 %}
-                        roi-low
-                    {% elif product.roi >= 20 and product.roi <= 59 %}
-                        roi-medium
-                    {% elif product.roi >= 60 and product.roi <= 80 %}
-                        roi-high
-                    {% else %}
-                        roi-excellent
-                    {% endif %}
-                ">
-                    <th scope="row">{{ loop.index }}</th>
-                    <td>{{ product.nom }}</td>
-                    <td>{{ product.ean }}</td>
-                    <td>${{ product.prix_retail }}</td>
-                    <td>${{ product.prix_amazon }}</td>
-                    <td>{{ product.roi }}%</td>
-                    <td>${{ product.profit }}</td>
-                    <td>{{ product.sales_estimation }}</td>
-                    <td><a href="{{ product.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                    <td>{{ product.updated_at }}</td> <!-- ✅ Affichage direct sans conversion -->
-
-
-                </tr>
-                {% endfor %}
-            </tbody>
-            
+            {% for product in produits %}
+            <tr class="
+                {% if product.roi < 19 %}
+                    roi-low
+                {% elif product.roi >= 20 and product.roi <= 59 %}
+                    roi-medium
+                {% elif product.roi >= 60 and product.roi <= 80 %}
+                    roi-high
+                {% else %}
+                    roi-excellent
+                {% endif %}
+            ">
+                <th scope="row">{{ loop.index }}</th>
+                <td class="nom-col" title="{{ product.nom }}">{{ product.nom }}</td>
+                <td>{{ product.ean }}</td>
+                <td>${{ product.prix_retail }}</td>
+                <td>${{ product.prix_amazon }}</td>
+                <td>{{ product.roi }}%</td>
+                <td>${{ product.profit }}</td>
+                <td>{{ product.sales_estimation }}</td>
+                <td><a href="{{ product.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
+                <td>{{ product.updated_at }}</td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>

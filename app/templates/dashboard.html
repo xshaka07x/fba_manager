@@ -14,10 +14,13 @@
     .card-body {
         overflow-x: auto; /* Ajoute un scroll horizontal si la table déborde */
     }
-    .roi-low { background-color: rgba(255, 0, 0, 0.2); }
-    .roi-medium { background-color: rgba(144, 238, 144, 0.2); }
-    .roi-high { background-color: rgba(0, 128, 0, 0.2); }
-    .roi-excellent { background-color: rgba(128, 0, 128, 0.2); }
+    .nom-col {
+        max-width: 300px; /* ✅ Largeur maximale ajustable selon tes besoins */
+        white-space: nowrap; /* Empêche le texte de passer à la ligne */
+        overflow: hidden; /* Cache le texte qui dépasse */
+        text-overflow: ellipsis; /* Ajoute "..." si le texte est trop long */
+    }
+    
 
 </style>
 
@@ -60,7 +63,7 @@
         <div class="col-12">
             <div class="card bg-dark text-white shadow" style="overflow-x:auto;"> <!-- Scroll horizontal si nécessaire -->
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5>📝 Derniers Objets Scannés</h5>
+                    <h5>📝 Derniers Objets Scrapés</h5>
                     <a href="/products" class="btn btn-outline-light btn-sm">Voir tous les produits</a>
                 </div>
                 <div class="card-body">
@@ -81,18 +84,18 @@
                         <tbody>
                             {% for item in recent_items %}
                             <tr class="
-                                {% if item.roi | replace('%', '') | float < 19 %}
+                                {% if product.roi < 19 %}
                                     roi-low
-                                {% elif item.roi | replace('%', '') | float >= 20 and item.roi | replace('%', '') | float <= 59 %}
+                                {% elif product.roi >= 20 and product.roi <= 59 %}
                                     roi-medium
-                                {% elif item.roi | replace('%', '') | float >= 60 and item.roi | replace('%', '') | float <= 80 %}
+                                {% elif product.roi >= 60 and product.roi <= 80 %}
                                     roi-high
                                 {% else %}
                                     roi-excellent
                                 {% endif %}
                             ">
                                 <th scope="row">{{ loop.index }}</th>
-                                <td>{{ item.name }}</td>
+                                <td class="nom-col" title="{{ item.name }}">{{ item.name }}</td>
                                 <td>{{ item.sku }}</td>
                                 <td>${{ item.prix_retail }}</td>
                                 <td>{{ item.roi }}</td>
