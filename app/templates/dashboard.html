@@ -14,7 +14,11 @@
     .card-body {
         overflow-x: auto; /* Ajoute un scroll horizontal si la table déborde */
     }
-    
+    .roi-low { background-color: rgba(255, 0, 0, 0.2); }
+    .roi-medium { background-color: rgba(144, 238, 144, 0.2); }
+    .roi-high { background-color: rgba(0, 128, 0, 0.2); }
+    .roi-excellent { background-color: rgba(128, 0, 128, 0.2); }
+
 </style>
 
 <div class="container">
@@ -95,7 +99,8 @@
                                 <td>{{ item.profit }}</td>
                                 <td>{{ item.sales_estimation }}</td>
                                 <td><a href="{{ item.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                                <td>{{ item.scanned_at }}</td>
+                                <td>{{ item.scanned_at }}</td> <!-- ✅ Affichage direct -->
+
                             </tr>
                             {% endfor %}
                         </tbody>                       

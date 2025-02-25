@@ -4,7 +4,13 @@
 
 {% block content %}
 
+<style>
+    .roi-low { background-color: rgba(255, 0, 0, 0.2); }
+    .roi-medium { background-color: rgba(144, 238, 144, 0.2); }
+    .roi-high { background-color: rgba(0, 128, 0, 0.2); }
+    .roi-excellent { background-color: rgba(128, 0, 128, 0.2); }
 
+</style>
 
 <div class="container mt-4">
     <h1 class="mb-4">📦 Gestion des Produits</h1>
@@ -46,7 +52,8 @@
                     <td>${{ product.profit }}</td>
                     <td>{{ product.sales_estimation }}</td>
                     <td><a href="{{ product.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                    <td>{{ product.updated_at.strftime("%d/%m/%Y %H:%M") }}</td>  <!-- ✅ Correct -->
+                    <td>{{ product.updated_at }}</td> <!-- ✅ Affichage direct sans conversion -->
+
 
                 </tr>
                 {% endfor %}

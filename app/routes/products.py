@@ -4,11 +4,11 @@ from app.models import Product
 from app import db
 import json
 import os
-import pytz  # 🕒 Ajout pour le fuseau horaire
+
 
 
 products_bp = Blueprint('products', __name__)
-paris_tz = pytz.timezone('Europe/Paris')
+
 
 @products_bp.route('/')
 def show_products():
