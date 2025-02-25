@@ -3,7 +3,10 @@ from flask import Blueprint, render_template, redirect, url_for  # ✨ Ajout de 
 from app.models import Product
 from datetime import datetime
 
+import pytz  # 🕒 Ajout pour la gestion du fuseau horaire
+
 main_bp = Blueprint('main', __name__)
+paris_tz = pytz.timezone('Europe/Paris')
 
 @main_bp.route('/')
 def index():
@@ -22,7 +25,7 @@ def dashboard():
             "profit": f"${item.profit:.2f}",
             "sales_estimation": item.sales_estimation,
             "url": item.url,
-            "scanned_at": item.updated_at.strftime("%d/%m/%Y %H:%M")
+            "scanned_at": item.updated_at.replace(tzinfo=pytz.utc).astimezone(paris_tz).strftime("%d/%m/%Y %H:%M")
         }
         for item in recent_items
     ]
