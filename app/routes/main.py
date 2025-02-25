@@ -15,18 +15,23 @@ def dashboard():
     # Récupérer les 10 derniers produits par date de mise à jour
     recent_items = Product.query.order_by(Product.updated_at.desc()).limit(10).all()
 
-    # Adapter les données pour le template
+    # Adapter les données pour le template avec les nouvelles colonnes
     formatted_items = [
         {
             "name": item.nom,
             "sku": item.ean,
-            "price": item.prix_amazon,
+            "prix_retail": item.prix_retail,
+            "roi": f"{item.roi:.2f}%",
+            "profit": f"${item.profit:.2f}",
+            "sales_estimation": item.sales_estimation,
+            "url": item.url,
             "scanned_at": item.updated_at.strftime("%d/%m/%Y %H:%M")
         }
         for item in recent_items
     ]
 
     return render_template('dashboard.html', recent_items=formatted_items)
+
 
 
 
