@@ -26,7 +26,8 @@ def dashboard():
             "profit": f"${item.profit:.2f}",
             "sales_estimation": item.sales_estimation,
             "url": item.url,
-            "scanned_at": item.updated_at
+            "scanned_at": item.updated_at.astimezone(paris_tz).strftime("%d/%m/%Y %H:%M")
+
 
         }
         for item in recent_items

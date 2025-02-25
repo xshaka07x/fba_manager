@@ -4,17 +4,21 @@ from app.models import Product
 from app import db
 import json
 import os
-
-
+from datetime import datetime
+import pytz  # 🕒 Pour la gestion du fuseau horaire
 
 products_bp = Blueprint('products', __name__)
-
+paris_tz = pytz.timezone('Europe/Paris')  # ✅ Fuseau horaire Paris
 
 @products_bp.route('/')
 def show_products():
     products = Product.query.order_by(Product.updated_at.desc()).all()
-    return render_template('products.html', produits=products)  # ✅ On passe directement l'objet
 
+    # ✅ Conversion de updated_at pour chaque produit
+    for product in products:
+        product.updated_at = product.updated_at.astimezone(paris_tz).strftime("%d/%m/%Y %H:%M")
+
+    return render_template('products.html', produits=products)
 
 @products_bp.route('/import_json', methods=['POST'])
 def import_json():
@@ -46,6 +50,8 @@ def import_json():
                         sales_estimation=item.get("Sales_Estimation", 0),
                         alerts=item.get("Alerts", "Aucune alerte")
                     )
+                    # ✅ Correction de l'heure après création du produit
+                    product.updated_at = datetime.now(paris_tz)  # Heure correcte de Paris
                     db.session.add(product)
                     inserted_count += 1
 
