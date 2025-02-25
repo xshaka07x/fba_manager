@@ -255,25 +255,27 @@ def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
 
 
 
-def cliquer_suivant(driver):
-    """⏭ Clic robuste sur 'Page suivante' avec gestion StaleElementReference."""
+def cliquer_suivant(driver, page_actuelle):
+    """⏭ Clic robuste sur 'Page suivante' et vérifie que la page change vraiment."""
     try:
         suivant = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, ".pagination-next a"))
         )
         driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", suivant)
         time.sleep(1)
+        url_avant = driver.current_url
         suivant.click()
-        WebDriverWait(driver, 10).until(lambda d: d.execute_script("return document.readyState") == "complete")
-        print("➡️ Passage réussi à la page suivante.")
+
+        # 🕑 Attente que l'URL change ou qu'un indicateur de changement apparaisse
+        WebDriverWait(driver, 10).until(
+            lambda d: d.current_url != url_avant or d.find_element(By.CSS_SELECTOR, f".pagination-page.active[data-page='{page_actuelle + 1}']")
+        )
+        print(f"➡️ Passage réussi à la page {page_actuelle + 1}.")
         return True
-    except StaleElementReferenceException:
-        print(f"⚡ Élément obsolète. Tentative de rechargement...", flush=True)
-        driver.refresh()
-        return cliquer_suivant(driver)
     except Exception as e:
-        print(f"❌ Pagination échouée : {e}", flush=True)
+        print(f"❌ Pagination échouée (page {page_actuelle}): {e}", flush=True)
         return False
+
 
 
 
@@ -341,14 +343,20 @@ def get_selleramp_data(ean, prix_magasin, max_retries=2):
     return None, None, None, None, None
 
 
-
-def scrap_toutes_pages(driver, nb_max, max_pages=10):
-    """🌍 Scrape tous les produits avec gestion optimisée de la pagination et du nombre exact de résultats."""
+def scrap_toutes_pages(driver, nb_max, max_pages=40):
+    """🌍 Scrape tous les produits avec gestion de la pagination et suivi du nombre exact de produits récupérés."""
     set_items_per_page(driver)
     produits, urls_traitees = [], set()
     page_num = 1
+    url_precedente = ""
 
     while len(produits) < nb_max and page_num <= max_pages:
+        print(f"\n📄 Scraping - Page {page_num} ({len(produits)}/{nb_max})", flush=True)
+        if driver.current_url == url_precedente:
+            print("⚠️ Boucle détectée sur la même page. Fin du scraping.")
+            break
+        url_precedente = driver.current_url
+
         produits_page = scrap_produits_sur_page(driver, nb_max - len(produits), urls_traitees)
         produits.extend(produits_page)
         print(f"✅ {len(produits)} produit(s) récupéré(s) sur {nb_max}.", flush=True)
@@ -356,15 +364,17 @@ def scrap_toutes_pages(driver, nb_max, max_pages=10):
         if len(produits) >= nb_max:
             break  # 🎯 Objectif atteint
 
-        if not cliquer_suivant(driver):
-            print("⚠️ Plus de pages disponibles.", flush=True)
+        if not cliquer_suivant(driver, page_num):
+            print("⚠️ Plus de pages disponibles ou navigation échouée.", flush=True)
             break
 
         page_num += 1
-        print(f"\n📄 Scraping - Page {page_num} ({len(produits)}/{nb_max})", flush=True)
 
     print(f"\n🏁 Scraping terminé : {len(produits)} produit(s) récupéré(s) sur {nb_max}.", flush=True)
     return produits
+
+
+
 
 def lancer_scraping(url, nb_scrap_total):
     """🚀 Lancement principal du scraping sans JSON."""
