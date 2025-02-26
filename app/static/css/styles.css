@@ -1,5 +1,4 @@
-.roi-low { background: red !important; }
-.roi-medium { background-color: yellow !important; }
-.roi-high { background-color: blue !important; }
-.roi-excellent { background-color: green !important; }
-
+.roi-low { background: red; }
+.roi-medium { background-color: yellow; }
+.roi-high { background-color: blue; }
+.roi-excellent { background-color: green; }

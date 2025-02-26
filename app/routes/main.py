@@ -15,6 +15,8 @@ def index():
 @main_bp.route('/dashboard')
 def dashboard():
     recent_items = Product.query.order_by(Product.updated_at.desc()).limit(10).all()
+    for item in recent_items:
+        print(f"ROI DEBUG: {item.roi} ({type(item.roi)})")
 
     formatted_items = [
         {
