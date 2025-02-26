@@ -21,8 +21,9 @@ def dashboard():
             "name": item.nom,
             "sku": item.ean,
             "prix_retail": item.prix_retail,
-            "roi": f"{item.roi:.2f}%",
-            "profit": f"${item.profit:.2f}",
+            "prix_amazon": item.prix_amazon,  # ✅ Ajouté ici
+            "roi": item.roi,
+            "profit": item.profit,
             "sales_estimation": item.sales_estimation,
             "url": item.url,
             # ✅ On ajoute une heure ici

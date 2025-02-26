@@ -85,12 +85,9 @@
                         </thead>
                         <tbody>
                             {% for item in recent_items %}
-                            <tr>
-                                <td colspan="10">Debug ROI: {{ item.roi }} (type: {{ item.roi.__class__.__name__ }})</td>
-                            </tr>
                             
                             <tr class="
-                                {% set roi_value = item.roi | float %}
+                                {% set roi_value = item.roi | replace('%', '') | float %}
                                 {% if roi_value < 19 %}
                                     roi-low
                                 {% elif roi_value >= 20 and roi_value <= 59 %}
@@ -101,6 +98,7 @@
                                     roi-excellent
                                 {% endif %}
                             ">
+
                                 <th scope="row">{{ loop.index }}</th>
                                 <td class="nom-col" title="{{ item.name }}">{{ item.name }}</td>
                                 <td>{{ item.sku }}</td>
