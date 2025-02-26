@@ -26,6 +26,10 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
+                            <label class="form-label">Nom du Produit</label> <!-- ✅ Champ Nom ajouté -->
+                            <input type="text" name="nom" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">EAN</label>
                             <input type="text" name="ean" class="form-control" required>
                         </div>
@@ -63,6 +67,7 @@
         <thead>
             <tr>
                 <th>#</th>
+                <th>Nom</th> <!-- ✅ Colonne "Nom" ajoutée -->
                 <th>EAN</th>
                 <th>Magasin</th>
                 <th>Prix d'achat</th>
@@ -81,6 +86,7 @@
                 {% endif %}
             ">
                 <th scope="row">{{ loop.index }}</th>
+                <td>{{ item.nom }}</td> <!-- ✅ Affichage du "Nom" ajouté -->
                 <td>{{ item.ean }}</td>
                 <td>{{ item.magasin }}</td>
                 <td>{{ item.prix_achat }}€</td>

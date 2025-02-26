@@ -293,6 +293,43 @@ def get_selleramp_data(ean, prix_magasin, max_retries=2):
 
     return None, None, None, None, None
 
+def scrap_toutes_pages(driver, nb_max_total):
+    produits_scrapes = []
+    page_actuelle = 1
+    eans_page_precedente = set()  # Pour vérifier si la page a bien changé
+    urls_deja_traitees = set()    # Gérer les produits déjà scrapés
+
+    while len(produits_scrapes) < nb_max_total:
+        print(f"\n📄 Scraping - Page {page_actuelle} ({len(produits_scrapes)}/{nb_max_total})")
+
+        # Scraper les produits sur la page actuelle
+        produits_page, eans_page_courante, urls_deja_traitees = scrap_produits_sur_page(
+            driver, nb_max_total - len(produits_scrapes), urls_deja_traitees
+        )
+
+        produits_scrapes.extend(produits_page)
+
+        # Mettre à jour les URLs déjà traitées
+        urls_deja_traitees.update([produit['url'] for produit in produits_page])
+
+        print(f"✅ {len(produits_scrapes)} produit(s) récupéré(s) sur {nb_max_total}.")
+
+        # Si l'objectif est atteint, on arrête
+        if len(produits_scrapes) >= nb_max_total:
+            print("🎯 Objectif de scraping atteint.")
+            break
+
+        # Essayer de passer à la page suivante
+        if cliquer_suivant(driver, page_actuelle, eans_page_precedente):
+            page_actuelle += 1
+            eans_page_precedente = eans_page_courante.copy()  # MAJ des EANs pour la vérification sur la prochaine page
+        else:
+            print("⚠️ Plus de pages disponibles ou navigation échouée.")
+            break
+
+    return produits_scrapes
+
+
 
 def cliquer_suivant(driver, page_actuelle, eans_page_precedente):
     try:
@@ -328,40 +365,33 @@ def ean_existe_deja(ean):
         return False
 
 
-def scrap_toutes_pages(driver, nb_max_total):
-    produits_scrapes = []
-    page_actuelle = 1
-    eans_page_precedente = set()  # Pour vérifier si la page a bien changé
-    urls_deja_traitees = set()    # Gérer les produits déjà scrapés
+def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
+    """🔎 Scrape les produits de la page en cours sans doublons jusqu'au quota demandé."""
+    produits = []
+    scroll_page(driver, max_scrolls=15, wait_time=1)
+    produits_urls = [
+        a.get_attribute('href') for a in driver.find_elements(By.CSS_SELECTOR, 'a.product-card-link')
+        if a.get_attribute('href') not in urls_deja_traitees
+    ]
 
-    while len(produits_scrapes) < nb_max_total:
-        print(f"\n📄 Scraping - Page {page_actuelle} ({len(produits_scrapes)}/{nb_max_total})")
+    print(f"🔍 {len(produits_urls)} produits trouvés sur cette page.")
+    eans_page_courante = set()  # 🆕 Ajout pour retourner les EANs
 
-        # Scraper les produits sur la page actuelle
-        produits_page, eans_page_courante = scrap_produits_sur_page(
-            driver, nb_max_total - len(produits_scrapes), urls_deja_traitees
-        )
-        produits_scrapes.extend(produits_page)
-
-        # Mettre à jour les URLs déjà traitées
-        urls_deja_traitees.update([produit['url'] for produit in produits_page])
-
-        print(f"✅ {len(produits_scrapes)} produit(s) récupéré(s) sur {nb_max_total}.")
-
-        # Si l'objectif est atteint, on arrête
-        if len(produits_scrapes) >= nb_max_total:
-            print("🎯 Objectif de scraping atteint.")
+    for url in produits_urls:
+        if len(produits) >= nb_max:
             break
+        try:
+            produit = extraire_details_produit(driver, url, timeout_sec=3)
+            if produit:
+                produits.append(produit)
+                urls_deja_traitees.add(url)
+                eans_page_courante.add(produit['EAN'])  # 🆕 Enregistrement des EANs
+                print(f"✅ [SCRAPER] Produit {produit['Nom']} enrichi et sauvegardé.")
+        except Exception as e:
+            print(f"⚠️ Produit ignoré suite à une erreur : {e}", flush=True)
 
-        # Essayer de passer à la page suivante
-        if cliquer_suivant(driver, page_actuelle, eans_page_precedente):
-            page_actuelle += 1
-            eans_page_precedente = eans_page_courante.copy()  # MAJ des EANs pour la vérification sur la prochaine page
-        else:
-            print("⚠️ Plus de pages disponibles ou navigation échouée.")
-            break
-
-    return produits_scrapes
+    # ✅ Retourner les trois éléments attendus
+    return produits, eans_page_courante, urls_deja_traitees
 
 
 
