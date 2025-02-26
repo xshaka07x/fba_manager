@@ -390,36 +390,12 @@ def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
         except Exception as e:
             print(f"⚠️ Produit ignoré suite à une erreur : {e}", flush=True)
 
-    # 🔄 Ajoute cette ligne pour retourner trois valeurs attendues
-    eans_page_courante = {p['EAN'] for p in produits if 'EAN' in p}  # Extraire les EANs de la page
+    eans_page_courante = {p['EAN'] for p in produits if 'EAN' in p}
     return produits, eans_page_courante, urls_deja_traitees
 
 
 
-def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
-    """🔎 Scrape les produits de la page en cours sans doublons jusqu'au quota demandé."""
-    produits = []
-    scroll_page(driver, max_scrolls=15, wait_time=1)
-    produits_urls = [
-        a.get_attribute('href') for a in driver.find_elements(By.CSS_SELECTOR, 'a.product-card-link')
-        if a.get_attribute('href') not in urls_deja_traitees
-    ]
 
-    print(f"🔍 {len(produits_urls)} produits trouvés sur cette page.")
-
-    for url in produits_urls:
-        if len(produits) >= nb_max:
-            break
-        try:
-            produit = extraire_details_produit(driver, url, timeout_sec=3)
-            if produit:
-                produits.append(produit)
-                urls_deja_traitees.add(url)
-                print(f"✅ [SCRAPER] Produit {produit['Nom']} enrichi et sauvegardé.")
-        except Exception as e:
-            print(f"⚠️ Produit ignoré suite à une erreur : {e}", flush=True)
-
-    return produits
 
 
 
