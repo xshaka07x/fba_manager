@@ -85,6 +85,10 @@
                         </thead>
                         <tbody>
                             {% for item in recent_items %}
+                            <tr>
+                                <td colspan="10">Debug ROI: {{ item.roi }} (type: {{ item.roi.__class__.__name__ }})</td>
+                            </tr>
+                            
                             <tr class="
                                 {% set roi_value = item.roi | float %}
                                 {% if roi_value < 19 %}
@@ -102,7 +106,7 @@
                                 <td>{{ item.sku }}</td>
                                 <td>{{ item.prix_retail }}€</td>
                                 <td>{{ item.prix_amazon if item.prix_amazon else 'N/A' }}€</td>
-                                <td>{{ item.roi }}%</td>
+                                <td>{{ item.roi }}</td>
                                 <td>{{ item.profit }}€</td>
                                 <td>{{ item.sales_estimation }}</td>
                                 <td><a href="{{ item.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
