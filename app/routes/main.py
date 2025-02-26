@@ -70,3 +70,27 @@ def update_stock(stock_id):
         db.session.commit()
     return redirect(url_for('main.stock'))
 
+# ✅ Nouvelle route pour l'ajout de produit
+@main_bp.route('/add_stock', methods=['POST'])
+def add_stock():
+    ean = request.form.get('ean')
+    magasin = request.form.get('magasin')
+    prix_achat = float(request.form.get('prix_achat'))
+    date_achat = datetime.strptime(request.form.get('date_achat'), "%Y-%m-%d")
+    quantite = int(request.form.get('quantite'))
+    facture_url = request.form.get('facture_url') or None
+
+    nouveau_stock = Stock(
+        ean=ean,
+        magasin=magasin,
+        prix_achat=prix_achat,
+        date_achat=date_achat,
+        quantite=quantite,
+        facture_url=facture_url
+    )
+
+    db.session.add(nouveau_stock)
+    db.session.commit()
+
+    return redirect(url_for('main.stock'))
+
