@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for  # ✨ Ajout de 
 from app.models import Product
 from datetime import datetime
 from datetime import timedelta  # ✅ Pour ajouter une heure
-from app.models import Product, Stock  # ✅ Ajoute Stock ici
+
 
 main_bp = Blueprint('main', __name__)
 from app import db
@@ -55,7 +55,10 @@ def analytics():
 
 @main_bp.route('/stock')
 def stock():
+    from app.models import Product, Stock  # ✅ Vérifie que Stock est bien importé
+
     stock_items = db.session.query(Stock).order_by(Stock.date_achat.desc()).all()
+
     return render_template('stock.html', stock_items=stock_items)
 
 
