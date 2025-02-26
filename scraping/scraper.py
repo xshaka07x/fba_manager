@@ -256,23 +256,35 @@ def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
 
 
 def cliquer_suivant(driver, page_actuelle):
-    """⏭ Clic sur 'Page suivante' avec attente du chargement de la nouvelle page."""
+    """⏭ Clic robuste sur 'Page suivante' avec vérification que la page a bien changé."""
     try:
+        print(f"➡️ Tentative de passage à la page {page_actuelle + 1}...")
+
+        # Sauvegarde des produits avant clic
+        produits_avant = set([a.get_attribute('href') for a in driver.find_elements(By.CSS_SELECTOR, 'a.product-card-link')])
+
+        # Localisation et clic sur le bouton "Suivant"
         suivant = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, ".pagination-next a"))
         )
         driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", suivant)
         time.sleep(1)
-        suivant.click()
+        driver.execute_script("arguments[0].click();", suivant)  # Clic JS plus fiable
 
+        # 🔄 Attente que la page suivante charge de nouveaux produits
         WebDriverWait(driver, 10).until(
-            lambda d: d.execute_script("return document.readyState") == "complete"
+            lambda d: set([a.get_attribute('href') for a in d.find_elements(By.CSS_SELECTOR, 'a.product-card-link')]) != produits_avant
         )
-        print(f"➡️ Passage réussi à la page {page_actuelle + 1}.")
+
+        print(f"✅ Passage réussi à la page {page_actuelle + 1}.")
         return True
+
+    except TimeoutException:
+        print(f"⚠️ Timeout : Pas de nouveaux produits détectés à la page {page_actuelle + 1}.")
     except Exception as e:
-        print(f"❌ Pagination échouée (page {page_actuelle}) : {e}", flush=True)
+        print(f"❌ Erreur lors du passage à la page {page_actuelle + 1} : {e}", flush=True)
     return False
+
 
 
 
@@ -342,7 +354,7 @@ def get_selleramp_data(ean, prix_magasin, max_retries=2):
 
 
 def scrap_toutes_pages(driver, nb_max, max_pages=10):
-    """🌍 Scrape tous les produits sur toutes les pages avec pagination fonctionnelle."""
+    """🌍 Scrape tous les produits en gérant correctement la pagination."""
     set_items_per_page(driver)
     produits, urls_traitees = [], set()
     page_num = 1
@@ -352,12 +364,12 @@ def scrap_toutes_pages(driver, nb_max, max_pages=10):
 
         produits_page = scrap_produits_sur_page(driver, nb_max - len(produits), urls_traitees)
         produits.extend(produits_page)
-
         print(f"✅ {len(produits)} produit(s) récupéré(s) sur {nb_max}.", flush=True)
 
         if len(produits) >= nb_max:
             break  # 🎯 Objectif atteint
 
+        # 🔄 Passage à la page suivante
         if not cliquer_suivant(driver, page_num):
             print("⚠️ Plus de pages disponibles ou navigation échouée.", flush=True)
             break
