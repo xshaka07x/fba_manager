@@ -86,12 +86,11 @@
                         <tbody>
                             {% for item in recent_items %}
                             <tr class="
-                                {% set roi_value = item.roi | replace('%', '') | float %}
-                                {% if roi_value < 19 %}
+                                {% if item.roi < 19 %}
                                     roi-low
                                 {% elif item.roi >= 20 and item.roi <= 59 %}
                                     roi-medium
-                                {% elif item.roi >= 60 and item.roi <= 80 %}
+                                {% elif item.roi >= 60 and item.roi <= 79 %}
                                     roi-high
                                 {% else %}
                                     roi-excellent
@@ -101,7 +100,7 @@
                                 <td class="nom-col" title="{{ item.name }}">{{ item.name }}</td>
                                 <td>{{ item.sku }}</td>
                                 <td>{{ item.prix_retail }}€</td>
-                                <td>{{ item.prix_amazon if item.prix_amazon else 'N/A' }}€</td> <!-- ✅ Prix Amazon affiché ici -->
+                                <td>{{ item.prix_amazon if item.prix_amazon else 'N/A' }}€</td>
                                 <td>{{ item.roi }}%</td>
                                 <td>{{ item.profit }}€</td>
                                 <td>{{ item.sales_estimation }}</td>
@@ -111,7 +110,7 @@
                                 </td>
                             </tr>
                             {% endfor %}
-                        </tbody>                     
+                        </tbody>                   
                     </table>
                 </div>
             </div>
