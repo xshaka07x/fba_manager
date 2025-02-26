@@ -295,30 +295,23 @@ def get_selleramp_data(ean, prix_magasin, max_retries=2):
 
 
 def cliquer_suivant(driver, page_actuelle, eans_page_precedente):
-    """⏭ Clic robuste sur 'Page suivante' et vérifie que la liste des EAN change bien."""
     try:
-        print(f"➡️ Tentative de passage à la page suivante...")
-        suivant = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "a[aria-label=' page']"))
+        bouton_suivant = WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, 'a[aria-label=" page"]'))
         )
-        driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", suivant)
-        time.sleep(1)
+        bouton_suivant.click()
+        print(f"➡️ Passage à la page {page_actuelle + 1}...")
 
-        produits_avant = set([a.get_attribute('href') for a in driver.find_elements(By.CSS_SELECTOR, 'a.product-card-link')])
-
-        # ✅ Clic via JS (plus robuste que .click())
-        driver.execute_script("arguments[0].click();", suivant)
-
+        # Attente jusqu'à ce que les EANs changent, preuve que la page a bien été chargée
         WebDriverWait(driver, 10).until(
-            lambda d: set([a.get_attribute('href') for a in d.find_elements(By.CSS_SELECTOR, 'a.product-card-link')]) != produits_avant
+            lambda d: set(recuperer_eans(d)) != eans_page_precedente
         )
-        print(f"➡️ Passage réussi à la page {page_actuelle + 1}.")
         return True
-    except TimeoutException:
-        print(f"⚠️ Timeout : Les nouveaux produits n'ont pas chargé pour la page {page_actuelle + 1}.")
     except Exception as e:
-        print(f"❌ Pagination échouée (page {page_actuelle}) : {e}", flush=True)
-    return False
+        print(f"⚠️ Erreur lors du changement de page : {e}")
+        return False
+
+
 
 def ean_existe_deja(ean):
     """🔍 Vérifie si un produit avec cet EAN existe déjà dans la base de données."""
@@ -335,32 +328,35 @@ def ean_existe_deja(ean):
         return False
 
 
-def scrap_toutes_pages(driver, nb_max, max_pages=10):
-    """🌍 Scrape jusqu'à atteindre nb_max ou jusqu'à ce qu'il n'y ait plus de pages."""
-    set_items_per_page(driver)
-    produits, urls_traitees = [], set()
-    page_num = 1
+def scrap_toutes_pages(driver, nb_max_total):
+    produits_scrapes = []
+    page_actuelle = 1
+    eans_page_precedente = set()  # Pour vérifier si la page a bien changé
 
-    while len(produits) < nb_max and page_num <= max_pages:
-        print(f"\n📄 Scraping - Page {page_num} ({len(produits)}/{nb_max})", flush=True)
+    while len(produits_scrapes) < nb_max_total:
+        print(f"\n📄 Scraping - Page {page_actuelle} ({len(produits_scrapes)}/{nb_max_total})")
 
-        produits_page = scrap_produits_sur_page(driver, nb_max - len(produits), urls_traitees)
-        produits.extend(produits_page)
-        print(f"✅ {len(produits)} produit(s) récupéré(s) sur {nb_max}.", flush=True)
+        # Scraper les produits sur la page actuelle
+        produits_page, eans_page_courante = scrap_produits_sur_page(driver, nb_max_total - len(produits_scrapes))
+        produits_scrapes.extend(produits_page)
 
-        if len(produits) >= nb_max:
-            print(f"🎯 Objectif de {nb_max} produits atteint.")
+        print(f"✅ {len(produits_scrapes)} produit(s) récupéré(s) sur {nb_max_total}.")
+
+        # Si l'objectif est atteint, on arrête
+        if len(produits_scrapes) >= nb_max_total:
+            print("🎯 Objectif de scraping atteint.")
             break
 
-        # Si tous les produits visibles ont été traités mais quota non atteint, tenter une pagination
-        if not cliquer_suivant(driver):
+        # Essayer de passer à la page suivante
+        if cliquer_suivant(driver, page_actuelle, eans_page_precedente):
+            page_actuelle += 1
+            eans_page_precedente = eans_page_courante.copy()  # MAJ des EANs pour la vérification sur la prochaine page
+        else:
             print("⚠️ Plus de pages disponibles ou navigation échouée.")
             break
 
-        page_num += 1
+    return produits_scrapes
 
-    print(f"\n🏁 Scraping terminé : {len(produits)} produit(s) récupéré(s) sur {nb_max}.", flush=True)
-    return produits
 
 
 def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):

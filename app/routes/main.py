@@ -55,13 +55,13 @@ def analytics():
 
 @main_bp.route('/stock')
 def stock():
-    stock_items = db.session.query(Stock).order_by(Stock.date_achat.desc()).all()
+    stock_items = db.session.query(stock).order_by(stock.date_achat.desc()).all()
     return render_template('stock.html', stock_items=stock_items)
 
 
 @main_bp.route('/update_stock/<int:stock_id>', methods=['POST'])
 def update_stock(stock_id):
-    stock_item = db.session.query(Stock).get(stock_id)
+    stock_item = db.session.query(stock).get(stock_id)
     if stock_item:
         stock_item.statut = request.form.get('statut')
         db.session.commit()
