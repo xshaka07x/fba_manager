@@ -1,7 +1,8 @@
-.roi-low { background-color: rgba(255, 0, 0, 0.2) !important; }
-.roi-medium { background-color: rgba(144, 238, 144, 0.2) !important; }
-.roi-high { background-color: rgba(0, 128, 0, 0.2) !important; }
-.roi-excellent { background-color: rgba(128, 0, 128, 0.2) !important; }
+.roi-low { background-color: rgba(255, 0, 0, 0.4) !important; }
+.roi-medium { background-color: rgba(144, 238, 144, 0.4) !important; }
+.roi-high { background-color: rgba(0, 128, 0, 0.4) !important; }
+.roi-excellent { background-color: rgba(128, 0, 128, 0.4) !important; }
+
 .table-dark {
-    --bs-table-color: inherit !important; /* Ou supprime la valeur */
+    --bs-table-bg: inherit !important; /* Ou supprime la valeur */
 }
