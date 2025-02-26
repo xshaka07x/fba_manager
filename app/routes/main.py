@@ -26,7 +26,7 @@ def dashboard():
             "sales_estimation": item.sales_estimation,
             "url": item.url,
             # ✅ On ajoute une heure ici
-            "scanned_at": (item.updated_at + timedelta(hours=1)).strftime("%d/%m/%Y %H:%M")
+            "scanned_at": datetime.strptime(item.updated_at + timedelta(hours=1), "%Y-%m-%d %H:%M:%S") if isinstance(item.updated_at, str) else item.updated_at
         }
         for item in recent_items
     ]
