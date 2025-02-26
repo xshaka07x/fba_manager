@@ -15,30 +15,25 @@ def index():
 
 @main_bp.route('/dashboard')
 def dashboard():
-    # ✅ S'assurer que les deux listes retournent des objets et non des dicts
+    # Récupération des 5 derniers produits scrapés triés par date
     recent_items = db.session.query(Product).order_by(Product.updated_at.desc()).limit(5).all()
-    top_roi_items = db.session.query(Product).order_by(Product.roi.desc()).limit(10).all()
 
-    
-    formatted_items = [
-        {
-            "name": item.nom,
-            "sku": item.ean,
-            "prix_retail": item.prix_retail,
-            "prix_amazon": item.prix_amazon,  # ✅ Ajouté ici
-            "roi": item.roi,
-            "profit": item.profit,
-            "sales_estimation": item.sales_estimation,
-            "url": item.url,
-            # ✅ On ajoute une heure ici
-            "scanned_at": datetime.strptime(item.updated_at + timedelta(hours=1), "%Y-%m-%d %H:%M:%S") if isinstance(item.updated_at, str) else item.updated_at
-        }
-        for item in recent_items
-    ]
+    # Formatage des données pour éviter les erreurs dans le template
+    formatted_items = []
+    for item in recent_items:
+        formatted_items.append({
+            'nom': item.nom,
+            'ean': item.ean,
+            'prix_retail': item.prix_retail,
+            'prix_amazon': item.prix_amazon,
+            'roi': item.roi,
+            'profit': item.profit,
+            'sales_estimation': item.sales_estimation,
+            'url': item.url,
+            'updated_at': item.updated_at.strftime("%d/%m/%y") if item.updated_at else 'N/A'
+        })
 
-
-
-    return render_template('dashboard.html',top_roi_items=top_roi_items, recent_items=formatted_items)
+    return render_template('dashboard.html', recent_items=formatted_items)
 
 
 

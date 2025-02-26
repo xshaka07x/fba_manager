@@ -364,6 +364,7 @@ def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
 
 
 
+
 def lancer_scraping(url, nb_scrap_total):
     """🚀 Lancement principal du scraping sans JSON."""
     try:
