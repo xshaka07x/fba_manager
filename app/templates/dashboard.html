@@ -59,12 +59,13 @@
         </div>
     </div>
 
-    <!-- Tableau des 10 meilleurs ROI -->
+    <!-- 5 derniers objets scannés -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-dark text-white shadow">
-                <div class="card-header">
-                    <h5>🏆 Top 10 Produits avec le Meilleur ROI</h5>
+            <div class="card bg-dark text-white shadow" style="overflow-x:auto;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>📝 Derniers Objets Scrapés</h5>
+                    <a href="/products" class="btn btn-outline-light btn-sm">Voir tous les produits</a>
                 </div>
                 <div class="card-body">
                     <table class="table table-dark table-hover table-sm">
@@ -74,61 +75,7 @@
                                 <th>Nom</th>
                                 <th>EAN</th>
                                 <th>Prix Retail</th>
-                                <th>Prix Amazon</th>
-                                <th>ROI</th>
-                                <th>Profit</th>
-                                <th>Ventes Estimées</th>
-                                <th>Lien</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in top_roi_items %}
-                            <tr class="
-                                {% set roi_value = item.roi | float %}
-                                {% if roi_value < 19 %} roi-low
-                                {% elif roi_value >= 20 and roi_value <= 59 %} roi-medium
-                                {% elif roi_value >= 60 and roi_value <= 79 %} roi-high
-                                {% else %} roi-excellent
-                                {% endif %}
-                            ">
-                                <th scope="row">{{ loop.index }}</th>
-                                <td class="nom-col" title="{{ item.name }}">{{ item.name }}</td>
-                                <td>{{ item.sku }}</td>
-                                <td>{{ item.prix_retail }}€</td>
-                                <td>{{ item.prix_amazon if item.prix_amazon else 'N/A' }}€</td>
-                                <td>{{ item.roi }}</td>
-                                <td>{{ item.profit }}€</td>
-                                <td>{{ item.sales_estimation }}</td>
-                                <td><a href="{{ item.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                                <td data-order="{{ item.updated_at }}">{{ item.updated_at.strftime("%d/%m/%y") }}</td>
-
-
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tableau des 5 derniers objets scrapés -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-dark text-white shadow">
-                <div class="card-header">
-                    <h5>📝 5 Derniers Objets Scrapés</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-dark table-hover table-sm">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Nom</th>
-                                <th>EAN</th>
-                                <th>Prix Retail</th>
-                                <th>Prix Amazon</th>
+                                <th>Prix Amazon</th> <!-- ✅ Ajouté ici -->
                                 <th>ROI</th>
                                 <th>Profit</th>
                                 <th>Ventes Estimées</th>
@@ -138,14 +85,21 @@
                         </thead>
                         <tbody>
                             {% for item in recent_items %}
+                            
                             <tr class="
-                                {% set roi_value = item.roi | float %}
-                                {% if roi_value < 19 %} roi-low
-                                {% elif roi_value >= 20 and roi_value <= 59 %} roi-medium
-                                {% elif roi_value >= 60 and roi_value <= 79 %} roi-high
-                                {% else %} roi-excellent
+                                {% set roi_value = item.roi | replace('%', '') | float %}
+                                {% if roi_value < 19 %}
+                                    roi-low
+                                {% elif roi_value >= 20 and roi_value <= 59 %}
+                                    roi-medium
+                                {% elif roi_value >= 60 and roi_value <= 79 %}
+                                    roi-high
+                                {% else %}
+                                    roi-excellent
                                 {% endif %}
                             ">
+
+
                                 <th scope="row">{{ loop.index }}</th>
                                 <td class="nom-col" title="{{ item.name }}">{{ item.name }}</td>
                                 <td>{{ item.sku }}</td>
@@ -155,9 +109,9 @@
                                 <td>{{ item.profit }}€</td>
                                 <td>{{ item.sales_estimation }}</td>
                                 <td><a href="{{ item.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                                <td data-order="{{ item.updated_at }}">{{ item.updated_at.strftime("%d/%m/%y") }}</td>
-
-
+                                <td data-order="{{ item.scanned_at }}">
+                                    {{ item.scanned_at.strftime("%d/%m/%y") }}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>                                       

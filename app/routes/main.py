@@ -54,3 +54,7 @@ def settings():
 def analytics():
     """📈 Route de la page analytique."""
     return render_template('analytics.html')
+
+
+
+
