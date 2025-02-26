@@ -332,13 +332,19 @@ def scrap_toutes_pages(driver, nb_max_total):
     produits_scrapes = []
     page_actuelle = 1
     eans_page_precedente = set()  # Pour vérifier si la page a bien changé
+    urls_deja_traitees = set()    # Gérer les produits déjà scrapés
 
     while len(produits_scrapes) < nb_max_total:
         print(f"\n📄 Scraping - Page {page_actuelle} ({len(produits_scrapes)}/{nb_max_total})")
 
         # Scraper les produits sur la page actuelle
-        produits_page, eans_page_courante = scrap_produits_sur_page(driver, nb_max_total - len(produits_scrapes))
+        produits_page, eans_page_courante = scrap_produits_sur_page(
+            driver, nb_max_total - len(produits_scrapes), urls_deja_traitees
+        )
         produits_scrapes.extend(produits_page)
+
+        # Mettre à jour les URLs déjà traitées
+        urls_deja_traitees.update([produit['url'] for produit in produits_page])
 
         print(f"✅ {len(produits_scrapes)} produit(s) récupéré(s) sur {nb_max_total}.")
 
