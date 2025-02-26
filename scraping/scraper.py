@@ -225,65 +225,29 @@ def enregistrer_produit(produit):
 
 
 
-def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
-    """🔎 Scrape les produits en évitant les doublons, en maximisant les résultats avant de passer à la page suivante."""
-    produits = []
-    while len(produits) < nb_max:
-        scroll_page(driver, max_scrolls=15, wait_time=1)
-        produits_urls = [
-            a.get_attribute('href') for a in driver.find_elements(By.CSS_SELECTOR, 'a.product-card-link')
-            if a.get_attribute('href') not in urls_deja_traitees
-        ]
-
-        if not produits_urls:
-            break  # 💡 Aucun autre produit sur la page
-
-        for url in produits_urls:
-            if len(produits) >= nb_max:
-                break
-            try:
-                produit = extraire_details_produit(driver, url, timeout_sec=3)
-                if produit:
-                    produits.append(produit)
-                    urls_deja_traitees.add(url)
-                    print(f"✅ [SCRAPER] Produit {produit['Nom']} enrichi et sauvegardé.")
-            except Exception as e:
-                print(f"⚠️ Produit ignoré suite à une erreur : {e}", flush=True)
-
-    return produits
 
 
 
 
-def cliquer_suivant(driver, page_actuelle):
-    """⏭ Clic robuste sur 'Page suivante' avec vérification que la page a bien changé."""
+
+def cliquer_suivant(driver):
+    """⏭ Clic sur le bouton 'page suivante' si disponible, sinon retourne False."""
     try:
-        print(f"➡️ Tentative de passage à la page {page_actuelle + 1}...")
-
-        # Sauvegarde des produits avant clic
-        produits_avant = set([a.get_attribute('href') for a in driver.find_elements(By.CSS_SELECTOR, 'a.product-card-link')])
-
-        # Localisation et clic sur le bouton "Suivant"
-        suivant = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, ".pagination-next a"))
+        print("➡️ Tentative de passage à la page suivante...")
+        bouton_suivant = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, 'a[aria-label=" page"]'))
         )
-        driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", suivant)
+        driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", bouton_suivant)
         time.sleep(1)
-        driver.execute_script("arguments[0].click();", suivant)  # Clic JS plus fiable
-
-        # 🔄 Attente que la page suivante charge de nouveaux produits
+        driver.execute_script("arguments[0].click();", bouton_suivant)
         WebDriverWait(driver, 10).until(
-            lambda d: set([a.get_attribute('href') for a in d.find_elements(By.CSS_SELECTOR, 'a.product-card-link')]) != produits_avant
+            lambda d: d.execute_script("return document.readyState") == "complete"
         )
-
-        print(f"✅ Passage réussi à la page {page_actuelle + 1}.")
+        print("✅ Passage réussi à la page suivante.")
         return True
-
-    except TimeoutException:
-        print(f"⚠️ Timeout : Pas de nouveaux produits détectés à la page {page_actuelle + 1}.")
     except Exception as e:
-        print(f"❌ Erreur lors du passage à la page {page_actuelle + 1} : {e}", flush=True)
-    return False
+        print(f"⚠️ Aucun bouton 'page suivante' trouvé ou clic échoué : {e}")
+        return False
 
 
 
@@ -354,7 +318,7 @@ def get_selleramp_data(ean, prix_magasin, max_retries=2):
 
 
 def scrap_toutes_pages(driver, nb_max, max_pages=10):
-    """🌍 Scrape tous les produits en gérant correctement la pagination."""
+    """🌍 Scrape jusqu'à atteindre nb_max ou jusqu'à ce qu'il n'y ait plus de pages."""
     set_items_per_page(driver)
     produits, urls_traitees = [], set()
     page_num = 1
@@ -367,11 +331,12 @@ def scrap_toutes_pages(driver, nb_max, max_pages=10):
         print(f"✅ {len(produits)} produit(s) récupéré(s) sur {nb_max}.", flush=True)
 
         if len(produits) >= nb_max:
-            break  # 🎯 Objectif atteint
+            print(f"🎯 Objectif de {nb_max} produits atteint.")
+            break
 
-        # 🔄 Passage à la page suivante
-        if not cliquer_suivant(driver, page_num):
-            print("⚠️ Plus de pages disponibles ou navigation échouée.", flush=True)
+        # Si tous les produits visibles ont été traités mais quota non atteint, tenter une pagination
+        if not cliquer_suivant(driver):
+            print("⚠️ Plus de pages disponibles ou navigation échouée.")
             break
 
         page_num += 1
@@ -380,7 +345,31 @@ def scrap_toutes_pages(driver, nb_max, max_pages=10):
     return produits
 
 
- 
+
+ def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
+    """🔎 Scrape les produits de la page en cours sans doublons jusqu'au quota demandé."""
+    produits = []
+    scroll_page(driver, max_scrolls=15, wait_time=1)
+    produits_urls = [
+        a.get_attribute('href') for a in driver.find_elements(By.CSS_SELECTOR, 'a.product-card-link')
+        if a.get_attribute('href') not in urls_deja_traitees
+    ]
+
+    print(f"🔍 {len(produits_urls)} produits trouvés sur cette page.")
+
+    for url in produits_urls:
+        if len(produits) >= nb_max:
+            break
+        try:
+            produit = extraire_details_produit(driver, url, timeout_sec=3)
+            if produit:
+                produits.append(produit)
+                urls_deja_traitees.add(url)
+                print(f"✅ [SCRAPER] Produit {produit['Nom']} enrichi et sauvegardé.")
+        except Exception as e:
+            print(f"⚠️ Produit ignoré suite à une erreur : {e}", flush=True)
+
+    return produits
 
 
 
