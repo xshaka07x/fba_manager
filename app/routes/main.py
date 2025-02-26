@@ -36,6 +36,11 @@ def dashboard():
         for item in recent_items
     ]
     print(top_roi_items[0])  # 🔍 Pour voir la structure exacte
+    for item in top_roi_items:
+        print(item.__dict__)  # 👈 Si item est un objet
+        # ou
+        print(item)  # 👈 Si item est un dictionnaire
+
     return render_template('dashboard.html',top_roi_items=top_roi_items, recent_items=formatted_items)
 
 
