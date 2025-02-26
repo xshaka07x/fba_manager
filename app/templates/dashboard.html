@@ -86,7 +86,8 @@
                         <tbody>
                             {% for item in recent_items %}
                             <tr class="
-                                {% if item.roi < 19 %}
+                                {% set roi_value = item.roi | replace('%', '') | float %}
+                                {% if roi_value < 19 %}
                                     roi-low
                                 {% elif item.roi >= 20 and item.roi <= 59 %}
                                     roi-medium
