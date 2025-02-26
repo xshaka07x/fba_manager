@@ -15,11 +15,23 @@ def index():
 
 @main_bp.route('/dashboard')
 def dashboard():
+    from app.models import Product, Stock
+
     # Récupération des 5 derniers produits scrapés
     recent_items = db.session.query(Product).order_by(Product.updated_at.desc()).limit(5).all()
 
     # Récupération des 10 meilleurs ROI
     top_roi_items = db.session.query(Product).order_by(Product.roi.desc()).limit(10).all()
+
+    # ✅ Profit potentiel total (uniquement les profits positifs)
+    profit_total = db.session.query(db.func.sum(Product.profit)).filter(Product.profit > 0).scalar() or 0
+
+    # ✅ Nombre de produits scrapés
+    nb_produits_scrapes = db.session.query(Product).count()
+
+    # ✅ Nombre de produits en stock avec statut "Acheté/en stock"
+    nb_produits_stock = db.session.query(Stock).filter(Stock.statut == 'Acheté/en stock').count()
+
 
     # Formatage commun pour les deux listes
     def format_items(items):
@@ -37,7 +49,10 @@ def dashboard():
 
     return render_template('dashboard.html',
                            recent_items=format_items(recent_items),
-                           top_roi_items=format_items(top_roi_items))
+                           top_roi_items=format_items(top_roi_items),
+                           profit_total=round(profit_total, 2),
+                           nb_produits_scrapes=nb_produits_scrapes,
+                           nb_produits_stock=nb_produits_stock)
 
 
 

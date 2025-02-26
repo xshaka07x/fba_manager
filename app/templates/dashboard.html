@@ -33,27 +33,24 @@
         <div class="col-md-4">
             <div class="card bg-dark text-white shadow">
                 <div class="card-body">
-                    <h5 class="card-title">💰 Revenus Totaux</h5>
-                    <p class="display-6">$12,450</p>
-                    <p class="text-success">+12% par rapport au mois dernier 📈</p>
+                    <h5 class="card-title">💰 Profit Potentiel Total</h5>
+                    <p class="display-6">{{ profit_total }}€</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card bg-dark text-white shadow">
                 <div class="card-body">
-                    <h5 class="card-title">💸 Dépenses Totales</h5>
-                    <p class="display-6">$3,200</p>
-                    <p class="text-danger">-5% par rapport au mois dernier 📉</p>
+                    <h5 class="card-title">📦 Nombre de Produits Scrapés</h5>
+                    <p class="display-6">{{ nb_produits_scrapes }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card bg-dark text-white shadow">
                 <div class="card-body">
-                    <h5 class="card-title">📊 Profit Net</h5>
-                    <p class="display-6">$9,250</p>
-                    <p class="text-primary">+18% par rapport au mois dernier 🚀</p>
+                    <h5 class="card-title">🏬 Produits en Stock (Acheté/en stock)</h5>
+                    <p class="display-6">{{ nb_produits_stock }}</p>
                 </div>
             </div>
         </div>

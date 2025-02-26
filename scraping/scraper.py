@@ -44,6 +44,8 @@ options.add_argument("--window-size=1920,1080")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-blink-features=AutomationControlled")
 options.add_argument("--headless=new")
+options.add_argument("--disable-gpu")
+options.add_argument("--disable-software-rasterizer")
 options.page_load_strategy = 'eager'
 
 
@@ -375,7 +377,6 @@ def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
     ]
 
     print(f"🔍 {len(produits_urls)} produits trouvés sur cette page.")
-    eans_page_courante = set()  # 🆕 Ajout pour retourner les EANs
 
     for url in produits_urls:
         if len(produits) >= nb_max:
@@ -385,12 +386,12 @@ def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
             if produit:
                 produits.append(produit)
                 urls_deja_traitees.add(url)
-                eans_page_courante.add(produit['EAN'])  # 🆕 Enregistrement des EANs
                 print(f"✅ [SCRAPER] Produit {produit['Nom']} enrichi et sauvegardé.")
         except Exception as e:
             print(f"⚠️ Produit ignoré suite à une erreur : {e}", flush=True)
 
-    # ✅ Retourner les trois éléments attendus
+    # 🔄 Ajoute cette ligne pour retourner trois valeurs attendues
+    eans_page_courante = {p['EAN'] for p in produits if 'EAN' in p}  # Extraire les EANs de la page
     return produits, eans_page_courante, urls_deja_traitees
 
 
