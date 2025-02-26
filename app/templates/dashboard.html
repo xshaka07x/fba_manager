@@ -19,10 +19,10 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    .roi-low { background-color: rgba(255, 0, 0, 0.2); }
-    .roi-medium { background-color: rgba(144, 238, 144, 0.2); }
-    .roi-high { background-color: rgba(0, 128, 0, 0.2); }
-    .roi-excellent { background-color: rgba(128, 0, 128, 0.2); }
+    .roi-low { background-color: rgba(255, 0, 0, 0.2) !important; }
+    .roi-medium { background-color: rgba(144, 238, 144, 0.2) !important; }
+    .roi-high { background-color: rgba(0, 128, 0, 0.2) !important; }
+    .roi-excellent { background-color: rgba(128, 0, 128, 0.2) !important; }
 </style>
 
 <div class="container">
@@ -104,10 +104,12 @@
                                 <td>{{ item.profit }}</td>
                                 <td>{{ item.sales_estimation }}</td>
                                 <td><a href="{{ item.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                                <td>{{ item.scanned_at }}</td>
+                                <td data-order="{{ item.scanned_at }}">
+                                    {{ item.scanned_at.strftime("%d/%m/%y") }}
+                                </td> <!-- 📅 ✅ Format court dd/mm/yy -->
                             </tr>
                             {% endfor %}
-                        </tbody>
+                        </tbody>                       
                     </table>
                 </div>
             </div>
@@ -115,7 +117,7 @@
     </div>
     
 
-    <!-- Informations clés ✅ Gardée comme demandée -->
+    <!-- Informations clés -->
     <div class="row">
         <div class="col-md-6">
             <div class="card bg-dark text-white shadow">
