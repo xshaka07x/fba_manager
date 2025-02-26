@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Stock - FBA Manager{% endblock %}
+
+{% block content %}
+<style>
+    .statut-achete { background-color: rgba(255, 215, 0, 0.2) !important; }
+    .statut-envoye { background-color: rgba(30, 144, 255, 0.2) !important; }
+    .statut-vendu { background-color: rgba(50, 205, 50, 0.2) !important; }
+</style>
+
+<div class="container mt-4">
+    <h1 class="mb-4">📦 Gestion du Stock</h1>
+    <table class="table table-dark table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>EAN</th>
+                <th>Magasin</th>
+                <th>Prix d'achat</th>
+                <th>Date d'achat</th>
+                <th>Quantité</th>
+                <th>Facture</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in stock_items %}
+            <tr class="
+                {% if item.statut == 'Acheté/en stock' %} statut-achete
+                {% elif item.statut == 'Envoyé chez Amazon' %} statut-envoye
+                {% else %} statut-vendu
+                {% endif %}
+            ">
+                <th scope="row">{{ loop.index }}</th>
+                <td>{{ item.ean }}</td>
+                <td>{{ item.magasin }}</td>
+                <td>{{ item.prix_achat }}€</td>
+                <td>{{ item.date_achat.strftime("%d/%m/%y") }}</td>
+                <td>{{ item.quantite }}</td>
+                <td>
+                    {% if item.facture_url %}
+                        <a href="{{ item.facture_url }}" target="_blank" class="btn btn-outline-info btn-sm">Voir</a>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="/update_stock/{{ item.id }}">
+                        <select name="statut" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="Acheté/en stock" {% if item.statut == 'Acheté/en stock' %}selected{% endif %}>Acheté/en stock</option>
+                            <option value="Envoyé chez Amazon" {% if item.statut == 'Envoyé chez Amazon' %}selected{% endif %}>Envoyé chez Amazon</option>
+                            <option value="Vendu" {% if item.statut == 'Vendu' %}selected{% endif %}>Vendu</option>
+                        </select>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

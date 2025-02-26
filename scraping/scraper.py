@@ -152,7 +152,7 @@ def scroll_page(driver, max_scrolls=15, wait_time=1):
 
 
 def extraire_details_produit(driver, url, timeout_sec=3):
-    """🔍 Extraction avec TOUTES les données SellerAmp enrichies."""
+    """🔍 Extraction des données produit avec vérification préalable dans la DB."""
     try:
         driver.execute_script("window.open('');")
         driver.switch_to.window(driver.window_handles[1])
@@ -170,13 +170,18 @@ def extraire_details_produit(driver, url, timeout_sec=3):
         ean = re.search(r'\b\d{13}\b', driver.page_source)
         ean_code = ean.group(0) if ean else "Non disponible"
 
-        # 🌐 Enrichissement SellerAmp avec nouvelles données
+        # 🔍 Vérifier si l'EAN est déjà en DB AVANT de continuer
+        if ean_existe_deja(ean_code):
+            print(f"⏭ Produit {ean_code} déjà en base, on passe au suivant.")
+            return None  # On ignore ce produit
+
+        # 🌐 Enrichissement SellerAmp
         start_time = time.time()
         prix_amazon, roi, profit, sales_estimation, alerts = get_selleramp_data(
             ean_code, float(prix.replace("€", "").strip())
         )
 
-        # ⏱️ Gestion du timeout
+        # ⏱️ Timeout
         if (time.time() - start_time) > 5 and not (prix_amazon and roi and profit):
             print(f"⚡ Timeout > 5s. Produit {ean_code} ignoré.")
             return None
@@ -204,6 +209,7 @@ def extraire_details_produit(driver, url, timeout_sec=3):
         if len(driver.window_handles) > 1:
             driver.close()
             driver.switch_to.window(driver.window_handles[0])
+
 
 
 
@@ -314,6 +320,19 @@ def cliquer_suivant(driver, page_actuelle, eans_page_precedente):
         print(f"❌ Pagination échouée (page {page_actuelle}) : {e}", flush=True)
     return False
 
+def ean_existe_deja(ean):
+    """🔍 Vérifie si un produit avec cet EAN existe déjà dans la base de données."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM products WHERE ean = %s", (ean,))
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return result[0] > 0  # Renvoie True si l'EAN existe déjà
+    except Exception as e:
+        print(f"⚠️ Erreur lors de la vérification de l'EAN {ean} : {e}")
+        return False
 
 
 def scrap_toutes_pages(driver, nb_max, max_pages=10):

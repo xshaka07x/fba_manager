@@ -19,3 +19,16 @@ class Product(db.Model):
 
     def __repr__(self):
         return f'<Product {self.nom} - EAN: {self.ean}>'
+
+class Stock(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ean = db.Column(db.String(20), nullable=False)
+    magasin = db.Column(db.String(100), nullable=False)
+    prix_achat = db.Column(db.Float, nullable=False)
+    date_achat = db.Column(db.DateTime, default=datetime.utcnow)
+    quantite = db.Column(db.Integer, nullable=False)
+    facture_url = db.Column(db.String(255), nullable=True)
+    statut = db.Column(db.String(50), default='Acheté/en stock')
+
+    def __repr__(self):
+        return f"<Stock {self.ean} - {self.magasin}>"

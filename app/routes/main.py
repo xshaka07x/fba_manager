@@ -41,8 +41,6 @@ def dashboard():
 
 
 
-
-
 @main_bp.route('/settings')
 def settings():
     """⚙️ Route des paramètres de l'application."""
@@ -55,5 +53,17 @@ def analytics():
     return render_template('analytics.html')
 
 
+@main_bp.route('/stock')
+def stock():
+    stock_items = db.session.query(Stock).order_by(Stock.date_achat.desc()).all()
+    return render_template('stock.html', stock_items=stock_items)
 
+
+@main_bp.route('/update_stock/<int:stock_id>', methods=['POST'])
+def update_stock(stock_id):
+    stock_item = db.session.query(Stock).get(stock_id)
+    if stock_item:
+        stock_item.statut = request.form.get('statut')
+        db.session.commit()
+    return redirect(url_for('main.stock'))
 
