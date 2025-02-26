@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for  # ✨ Ajout de 
 from app.models import Product
 from datetime import datetime
 from datetime import timedelta  # ✅ Pour ajouter une heure
-
+from app.models import Product, Stock
 
 main_bp = Blueprint('main', __name__)
 from app import db
