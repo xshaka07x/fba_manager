@@ -288,24 +288,32 @@ def get_selleramp_data(ean, prix_magasin, max_retries=2):
     return None, None, None, None, None
 
 
-def cliquer_suivant(driver):
-    """⏭ Clic sur le bouton 'page suivante' si disponible, sinon retourne False."""
+def cliquer_suivant(driver, page_actuelle, eans_page_precedente):
+    """⏭ Clic robuste sur 'Page suivante' et vérifie que la liste des EAN change bien."""
     try:
-        print("➡️ Tentative de passage à la page suivante...")
-        bouton_suivant = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, 'a[aria-label=" page"]'))
+        print(f"➡️ Tentative de passage à la page suivante...")
+        suivant = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "a[aria-label=' page']"))
         )
-        driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", bouton_suivant)
+        driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", suivant)
         time.sleep(1)
-        driver.execute_script("arguments[0].click();", bouton_suivant)
+
+        produits_avant = set([a.get_attribute('href') for a in driver.find_elements(By.CSS_SELECTOR, 'a.product-card-link')])
+
+        # ✅ Clic via JS (plus robuste que .click())
+        driver.execute_script("arguments[0].click();", suivant)
+
         WebDriverWait(driver, 10).until(
-            lambda d: d.execute_script("return document.readyState") == "complete"
+            lambda d: set([a.get_attribute('href') for a in d.find_elements(By.CSS_SELECTOR, 'a.product-card-link')]) != produits_avant
         )
-        print("✅ Passage réussi à la page suivante.")
+        print(f"➡️ Passage réussi à la page {page_actuelle + 1}.")
         return True
+    except TimeoutException:
+        print(f"⚠️ Timeout : Les nouveaux produits n'ont pas chargé pour la page {page_actuelle + 1}.")
     except Exception as e:
-        print(f"⚠️ Aucun bouton 'page suivante' trouvé ou clic échoué : {e}")
-        return False
+        print(f"❌ Pagination échouée (page {page_actuelle}) : {e}", flush=True)
+    return False
+
 
 
 def scrap_toutes_pages(driver, nb_max, max_pages=10):

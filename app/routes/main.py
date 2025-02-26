@@ -15,13 +15,15 @@ def index():
 
 @main_bp.route('/dashboard')
 def dashboard():
-    # Récupération des 5 derniers produits scrapés triés par date
+    # Récupération des 5 derniers produits scrapés
     recent_items = db.session.query(Product).order_by(Product.updated_at.desc()).limit(5).all()
 
-    # Formatage des données pour éviter les erreurs dans le template
-    formatted_items = []
-    for item in recent_items:
-        formatted_items.append({
+    # Récupération des 10 meilleurs ROI
+    top_roi_items = db.session.query(Product).order_by(Product.roi.desc()).limit(10).all()
+
+    # Formatage commun pour les deux listes
+    def format_items(items):
+        return [{
             'nom': item.nom,
             'ean': item.ean,
             'prix_retail': item.prix_retail,
@@ -31,9 +33,11 @@ def dashboard():
             'sales_estimation': item.sales_estimation,
             'url': item.url,
             'updated_at': item.updated_at.strftime("%d/%m/%y") if item.updated_at else 'N/A'
-        })
+        } for item in items]
 
-    return render_template('dashboard.html', recent_items=formatted_items)
+    return render_template('dashboard.html',
+                           recent_items=format_items(recent_items),
+                           top_roi_items=format_items(top_roi_items))
 
 
 
