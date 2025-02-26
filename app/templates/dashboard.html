@@ -75,6 +75,7 @@
                                 <th>Nom</th>
                                 <th>EAN</th>
                                 <th>Prix Retail</th>
+                                <th>Prix Amazon</th> <!-- ✅ Ajouté ici -->
                                 <th>ROI</th>
                                 <th>Profit</th>
                                 <th>Ventes Estimées</th>
@@ -85,12 +86,11 @@
                         <tbody>
                             {% for item in recent_items %}
                             <tr class="
-                                {% set roi_value = item.roi | replace('%', '') | float %}
-                                {% if roi_value < 19 %}
+                                {% if item.roi < 19 %}
                                     roi-low
-                                {% elif roi_value >= 20 and roi_value <= 59 %}
+                                {% elif item.roi >= 20 and item.roi <= 59 %}
                                     roi-medium
-                                {% elif roi_value >= 60 and roi_value <= 80 %}
+                                {% elif item.roi >= 60 and item.roi <= 80 %}
                                     roi-high
                                 {% else %}
                                     roi-excellent
@@ -99,17 +99,18 @@
                                 <th scope="row">{{ loop.index }}</th>
                                 <td class="nom-col" title="{{ item.name }}">{{ item.name }}</td>
                                 <td>{{ item.sku }}</td>
-                                <td>${{ item.prix_retail }}</td>
-                                <td>{{ item.roi }}</td>
-                                <td>{{ item.profit }}</td>
+                                <td>{{ item.prix_retail }}€</td>
+                                <td>{{ item.prix_amazon if item.prix_amazon else 'N/A' }}€</td> <!-- ✅ Prix Amazon affiché ici -->
+                                <td>{{ item.roi }}%</td>
+                                <td>{{ item.profit }}€</td>
                                 <td>{{ item.sales_estimation }}</td>
                                 <td><a href="{{ item.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
                                 <td data-order="{{ item.scanned_at }}">
                                     {{ item.scanned_at.strftime("%d/%m/%y") }}
-                                </td> <!-- 📅 ✅ Format court dd/mm/yy -->
+                                </td>
                             </tr>
                             {% endfor %}
-                        </tbody>                       
+                        </tbody>                     
                     </table>
                 </div>
             </div>

@@ -263,19 +263,25 @@ def cliquer_suivant(driver, page_actuelle, eans_page_precedente):
         )
         driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", suivant)
         time.sleep(1)
+
+        # Sauvegarde des URLs avant clic
         produits_avant = set([a.get_attribute('href') for a in driver.find_elements(By.CSS_SELECTOR, 'a.product-card-link')])
 
-        suivant.click()
-        WebDriverWait(driver, 10).until(
+        # ➡️ Clic via JavaScript (plus robuste que .click())
+        driver.execute_script("arguments[0].click();", suivant)
+
+        # ⏳ Attente que de nouveaux produits se chargent
+        WebDriverWait(driver, 15).until(
             lambda d: set([a.get_attribute('href') for a in d.find_elements(By.CSS_SELECTOR, 'a.product-card-link')]) != produits_avant
         )
+
         print(f"➡️ Passage réussi à la page {page_actuelle + 1}.")
         return True
+    except TimeoutException:
+        print(f"⚠️ Timeout : Les nouveaux produits n'ont pas chargé pour la page {page_actuelle + 1}.")
     except Exception as e:
-        print(f"❌ Pagination échouée (page {page_actuelle}): {e}", flush=True)
-        return False
-
-
+        print(f"❌ Pagination échouée (page {page_actuelle}) : {e}", flush=True)
+    return False
 
 
 
