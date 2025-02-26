@@ -1,8 +1,41 @@
-.roi-low { background-color: rgba(255, 0, 0, 0.4) !important; }
-.roi-medium { background-color: rgba(144, 238, 144, 0.4) !important; }
-.roi-high { background-color: rgba(0, 128, 0, 0.4) !important; }
-.roi-excellent { background-color: rgba(128, 0, 128, 0.4) !important; }
+<style>
+    .nom-col {
+        max-width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .roi-low { 
+        background-color: rgba(255, 0, 0, 0.2) !important;
+    }
+    .roi-low:hover {
+        background-color: rgba(255, 0, 0, 0.35) !important; /* 🔆 Plus clair en hover */
+    }
 
-.table-dark {
-    --bs-table-bg: inherit !important; /* Ou supprime la valeur */
-}
+    .roi-medium { 
+        background-color: rgba(144, 238, 144, 0.2) !important;
+    }
+    .roi-medium:hover {
+        background-color: rgba(144, 238, 144, 0.35) !important;
+    }
+
+    .roi-high { 
+        background-color: rgba(0, 128, 0, 0.2) !important;
+    }
+    .roi-high:hover {
+        background-color: rgba(0, 128, 0, 0.35) !important;
+    }
+
+    .roi-excellent { 
+        background-color: rgba(128, 0, 128, 0.2) !important;
+    }
+    .roi-excellent:hover {
+        background-color: rgba(128, 0, 128, 0.35) !important;
+    }
+
+    /* ⚡ Correction Bootstrap pour éviter l'écrasement */
+    .table-dark {
+        --bs-table-bg: inherit !important;
+        --bs-table-hover-bg: inherit !important;
+    }
+</style>
