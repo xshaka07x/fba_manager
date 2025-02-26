@@ -376,7 +376,7 @@ def scrap_toutes_pages(driver, nb_max, max_pages=10):
     print(f"\n🏁 Scraping terminé : {len(produits)} produit(s) récupéré(s) sur {nb_max}.", flush=True)
     return produits
 
-
+ 
 
 
 
