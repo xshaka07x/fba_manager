@@ -1,6 +1,6 @@
 # app/routes/main.py
-from flask import Blueprint, render_template, redirect, url_for  # ✨ Ajout de redirect et url_for
-from app.models import Product
+from flask import Blueprint, render_template, redirect, url_for, request  # ✨ Ajout de redirect et url_for
+from app.models import Product, Stock
 from datetime import datetime
 from datetime import timedelta  # ✅ Pour ajouter une heure
 from app.models import Product, Stock
