@@ -73,24 +73,31 @@ def update_stock(stock_id):
 # ✅ Nouvelle route pour l'ajout de produit
 @main_bp.route('/add_stock', methods=['POST'])
 def add_stock():
-    ean = request.form.get('ean')
-    magasin = request.form.get('magasin')
-    prix_achat = float(request.form.get('prix_achat'))
-    date_achat = datetime.strptime(request.form.get('date_achat'), "%Y-%m-%d")
-    quantite = int(request.form.get('quantite'))
-    facture_url = request.form.get('facture_url') or None
+    try:
+        ean = request.form.get('ean')
+        magasin = request.form.get('magasin')
+        prix_achat = float(request.form.get('prix_achat'))
+        date_achat = datetime.strptime(request.form.get('date_achat'), "%Y-%m-%d")
+        quantite = int(request.form.get('quantite'))
+        facture_url = request.form.get('facture_url') or None
 
-    nouveau_stock = Stock(
-        ean=ean,
-        magasin=magasin,
-        prix_achat=prix_achat,
-        date_achat=date_achat,
-        quantite=quantite,
-        facture_url=facture_url
-    )
+        print(f"DEBUG - EAN: {ean}, Magasin: {magasin}, Prix: {prix_achat}, Date: {date_achat}, Quantité: {quantite}, Facture: {facture_url}")
 
-    db.session.add(nouveau_stock)
-    db.session.commit()
+        nouveau_stock = Stock(
+            ean=ean,
+            magasin=magasin,
+            prix_achat=prix_achat,
+            date_achat=date_achat,
+            quantite=quantite,
+            facture_url=facture_url
+        )
 
-    return redirect(url_for('main.stock'))
+        db.session.add(nouveau_stock)
+        db.session.commit()
+
+        return redirect(url_for('main.stock'))
+
+    except Exception as e:
+        print(f"ERROR - Impossible d'ajouter l'article : {str(e)}")
+        return f"Erreur lors de l'ajout : {str(e)}", 500
 
