@@ -1,7 +1,5 @@
 # scraping/scraper.py
 
-
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -226,33 +224,6 @@ def enregistrer_produit(produit):
 
 
 
-
-
-
-
-def cliquer_suivant(driver):
-    """⏭ Clic sur le bouton 'page suivante' si disponible, sinon retourne False."""
-    try:
-        print("➡️ Tentative de passage à la page suivante...")
-        bouton_suivant = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, 'a[aria-label=" page"]'))
-        )
-        driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", bouton_suivant)
-        time.sleep(1)
-        driver.execute_script("arguments[0].click();", bouton_suivant)
-        WebDriverWait(driver, 10).until(
-            lambda d: d.execute_script("return document.readyState") == "complete"
-        )
-        print("✅ Passage réussi à la page suivante.")
-        return True
-    except Exception as e:
-        print(f"⚠️ Aucun bouton 'page suivante' trouvé ou clic échoué : {e}")
-        return False
-
-
-
-
-
 def get_selleramp_data(ean, prix_magasin, max_retries=2):
     """🔍 Récupère les données SellerAmp enrichies : ROI, profit, sales_estimation, alerts."""
     from selenium.webdriver.common.keys import Keys
@@ -317,6 +288,26 @@ def get_selleramp_data(ean, prix_magasin, max_retries=2):
     return None, None, None, None, None
 
 
+def cliquer_suivant(driver):
+    """⏭ Clic sur le bouton 'page suivante' si disponible, sinon retourne False."""
+    try:
+        print("➡️ Tentative de passage à la page suivante...")
+        bouton_suivant = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, 'a[aria-label=" page"]'))
+        )
+        driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", bouton_suivant)
+        time.sleep(1)
+        driver.execute_script("arguments[0].click();", bouton_suivant)
+        WebDriverWait(driver, 10).until(
+            lambda d: d.execute_script("return document.readyState") == "complete"
+        )
+        print("✅ Passage réussi à la page suivante.")
+        return True
+    except Exception as e:
+        print(f"⚠️ Aucun bouton 'page suivante' trouvé ou clic échoué : {e}")
+        return False
+
+
 def scrap_toutes_pages(driver, nb_max, max_pages=10):
     """🌍 Scrape jusqu'à atteindre nb_max ou jusqu'à ce qu'il n'y ait plus de pages."""
     set_items_per_page(driver)
@@ -345,8 +336,7 @@ def scrap_toutes_pages(driver, nb_max, max_pages=10):
     return produits
 
 
-
- def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
+def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
     """🔎 Scrape les produits de la page en cours sans doublons jusqu'au quota demandé."""
     produits = []
     scroll_page(driver, max_scrolls=15, wait_time=1)
@@ -370,6 +360,7 @@ def scrap_toutes_pages(driver, nb_max, max_pages=10):
             print(f"⚠️ Produit ignoré suite à une erreur : {e}", flush=True)
 
     return produits
+
 
 
 
