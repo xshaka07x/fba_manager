@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for  # ✨ Ajout de 
 from app.models import Product
 from datetime import datetime
 from datetime import timedelta  # ✅ Pour ajouter une heure
-
+from app.utils import db
 
 main_bp = Blueprint('main', __name__)
 
@@ -14,11 +14,10 @@ def index():
 
 @main_bp.route('/dashboard')
 def dashboard():
-    recent_items = Product.query.order_by(Product.updated_at.desc()).limit(5).all()
+    # ✅ S'assurer que les deux listes retournent des objets et non des dicts
+    recent_items = db.session.query(Product).order_by(Product.updated_at.desc()).limit(5).all()
+    top_roi_items = db.session.query(Product).order_by(Product.roi.desc()).limit(10).all()
 
-
-    
-    top_roi_items = Product.query.order_by(Product.roi.desc()).limit(10).all()
     
     formatted_items = [
         {
@@ -35,11 +34,8 @@ def dashboard():
         }
         for item in recent_items
     ]
-    print(top_roi_items[0])  # 🔍 Pour voir la structure exacte
-    for item in top_roi_items:
-        print(item.__dict__)  # 👈 Si item est un objet
-        # ou
-        print(item)  # 👈 Si item est un dictionnaire
+
+
 
     return render_template('dashboard.html',top_roi_items=top_roi_items, recent_items=formatted_items)
 
