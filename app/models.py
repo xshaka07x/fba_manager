@@ -22,6 +22,7 @@ class Product(db.Model):
 
 class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(255), nullable=False)  # ✅ Colonne "nom" ajoutée
     ean = db.Column(db.String(20), nullable=False)
     magasin = db.Column(db.String(100), nullable=False)
     prix_achat = db.Column(db.Float, nullable=False)
