@@ -1,26 +1,5 @@
-/* 🌈 Styles modernes adaptés au thème sombre */
-.roi-low {
-    background-color: rgba(255, 99, 132, 0.2) !important;
-    color: #ff6384 !important;
-}
+.roi-low { background-color: red !important; }
+.roi-medium { background-color: yellow !important; }
+.roi-high { background-color: blue !important; }
+.roi-excellent { background-color: green !important; }
 
-.roi-medium {
-    background-color: rgba(75, 192, 192, 0.2) !important;
-    color: #4bc0c0 !important;
-}
-
-.roi-high {
-    background-color: rgba(54, 162, 235, 0.2) !important;
-    color: #36a2eb !important;
-}
-
-.roi-excellent {
-    background-color: rgba(153, 102, 255, 0.2) !important;
-    color: #9966ff !important;
-}
-
-/* ✨ Effet moderne sur hover */
-.table-hover tbody tr:hover {
-    transition: background-color 0.3s ease, color 0.3s ease;
-    background-color: rgba(255, 255, 255, 0.1) !important;
-}
