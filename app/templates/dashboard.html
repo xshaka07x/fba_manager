@@ -86,11 +86,12 @@
                         <tbody>
                             {% for item in recent_items %}
                             <tr class="
-                                {% if item.roi < 19 %}
+                                {% set roi_value = item.roi | float %}
+                                {% if roi_value < 19 %}
                                     roi-low
-                                {% elif item.roi >= 20 and item.roi <= 59 %}
+                                {% elif roi_value >= 20 and roi_value <= 59 %}
                                     roi-medium
-                                {% elif item.roi >= 60 and item.roi <= 79 %}
+                                {% elif roi_value >= 60 and roi_value <= 79 %}
                                     roi-high
                                 {% else %}
                                     roi-excellent
@@ -110,7 +111,7 @@
                                 </td>
                             </tr>
                             {% endfor %}
-                        </tbody>                   
+                        </tbody>                                       
                     </table>
                 </div>
             </div>
