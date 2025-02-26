@@ -14,10 +14,12 @@ def index():
 
 @main_bp.route('/dashboard')
 def dashboard():
-    recent_items = Product.query.order_by(Product.updated_at.desc()).limit(10).all()
-    for item in recent_items:
-        print(f"ROI DEBUG: {item.roi} ({type(item.roi)})")
+    recent_items = Product.query.order_by(Product.updated_at.desc()).limit(5).all()
 
+
+    
+    top_roi_items = Product.query.order_by(Product.roi.desc()).limit(10).all()
+    
     formatted_items = [
         {
             "name": item.nom,
@@ -34,7 +36,7 @@ def dashboard():
         for item in recent_items
     ]
 
-    return render_template('dashboard.html', recent_items=formatted_items)
+    return render_template('dashboard.html',top_roi_items=top_roi_items, recent_items=formatted_items)
 
 
 
