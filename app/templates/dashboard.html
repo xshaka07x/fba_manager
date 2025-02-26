@@ -101,7 +101,8 @@
                                 <td>{{ item.profit }}€</td>
                                 <td>{{ item.sales_estimation }}</td>
                                 <td><a href="{{ item.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                                <td data-order="{{ item['updated_at'] }}">{{ item['updated_at'].strftime("%d/%m/%y") }}</td>
+                                <td data-order="{{ item.updated_at }}">{{ item.updated_at.strftime("%d/%m/%y") }}</td>
+
 
                             </tr>
                             {% endfor %}
@@ -154,7 +155,8 @@
                                 <td>{{ item.profit }}€</td>
                                 <td>{{ item.sales_estimation }}</td>
                                 <td><a href="{{ item.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                                <td data-order="{{ item['updated_at'] }}">{{ item['updated_at'].strftime("%d/%m/%y") }}</td>
+                                <td data-order="{{ item.updated_at }}">{{ item.updated_at.strftime("%d/%m/%y") }}</td>
+
 
                             </tr>
                             {% endfor %}
