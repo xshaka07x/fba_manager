@@ -100,6 +100,45 @@ def stock():
     return render_template('stock.html', stock_items=stock_items)
 
 
+@main_bp.route('/search', methods=['GET'])
+def search():
+    query = request.args.get('q', '').strip()
+    if not query:
+        return jsonify([])
+
+    # Recherche dans les produits
+    products = db.session.query(Product).filter(Product.nom.ilike(f"%{query}%")).all()
+
+    # Recherche dans le stock
+    stocks = db.session.query(Stock).filter(Stock.nom.ilike(f"%{query}%")).all()
+
+    # Formatage des résultats
+    results = [
+        {"type": "Produit", "nom": p.nom, "url": url_for('products.show_products')} for p in products
+    ] + [
+        {"type": "Stock", "nom": s.nom, "url": url_for('main.stock')} for s in stocks
+    ]
+
+    return jsonify(results)
+
+@products_bp.route('/add', methods=['POST'])
+def add_product():
+    try:
+        data = request.json
+        new_product = Product(
+            nom=data.get("nom"),
+            ean=data.get("ean"),
+            prix_retail=float(data.get("prix_retail", 0)),
+            prix_amazon=float(data.get("prix_amazon", 0))
+        )
+        db.session.add(new_product)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Produit ajouté avec succès !"}), 200
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Erreur : {str(e)}"}), 500
+
+
+
 @main_bp.route('/update_stock/<int:stock_id>', methods=['POST'])
 def update_stock(stock_id):
     stock_item = db.session.query(Stock).get(stock_id)

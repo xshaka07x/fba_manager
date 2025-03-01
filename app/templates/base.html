@@ -11,36 +11,80 @@
 
 
 <!-- ✅ MENU NAVBAR RESPONSIVE -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">FBA Manager</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('products.show_products') }}">📦 Produits</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.stock') }}">📊 Stock</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.analytics') }}">📈 Statistiques</a>
-                </li>
-            </ul>
+<div class="d-flex">
+    <button id="toggleSidebar" class="btn btn-outline-light position-fixed m-2" style="z-index: 1000;">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- ✅ Menu latéral -->
+    <div id="sidebar" class="bg-dark text-white vh-100 position-fixed" style="width: 250px;">
+        <h4 class="text-center mt-3">FBA Manager</h4>
+        <ul class="nav flex-column mt-4">
+            <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('main.dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('products.show_products') }}"><i class="fas fa-box"></i> Produits</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('main.stock') }}"><i class="fas fa-warehouse"></i> Stock</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('main.analytics') }}"><i class="fas fa-chart-line"></i> Statistiques</a></li>
+        </ul>
+    </div>
+
+    <!-- ✅ Contenu principal -->
+    <div class="flex-grow-1" style="margin-left: 250px;">
+        <div class="container mt-4">
+            {% block content %}{% endblock %}
         </div>
     </div>
-</nav>
+</div>
+<div class="container mt-3">
+    <div class="input-group">
+        <input type="text" id="globalSearch" class="form-control" placeholder="🔍 Rechercher un produit ou un stock..." aria-label="Rechercher">
+        <button class="btn btn-outline-info" id="searchBtn"><i class="fas fa-search"></i></button>
+    </div>
+    <ul id="searchResults" class="list-group position-absolute bg-dark text-white w-100 mt-1" style="display:none;"></ul>
+</div>
+
 
 <!-- ✅ CONTENU PRINCIPAL -->
 <div class="container mt-4">
     {% block content %}{% endblock %}
 </div>
+<!-- ✅ Bouton flottant pour ajouter un produit -->
+<button class="btn btn-primary position-fixed bottom-0 end-0 m-3" data-bs-toggle="modal" data-bs-target="#addProductModal" style="border-radius: 50px; width: 60px; height: 60px;">
+    <i class="fas fa-plus"></i>
+</button>
+
+<!-- ✅ Modale pour ajouter un produit -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProductLabel">Ajouter un Produit</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProductForm">
+                    <div class="mb-3">
+                        <label class="form-label">Nom du produit</label>
+                        <input type="text" name="nom" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">EAN</label>
+                        <input type="text" name="ean" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prix d’achat (€)</label>
+                        <input type="number" step="0.01" name="prix_retail" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prix Amazon (€)</label>
+                        <input type="number" step="0.01" name="prix_amazon" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">✅ Ajouter</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- ✅ BOOTSTRAP SCRIPT -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -114,6 +158,75 @@
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+<script>
+    document.getElementById("toggleSidebar").addEventListener("click", function() {
+        let sidebar = document.getElementById("sidebar");
+        let content = document.querySelector(".flex-grow-1");
+        if (sidebar.style.marginLeft === "-250px") {
+            sidebar.style.marginLeft = "0";
+            content.style.marginLeft = "250px";
+        } else {
+            sidebar.style.marginLeft = "-250px";
+            content.style.marginLeft = "0";
+        }
+    });
+
+    document.getElementById("globalSearch").addEventListener("input", function() {
+        let query = this.value.trim();
+        let resultsList = document.getElementById("searchResults");
+
+        if (query.length < 2) {
+            resultsList.style.display = "none";
+            return;
+        }
+
+        fetch(`/search?q=${query}`)
+            .then(response => response.json())
+            .then(results => {
+                resultsList.innerHTML = "";
+                if (results.length > 0) {
+                    results.forEach(result => {
+                        let item = document.createElement("li");
+                        item.classList.add("list-group-item", "list-group-item-action", "bg-dark", "text-white");
+                        item.innerHTML = `<b>[${result.type}]</b> ${result.nom}`;
+                        item.onclick = () => window.location.href = result.url;
+                        resultsList.appendChild(item);
+                    });
+                    resultsList.style.display = "block";
+                } else {
+                    resultsList.style.display = "none";
+                }
+            });
+    });
+
+    document.addEventListener("click", function(e) {
+        if (!document.getElementById("globalSearch").contains(e.target)) {
+            document.getElementById("searchResults").style.display = "none";
+        }
+    });
+
+    document.getElementById("addProductForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        let formData = new FormData(this);
+        let jsonObject = {};
+        formData.forEach((value, key) => { jsonObject[key] = value; });
+
+        fetch("/products/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(jsonObject)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("✅ Produit ajouté avec succès !");
+                location.reload();
+            } else {
+                alert("❌ Erreur : " + data.message);
+            }
         });
     });
 </script>
