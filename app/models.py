@@ -3,16 +3,19 @@ from app import db  # ✅ Après correction app.py, cette ligne fonctionnera
 from datetime import datetime
 
 class Product(db.Model):
+    __tablename__ = 'product'
+
     id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(255), nullable=False)
-    ean = db.Column(db.String(13), unique=True, nullable=False)
-    prix_retail = db.Column(db.Float, nullable=False)
+    nom = db.Column(db.String(255), nullable=False)  # ⬅ Assure-toi que c'est bien "nom"
+    ean = db.Column(db.String(50), unique=True, nullable=False)
+    prix_retail = db.Column(db.Float, nullable=True)
     prix_amazon = db.Column(db.Float, nullable=True)
     roi = db.Column(db.Float, nullable=True)
     profit = db.Column(db.Float, nullable=True)
     sales_estimation = db.Column(db.Integer, nullable=True)
     alerts = db.Column(db.String(255), nullable=True)
-    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
     historique_prix = db.relationship('HistoriquePrix', backref='produit', lazy=True, cascade="all, delete-orphan")
 
