@@ -175,3 +175,8 @@ input:focus, select:focus {
     background-color: #28a745 !important;
     color: white !important;
 }
+
+:root {
+    --bs-body-bg: #181818 !important;  /* 🌑 Fond sombre global */
+    --bs-body-color: #e0e0e0 !important; /* ✅ Texte plus clair */
+}
