@@ -79,7 +79,7 @@ def historique_prix(product_id):
     return jsonify(data)
 
 @products_bp.route('/historique/<int:produit_id>')
-def historique_prix(produit_id):
+def historique_prix_view(produit_id):  # <-- Nouveau nom ici
     historique = HistoriquePrix.query.filter_by(produit_id=produit_id).order_by(HistoriquePrix.date_enregistrement.desc()).all()
 
     data = [
