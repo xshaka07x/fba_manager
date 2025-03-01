@@ -1,138 +1,177 @@
-<style>
-    .nom-col {
-        max-width: 300px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .roi-low { 
-        background-color: rgba(255, 0, 0, 0.2) !important;
-    }
-    .roi-low:hover {
-        background-color: rgba(255, 0, 0, 0.35) !important; /* 🔆 Plus clair en hover */
-    }
+/* 🌑 Fond général et couleurs */
+body {
+    background-color: #181818; /* Noir légèrement éclairci */
+    color: #e0e0e0; /* Texte en gris clair pour lisibilité */
+}
 
-    .roi-medium { 
-        background-color: rgba(144, 238, 144, 0.2) !important;
-    }
-    .roi-medium:hover {
-        background-color: rgba(144, 238, 144, 0.35) !important;
-    }
+/* ✅ Couleur plus douce pour les cartes et tableaux */
+.card, .table-dark {
+    background-color: #202020 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-    .roi-high { 
-        background-color: rgba(0, 128, 0, 0.2) !important;
-    }
-    .roi-high:hover {
-        background-color: rgba(0, 128, 0, 0.35) !important;
-    }
+/* ✅ Ombre subtile pour améliorer la profondeur */
+.card, .table {
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+}
 
-    .roi-excellent { 
-        background-color: rgba(128, 0, 128, 0.2) !important;
-    }
-    .roi-excellent:hover {
-        background-color: rgba(128, 0, 128, 0.35) !important;
-    }
+/* ✅ Bordures légèrement adoucies */
+.card {
+    border-radius: 8px;
+}
 
-    /* ⚡ Correction Bootstrap pour éviter l'écrasement */
-    .table-dark {
-        --bs-table-bg: inherit !important;
-        --bs-table-hover-bg: inherit !important;
-    }
+/* ✅ Amélioration des titres */
+h1, h2, h3, h4, h5 {
+    color: #ffffff;
+}
 
+/* ✅ Tableaux : meilleure visibilité */
+.table-dark th {
+    background-color: #292929;
+    color: #f1f1f1;
+}
+.table-dark td {
+    background-color: #252525;
+    color: #e0e0e0;
+}
 
-    /* 🌑 Amélioration du mode sombre */
+/* 🌟 Amélioration des couleurs ROI */
+.roi-low { background-color: rgba(255, 0, 0, 0.2) !important; }
+.roi-low:hover { background-color: rgba(255, 0, 0, 0.35) !important; }
 
-    body {
-        background-color: #121212; /* 🖤 Noir profond pour éviter l'effet grisâtre */
-        color: #e0e0e0; /* Texte légèrement plus clair */
-    }
+.roi-medium { background-color: rgba(144, 238, 144, 0.2) !important; }
+.roi-medium:hover { background-color: rgba(144, 238, 144, 0.35) !important; }
 
-    /* ✅ Meilleure lisibilité des titres */
-    h1, h2, h3, h4, h5 {
-        color: #ffffff;
-    }
+.roi-high { background-color: rgba(0, 128, 0, 0.2) !important; }
+.roi-high:hover { background-color: rgba(0, 128, 0, 0.35) !important; }
 
-    /* ✅ Amélioration des cartes Bootstrap */
-    .card {
-        background-color: #1e1e1e !important;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.4); /* Effet de relief */
-    }
+.roi-excellent { background-color: rgba(128, 0, 128, 0.2) !important; }
+.roi-excellent:hover { background-color: rgba(128, 0, 128, 0.35) !important; }
 
-    /* ✅ Meilleure distinction des tableaux */
-    .table-dark {
-        background-color: #222;
-    }
-    .table-dark th {
-        background-color: #2c2c2c;
-        color: #f1f1f1;
-    }
-    .table-dark td {
-        background-color: #1e1e1e;
-        color: #e0e0e0;
-    }
+/* ✅ Amélioration des tableaux */
+.dataTables_wrapper {
+    padding: 10px;
+}
+.data-table thead {
+    background-color: #2c2c2c;
+    color: #f1f1f1;
+}
+.data-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.data-table th, .data-table td {
+    white-space: nowrap;
+    text-align: center;
+    padding: 8px;
+}
 
-    /* ✅ Amélioration des boutons */
-    .btn {
-        border-radius: 6px;
-    }
-    .btn-outline-info {
-        border-color: #00bcd4;
-        color: #00bcd4;
-    }
-    .btn-outline-info:hover {
-        background-color: #00bcd4;
-        color: #121212;
-    }
+/* ✅ Amélioration des cartes Bootstrap */
+.card {
+    background-color: #1e1e1e !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.4);
+}
 
-    /* ✅ Inputs en mode sombre */
-    input, select {
-        background-color: #1e1e1e;
-        color: #e0e0e0;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    input:focus, select:focus {
-        background-color: #252525;
-        border-color: #00bcd4;
-    }
+/* ✅ Meilleure distinction des tableaux */
+.table-dark {
+    background-color: #222;
+}
+.table-dark th {
+    background-color: #2c2c2c;
+    color: #f1f1f1;
+}
+.table-dark td {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
 
-    /* ✅ Petites animations */
-    .btn, input, select {
-        transition: all 0.3s ease-in-out;
-    }
+/* ✅ Amélioration des boutons */
+.btn {
+    border-radius: 6px;
+    transition: all 0.3s ease-in-out;
+}
+.btn-outline-info {
+    border-color: #00bcd4;
+    color: #00bcd4;
+}
+.btn-outline-info:hover {
+    background-color: #00bcd4;
+    color: #121212;
+}
 
-    /* ✅ Amélioration des tableaux */
-    .dataTables_wrapper {
-        padding: 10px;
-    }
-    .data-table thead {
-        background-color: #2c2c2c;
-        color: #f1f1f1;
-    }
-    .data-table tbody tr:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-    .data-table th, .data-table td {
-        white-space: nowrap;
-        text-align: center;
-        padding: 8px;
-    }
+/* ✅ Inputs en mode sombre */
+input, select {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+input:focus, select:focus {
+    background-color: #252525;
+    border-color: #00bcd4;
+}
 
-    /* ✅ Style du menu latéral */
-    #sidebar {
-        transition: all 0.3s;
-    }
-    #sidebar .nav-link {
-        padding: 10px;
-        font-size: 1.1rem;
-    }
-    #sidebar .nav-link i {
-        margin-right: 10px;
-    }
-    #sidebar .nav-link:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 5px;
-    }
+/* ✅ Petites animations */
+.btn, input, select {
+    transition: all 0.3s ease-in-out;
+}
 
-</style>
+/* ✅ Amélioration des tableaux */
+.dataTables_wrapper {
+    padding: 10px;
+}
+.data-table thead {
+    background-color: #2c2c2c;
+    color: #f1f1f1;
+}
+.data-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.data-table th, .data-table td {
+    white-space: nowrap;
+    text-align: center;
+    padding: 8px;
+}
+
+/* ✅ Style du menu latéral */
+#sidebar {
+    background-color: #222 !important;
+    border-right: 2px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+}
+#sidebar .nav-link {
+    padding: 10px;
+    font-size: 1.1rem;
+    color: #b0b0b0;
+    transition: background 0.3s ease-in-out;
+}
+#sidebar .nav-link i {
+    margin-right: 10px;
+}
+#sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    color: #ffffff;
+}
+
+/* ✅ Amélioration du menu responsive */
+#toggleSidebar {
+    background-color: transparent;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    transition: all 0.3s;
+}
+#toggleSidebar:hover {
+    color: #00bcd4;
+}
+
+/* ✅ Amélioration des alertes de stock */
+.badge.bg-danger {
+    background-color: #ff3b3b !important;
+    color: white !important;
+}
+.badge.bg-success {
+    background-color: #28a745 !important;
+    color: white !important;
+}
