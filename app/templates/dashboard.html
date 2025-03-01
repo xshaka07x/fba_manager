@@ -169,6 +169,15 @@
         </div>
     </div>
     
+    <div class="card shadow-lg p-3 mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="text-uppercase fw-bold">⚠️ Produits en stock bas</h5>
+        </div>
+        <div class="card-body">
+            <ul id="stockAlertList" class="list-group bg-dark text-white"></ul>
+        </div>
+    </div>
+    
 
     <!-- Informations clés -->
     <div class="row">
@@ -201,4 +210,24 @@
     </div>
     
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        fetch("/stock_alerts")
+            .then(response => response.json())
+            .then(data => {
+                let list = document.getElementById("stockAlertList");
+                if (data.length === 0) {
+                    list.innerHTML = "<li class='list-group-item bg-dark text-white'>✅ Aucun produit en stock bas.</li>";
+                } else {
+                    data.forEach(item => {
+                        let li = document.createElement("li");
+                        li.classList.add("list-group-item", "bg-danger", "text-white");
+                        li.innerHTML = `⚠️ <strong>${item.nom}</strong> - Stock: ${item.quantite} (Seuil: ${item.seuil})`;
+                        list.appendChild(li);
+                    });
+                }
+            });
+    });
+</script>
+
 {% endblock %}

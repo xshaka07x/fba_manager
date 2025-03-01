@@ -59,4 +59,68 @@
         </tbody>
     </table>
 </div>
+<div class="card shadow-lg p-3 mb-4">
+    <div class="card-header bg-dark text-white">
+        <h5 class="text-uppercase fw-bold">📈 Évolution des prix</h5>
+    </div>
+    <div class="card-body">
+        <select id="productSelector" class="form-select mb-3">
+            <option value="">Sélectionner un produit</option>
+            {% for product in produits %}
+            <option value="{{ product.id }}">{{ product.nom }}</option>
+            {% endfor %}
+        </select>
+        <canvas id="priceChart"></canvas>
+    </div>
+</div>
+
+<script>
+    document.getElementById("productSelector").addEventListener("change", function() {
+        let productId = this.value;
+        if (!productId) return;
+
+        fetch(`/historique_prix/${productId}`)
+            .then(response => response.json())
+            .then(data => {
+                let labels = data.map(entry => entry.date);
+                let prixRetail = data.map(entry => entry.prix_retail);
+                let prixAmazon = data.map(entry => entry.prix_amazon);
+
+                let ctx = document.getElementById("priceChart").getContext("2d");
+                if (window.priceChart) {
+                    window.priceChart.destroy();
+                }
+                window.priceChart = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: "Prix Retail (€)",
+                                data: prixRetail,
+                                borderColor: "rgba(255, 99, 132, 1)",
+                                backgroundColor: "rgba(255, 99, 132, 0.2)",
+                                borderWidth: 2
+                            },
+                            {
+                                label: "Prix Amazon (€)",
+                                data: prixAmazon,
+                                borderColor: "rgba(54, 162, 235, 1)",
+                                backgroundColor: "rgba(54, 162, 235, 0.2)",
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            });
+    });
+</script>
+
+
 {% endblock %}

@@ -121,21 +121,19 @@ def search():
 
     return jsonify(results)
 
-@products_bp.route('/add', methods=['POST'])
-def add_product():
-    try:
-        data = request.json
-        new_product = Product(
-            nom=data.get("nom"),
-            ean=data.get("ean"),
-            prix_retail=float(data.get("prix_retail", 0)),
-            prix_amazon=float(data.get("prix_amazon", 0))
-        )
-        db.session.add(new_product)
-        db.session.commit()
-        return jsonify({"success": True, "message": "Produit ajouté avec succès !"}), 200
-    except Exception as e:
-        return jsonify({"success": False, "message": f"Erreur : {str(e)}"}), 500
+@main_bp.route('/stock_alerts', methods=['GET'])
+def stock_alerts():
+    produits_alertes = db.session.query(Stock).filter(Stock.quantite <= Stock.seuil_alerte).all()
+    
+    data = [
+        {
+            "nom": produit.nom,
+            "quantite": produit.quantite,
+            "seuil": produit.seuil_alerte
+        } for produit in produits_alertes
+    ]
+    
+    return jsonify(data)
 
 
 

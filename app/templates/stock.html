@@ -31,6 +31,8 @@
             <th>Quantité</th>
             <th>Facture</th>
             <th>Statut</th>
+            <th>Quantité</th>
+            <th>Alerte</th>  <!-- ✅ Nouvelle colonne pour l’alerte -->
             <th>Actions</th> <!-- ✅ Nouvelle colonne Actions -->
         </tr>
     </thead>
@@ -49,6 +51,14 @@
             <td>{{ item.prix_achat }}€</td>
             <td>{{ item.date_achat.strftime("%d/%m/%y") }}</td>
             <td>{{ item.quantite }}</td>
+            <td>
+                {% if item.quantite <= item.seuil_alerte %}
+                    <span class="badge bg-danger">Stock bas !</span>
+                {% else %}
+                    <span class="badge bg-success">OK</span>
+                {% endif %}
+            </td>
+
             <td>
                 {% if item.facture_url %}
                     <a href="{{ item.facture_url }}" target="_blank" class="btn btn-outline-info btn-sm">Voir</a>

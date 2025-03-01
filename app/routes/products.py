@@ -22,6 +22,63 @@ def show_products():
 
     return render_template('products.html', produits=products)
 
+@products_bp.route('/update_price/<int:product_id>', methods=['POST'])
+def update_price(product_id):
+    try:
+        product = db.session.query(Product).get(product_id)
+        if not product:
+            return jsonify({"success": False, "message": "Produit introuvable."}), 404
+
+        prix_retail = float(request.json.get("prix_retail", product.prix_retail))
+        prix_amazon = float(request.json.get("prix_amazon", product.prix_amazon))
+
+        # ✅ Enregistrement dans l'historique
+        historique = HistoriquePrix(produit_id=product_id, prix_retail=prix_retail, prix_amazon=prix_amazon)
+        db.session.add(historique)
+
+        # ✅ Mise à jour des prix du produit
+        product.prix_retail = prix_retail
+        product.prix_amazon = prix_amazon
+        db.session.commit()
+
+        return jsonify({"success": True, "message": "Prix mis à jour et enregistré dans l'historique."}), 200
+
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Erreur : {str(e)}"}), 500
+
+@products_bp.route('/add', methods=['POST'])
+def add_product():
+    try:
+        data = request.json
+        new_product = Product(
+            nom=data.get("nom"),
+            ean=data.get("ean"),
+            prix_retail=float(data.get("prix_retail", 0)),
+            prix_amazon=float(data.get("prix_amazon", 0))
+        )
+        db.session.add(new_product)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Produit ajouté avec succès !"}), 200
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Erreur : {str(e)}"}), 500
+
+
+@products_bp.route('/historique_prix/<int:product_id>', methods=['GET'])
+def historique_prix(product_id):
+    historique = db.session.query(HistoriquePrix).filter_by(produit_id=product_id).order_by(HistoriquePrix.date_enregistrement).all()
+
+    data = [
+        {
+            "date": h.date_enregistrement.strftime("%d/%m/%Y"),
+            "prix_retail": h.prix_retail,
+            "prix_amazon": h.prix_amazon or 0
+        } 
+        for h in historique
+    ]
+
+    return jsonify(data)
+
+
 @products_bp.route('/import_json', methods=['POST'])
 def import_json():
     if 'file' not in request.files:
