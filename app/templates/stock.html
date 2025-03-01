@@ -1,3 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Stock - FBA Manager{% endblock %}
+
+{% block content %}
+<style>
+    .statut-achete { background-color: rgba(255, 215, 0, 0.2) !important; }
+    .statut-envoye { background-color: rgba(30, 144, 255, 0.2) !important; }
+    .statut-vendu { background-color: rgba(50, 205, 50, 0.2) !important; }
+</style>
+
+<div class="container mt-4">
+    <h1 class="mb-4">📦 Gestion du Stock</h1>
+
+
 <!-- Tableau du stock -->
 <table class="table table-dark table-hover">
     <thead>
