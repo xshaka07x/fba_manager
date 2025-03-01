@@ -138,6 +138,66 @@ input:focus, select:focus {
     padding: 8px;
 }
 
+#menu-bar {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    background-color: #222;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    z-index: 1000;
+}
+
+#menu-bar a {
+    color: white;
+    text-decoration: none;
+    padding: 10px;
+    flex: 1;
+    text-align: center;
+    transition: background 0.3s;
+}
+
+#menu-bar a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+}
+
+/* ✅ Panneau overlay pour un menu complet */
+#full-menu {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 300px;
+    height: 100%;
+    background: #111;
+    transition: left 0.3s ease-in-out;
+    padding: 20px;
+    box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.5);
+}
+
+#full-menu.show {
+    left: 0;
+}
+
+/* ✅ Bouton menu */
+#menu-toggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #00bcd4;
+    padding: 8px 12px;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    z-index: 1100;
+}
+
+
 /* ✅ Meilleur menu latéral */
 #sidebar {
     background-color: #222 !important;

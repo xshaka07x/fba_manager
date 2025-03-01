@@ -9,36 +9,32 @@
 </head>
 <body class="dark-theme">
 
-
-<!-- ✅ MENU NAVBAR RESPONSIVE -->
-<div class="d-flex">
-    <button id="toggleSidebar" class="btn btn-outline-light position-fixed m-2" style="z-index: 1000;">
-        <i class="fas fa-bars"></i>
-    </button>
-    
-    <!-- ✅ Menu latéral -->
-    <div id="sidebar" class="bg-dark text-white vh-100 position-fixed" style="width: 250px;">
-        <h4 class="text-center mt-3">FBA Manager</h4>
-        <ul class="nav flex-column mt-4">
-            <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('main.dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('products.show_products') }}"><i class="fas fa-box"></i> Produits</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('main.stock') }}"><i class="fas fa-warehouse"></i> Stock</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('main.analytics') }}"><i class="fas fa-chart-line"></i> Statistiques</a></li>
-        </ul>
-    </div>
-
-    <!-- ✅ Contenu principal -->
-    <div class="flex-grow-1" style="margin-left: 250px;">
-
-    </div>
+<!-- ✅ Menu flottant -->
+<div id="menu-bar">
+    <a href="{{ url_for('main.dashboard') }}"><i class="fas fa-home"></i></a>
+    <a href="{{ url_for('products.show_products') }}"><i class="fas fa-box"></i></a>
+    <a href="{{ url_for('main.stock') }}"><i class="fas fa-warehouse"></i></a>
+    <a href="{{ url_for('main.analytics') }}"><i class="fas fa-chart-line"></i></a>
 </div>
-<div class="container mt-3">
-    <div class="input-group">
-        <input type="text" id="globalSearch" class="form-control" placeholder="🔍 Rechercher un produit ou un stock..." aria-label="Rechercher">
-        <button class="btn btn-outline-info" id="searchBtn"><i class="fas fa-search"></i></button>
-    </div>
-    <ul id="searchResults" class="list-group position-absolute bg-dark text-white w-100 mt-1" style="display:none;"></ul>
+
+<!-- ✅ Menu latéral caché -->
+<div id="full-menu">
+    <h3>📌 Menu</h3>
+    <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
+    <a href="{{ url_for('products.show_products') }}">📦 Produits</a>
+    <a href="{{ url_for('main.stock') }}">🏬 Stock</a>
+    <a href="{{ url_for('main.analytics') }}">📊 Statistiques</a>
 </div>
+
+<!-- ✅ Bouton Menu -->
+<button id="menu-toggle"><i class="fas fa-bars"></i></button>
+
+<script>
+document.getElementById("menu-toggle").addEventListener("click", function() {
+    document.getElementById("full-menu").classList.toggle("show");
+});
+</script>
+
 
 
 <!-- ✅ CONTENU PRINCIPAL -->
