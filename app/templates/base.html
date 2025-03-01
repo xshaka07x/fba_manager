@@ -44,5 +44,79 @@
 
 <!-- ✅ BOOTSTRAP SCRIPT -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let ctx = document.getElementById("salesChart").getContext("2d");
+        let salesChart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin"],
+                datasets: [
+                    {
+                        label: "Achats",
+                        data: [12, 19, 3, 5, 2, 3], // ➡️ À remplacer par des valeurs dynamiques
+                        borderColor: "rgba(255, 99, 132, 1)",
+                        backgroundColor: "rgba(255, 99, 132, 0.2)",
+                        borderWidth: 2,
+                    },
+                    {
+                        label: "Ventes",
+                        data: [8, 15, 6, 10, 4, 5], // ➡️ À remplacer par des valeurs dynamiques
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        backgroundColor: "rgba(54, 162, 235, 0.2)",
+                        borderWidth: 2,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>
+<!-- Ajout de DataTables -->
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('.data-table').DataTable({
+            "paging": true,
+            "searching": true,
+            "info": true,
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tous"]],
+            "language": {
+                "search": "🔍 Rechercher :",
+                "lengthMenu": "Afficher _MENU_ entrées",
+                "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                "paginate": { "first": "⏮", "last": "⏭", "next": "➡", "previous": "⬅" }
+            }
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                let url = this.getAttribute('data-url');
+                if (confirm("⚠️ Voulez-vous vraiment supprimer cet élément ? Cette action est irréversible.")) {
+                    window.location.href = url;
+                }
+            });
+        });
+
+        // ✅ Activation des tooltips Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+
 </body>
 </html>

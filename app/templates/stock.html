@@ -8,13 +8,18 @@
     .statut-envoye { background-color: rgba(30, 144, 255, 0.2) !important; }
     .statut-vendu { background-color: rgba(50, 205, 50, 0.2) !important; }
 </style>
+<div class="d-flex justify-content-end mb-3">
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addStockModal">
+        <i class="fas fa-plus"></i> Ajouter un produit
+    </button>
+</div>
 
 <div class="container mt-4">
     <h1 class="mb-4">📦 Gestion du Stock</h1>
 
 
 <!-- Tableau du stock -->
-<table class="table table-dark table-hover">
+<table class="table table-dark table-hover data-table">
     <thead>
         <tr>
             <th>#</th>
@@ -62,14 +67,16 @@
             </td>
             <!-- ✅ Colonne Actions -->
             <td>
-                <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editStockModal{{ item.id }}">
-                    ✏️
+                <!-- Bouton Modifier -->
+                <a href="#" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editStockModal{{ item.id }}" data-bs-toggle="tooltip" title="Modifier le stock">
+                    <i class="fas fa-edit"></i>
                 </a>
-                <form method="post" action="{{ url_for('main.delete_stock', stock_id=item.id) }}" style="display:inline;">
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cet article ?')">
-                        ❌
-                    </button>
-                </form>
+
+                <!-- Bouton Supprimer avec confirmation -->
+                <button class="btn btn-outline-danger btn-sm delete-btn" data-url="{{ url_for('main.delete_stock', stock_id=item.id) }}" data-bs-toggle="tooltip" title="Supprimer">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+
             </td>
         </tr>
 
