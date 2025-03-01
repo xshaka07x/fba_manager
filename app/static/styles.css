@@ -1,7 +1,8 @@
 /* 🌑 Fond général et couleurs */
 body {
-    background-color: #181818; /* Noir légèrement éclairci */
-    color: #e0e0e0; /* Texte en gris clair pour lisibilité */
+    background-color: #181818 !important; /* Fond sombre global */
+    color: #e0e0e0 !important; /* Texte plus clair */
+    font-family: Arial, sans-serif;
 }
 
 /* ✅ Couleur plus douce pour les cartes et tableaux */
@@ -15,12 +16,24 @@ body {
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
 }
 
-/* ✅ Bordures légèrement adoucies */
+/* ✅ Largeur et alignement des cartes */
 .card {
     border-radius: 8px;
+    width: 100%;
+}
+.card-body {
+    overflow-x: hidden;
+    white-space: normal;
+    word-wrap: break-word;
 }
 
-/* ✅ Amélioration des titres */
+/* ✅ Correction du placeholder de la barre de recherche */
+input::placeholder {
+    color: #bbb !important;
+    opacity: 1;
+}
+
+/* ✅ Titres plus visibles */
 h1, h2, h3, h4, h5 {
     color: #ffffff;
 }
@@ -33,6 +46,22 @@ h1, h2, h3, h4, h5 {
 .table-dark td {
     background-color: #252525;
     color: #e0e0e0;
+}
+
+/* ✅ Meilleure gestion des noms longs dans les tableaux */
+.nom-col {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.nom-col:hover {
+    overflow: visible;
+    white-space: normal;
+    background: rgba(255,255,255,0.1);
+    padding: 5px;
+    position: absolute;
+    z-index: 1000;
 }
 
 /* 🌟 Amélioration des couleurs ROI */
@@ -48,44 +77,6 @@ h1, h2, h3, h4, h5 {
 .roi-excellent { background-color: rgba(128, 0, 128, 0.2) !important; }
 .roi-excellent:hover { background-color: rgba(128, 0, 128, 0.35) !important; }
 
-/* ✅ Amélioration des tableaux */
-.dataTables_wrapper {
-    padding: 10px;
-}
-.data-table thead {
-    background-color: #2c2c2c;
-    color: #f1f1f1;
-}
-.data-table tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-.data-table th, .data-table td {
-    white-space: nowrap;
-    text-align: center;
-    padding: 8px;
-}
-
-/* ✅ Amélioration des cartes Bootstrap */
-.card {
-    background-color: #1e1e1e !important;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.4);
-}
-
-/* ✅ Meilleure distinction des tableaux */
-.table-dark {
-    background-color: #222;
-}
-.table-dark th {
-    background-color: #2c2c2c;
-    color: #f1f1f1;
-}
-.table-dark td {
-    background-color: #1e1e1e;
-    color: #e0e0e0;
-}
-
 /* ✅ Amélioration des boutons */
 .btn {
     border-radius: 6px;
@@ -100,7 +91,26 @@ h1, h2, h3, h4, h5 {
     color: #121212;
 }
 
-/* ✅ Inputs en mode sombre */
+/* ✅ Style des boutons d'action */
+.btn-warning, .btn-danger {
+    padding: 6px 12px;
+    font-size: 14px;
+}
+.btn-warning i, .btn-danger i {
+    margin-right: 5px;
+}
+
+/* ✅ Style des badges */
+.badge.bg-danger {
+    background-color: #ff3b3b !important;
+    color: white !important;
+}
+.badge.bg-success {
+    background-color: #28a745 !important;
+    color: white !important;
+}
+
+/* ✅ Inputs et selects en mode sombre */
 input, select {
     background-color: #1e1e1e;
     color: #e0e0e0;
@@ -109,11 +119,6 @@ input, select {
 input:focus, select:focus {
     background-color: #252525;
     border-color: #00bcd4;
-}
-
-/* ✅ Petites animations */
-.btn, input, select {
-    transition: all 0.3s ease-in-out;
 }
 
 /* ✅ Amélioration des tableaux */
@@ -133,7 +138,7 @@ input:focus, select:focus {
     padding: 8px;
 }
 
-/* ✅ Style du menu latéral */
+/* ✅ Meilleur menu latéral */
 #sidebar {
     background-color: #222 !important;
     border-right: 2px solid rgba(255, 255, 255, 0.1);
@@ -154,29 +159,16 @@ input:focus, select:focus {
     color: #ffffff;
 }
 
-/* ✅ Amélioration du menu responsive */
+/* ✅ Amélioration du bouton sidebar */
 #toggleSidebar {
-    background-color: transparent;
+    background-color: #00bcd4;
     border: none;
     color: white;
-    font-size: 1.5rem;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
     transition: all 0.3s;
 }
 #toggleSidebar:hover {
-    color: #00bcd4;
-}
-
-/* ✅ Amélioration des alertes de stock */
-.badge.bg-danger {
-    background-color: #ff3b3b !important;
-    color: white !important;
-}
-.badge.bg-success {
-    background-color: #28a745 !important;
-    color: white !important;
-}
-
-:root {
-    --bs-body-bg: #181818 !important;  /* 🌑 Fond sombre global */
-    --bs-body-color: #e0e0e0 !important; /* ✅ Texte plus clair */
+    background: #008ba3;
 }

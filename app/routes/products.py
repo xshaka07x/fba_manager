@@ -15,7 +15,7 @@ paris_tz = pytz.timezone('Europe/Paris')  # ✅ Fuseau horaire Paris
 @products_bp.route('/')
 def show_products():
     products = Product.query.order_by(Product.updated_at.desc()).all()
-
+    print(f"DEBUG: {len(products)} produits trouvés")  # ✅ Vérifie combien de produits sont chargés
     # ✅ Ajout d'une heure lors de l'affichage
     for product in products:
         product.updated_at = (product.updated_at + timedelta(hours=1)).strftime("%d/%m/%Y %H:%M")

@@ -45,20 +45,12 @@
             {% endif %}
         ">
             <th scope="row">{{ loop.index }}</th>
-            <td>{{ item.nom }}</td>
+            <td class="nom-col" title="{{ item.nom }}">{{ item.nom }}</td>
             <td>{{ item.ean }}</td>
             <td>{{ item.magasin }}</td>
             <td>{{ item.prix_achat }}€</td>
             <td>{{ item.date_achat.strftime("%d/%m/%y") }}</td>
             <td>{{ item.quantite }}</td>
-            <td>
-                {% if item.quantite <= item.seuil_alerte %}
-                    <span class="badge bg-danger">Stock bas !</span>
-                {% else %}
-                    <span class="badge bg-success">OK</span>
-                {% endif %}
-            </td>
-
             <td>
                 {% if item.facture_url %}
                     <a href="{{ item.facture_url }}" target="_blank" class="btn btn-outline-info btn-sm">Voir</a>
@@ -75,18 +67,12 @@
                     </select>
                 </form>
             </td>
-            <!-- ✅ Colonne Actions -->
             <td>
-                <!-- Bouton Modifier -->
-                <a href="#" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editStockModal{{ item.id }}" data-bs-toggle="tooltip" title="Modifier le stock">
-                    <i class="fas fa-edit"></i>
-                </a>
-
-                <!-- Bouton Supprimer avec confirmation -->
-                <button class="btn btn-outline-danger btn-sm delete-btn" data-url="{{ url_for('main.delete_stock', stock_id=item.id) }}" data-bs-toggle="tooltip" title="Supprimer">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-
+                {% if item.quantite <= item.seuil_alerte %}
+                    <span class="badge bg-danger">Stock bas !</span>
+                {% else %}
+                    <span class="badge bg-success">OK</span>
+                {% endif %}
             </td>
         </tr>
 

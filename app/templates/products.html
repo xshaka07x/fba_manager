@@ -47,7 +47,7 @@
                 {% endif %}
             ">
                 <th scope="row">{{ loop.index }}</th>
-                <td class="nom-col" title="{{ product.nom }}">{{ product.nom }}</td>
+                <td class="nom-col" title="{{ product.nom }}">{{ product.nom or "Nom introuvable" }}</td>
                 <td>{{ product.ean }}</td>
                 <td>${{ product.prix_retail }}</td>
                 <td>${{ product.prix_amazon }}</td>

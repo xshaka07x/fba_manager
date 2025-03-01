@@ -4,6 +4,8 @@ from app.models import Product, Stock
 from datetime import datetime
 from datetime import timedelta  # ✅ Pour ajouter une heure
 from app.models import Product, Stock
+from flask import jsonify
+
 
 main_bp = Blueprint('main', __name__)
 from app import db
