@@ -78,6 +78,21 @@ def historique_prix(product_id):
 
     return jsonify(data)
 
+@products_bp.route('/historique/<int:produit_id>')
+def historique_prix(produit_id):
+    historique = HistoriquePrix.query.filter_by(produit_id=produit_id).order_by(HistoriquePrix.date_enregistrement.desc()).all()
+
+    data = [
+        {
+            "prix_retail": item.prix_retail,
+            "prix_amazon": item.prix_amazon,
+            "date": item.date_enregistrement.strftime("%d/%m/%Y %H:%M")
+        }
+        for item in historique
+    ]
+
+    return jsonify(data)
+
 
 @products_bp.route('/import_json', methods=['POST'])
 def import_json():

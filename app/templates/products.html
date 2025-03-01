@@ -29,6 +29,8 @@
                 <th>Ventes Estimées</th>
                 <th>Lien</th>
                 <th>Date</th>
+                <th>Historique</th>
+
             </tr>
         </thead>
         <tbody>
@@ -54,6 +56,12 @@
                 <td>{{ product.sales_estimation }}</td>
                 <td><a href="{{ product.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
                 <td>{{ product.updated_at }}</td>
+                <td>
+                    <button class="btn btn-outline-light btn-sm" onclick="fetchHistorique({{ product.id }})">
+                        📉 Voir
+                    </button>
+                </td>
+                
             </tr>
             {% endfor %}
         </tbody>
@@ -75,52 +83,24 @@
 </div>
 
 <script>
-    document.getElementById("productSelector").addEventListener("change", function() {
-        let productId = this.value;
-        if (!productId) return;
-
-        fetch(`/historique_prix/${productId}`)
+    function fetchHistorique(produitId) {
+        fetch(`/historique/${produitId}`)
             .then(response => response.json())
             .then(data => {
-                let labels = data.map(entry => entry.date);
-                let prixRetail = data.map(entry => entry.prix_retail);
-                let prixAmazon = data.map(entry => entry.prix_amazon);
-
-                let ctx = document.getElementById("priceChart").getContext("2d");
-                if (window.priceChart) {
-                    window.priceChart.destroy();
+                let message = "Historique des prix :\n";
+                if (data.length === 0) {
+                    message += "Aucune donnée disponible.";
+                } else {
+                    data.forEach(item => {
+                        message += `📆 ${item.date} : ${item.prix_retail}€ (Amazon: ${item.prix_amazon || 'N/A'}€)\n`;
+                    });
                 }
-                window.priceChart = new Chart(ctx, {
-                    type: "line",
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: "Prix Retail (€)",
-                                data: prixRetail,
-                                borderColor: "rgba(255, 99, 132, 1)",
-                                backgroundColor: "rgba(255, 99, 132, 0.2)",
-                                borderWidth: 2
-                            },
-                            {
-                                label: "Prix Amazon (€)",
-                                data: prixAmazon,
-                                borderColor: "rgba(54, 162, 235, 1)",
-                                backgroundColor: "rgba(54, 162, 235, 0.2)",
-                                borderWidth: 2
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: { beginAtZero: true }
-                        }
-                    }
-                });
-            });
-    });
+                alert(message);
+            })
+            .catch(error => console.error("Erreur récupération historique :", error));
+    }
 </script>
+
 
 
 {% endblock %}

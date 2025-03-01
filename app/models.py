@@ -38,7 +38,7 @@ class Stock(db.Model):
     
 class HistoriquePrix(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    produit_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    produit_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)  # Assure-toi que c'est bien "product"
     prix_retail = db.Column(db.Float, nullable=False)
     prix_amazon = db.Column(db.Float, nullable=True)
     date_enregistrement = db.Column(db.DateTime, default=datetime.utcnow)
