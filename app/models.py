@@ -6,8 +6,8 @@ class Product(db.Model):
     __tablename__ = 'product'
 
     id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(255), nullable=False)  # Assure-toi qu'il y a bien "nom"
-    ean = db.Column(db.String(50), unique=True, nullable=False)  # Vérifie que "ean" est bien là
+    nom = db.Column(db.String(255), nullable=False)
+    ean = db.Column(db.String(50), unique=True, nullable=False)
     prix_retail = db.Column(db.Float, nullable=True)
     prix_amazon = db.Column(db.Float, nullable=True)
     roi = db.Column(db.Float, nullable=True)
