@@ -3,22 +3,25 @@ from app import db  # ✅ Après correction app.py, cette ligne fonctionnera
 from datetime import datetime
 
 class Product(db.Model):
-    __tablename__ = 'products'  # ✅ Forcer le nom exact de la table
-
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(255), nullable=False)
-    ean = db.Column(db.String(50), unique=True)
-    prix_retail = db.Column(db.Float)
-    prix_amazon = db.Column(db.Float)
-    roi = db.Column(db.Float)
-    profit = db.Column(db.Float)
-    sales_estimation = db.Column(db.String(50))
-    alerts = db.Column(db.String(255))
-    url = db.Column(db.String(500))
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    ean = db.Column(db.String(13), unique=True, nullable=False)
+    prix_retail = db.Column(db.Float, nullable=False)
+    prix_amazon = db.Column(db.Float, nullable=True)
+    roi = db.Column(db.Float, nullable=True)
+    profit = db.Column(db.Float, nullable=True)
+    sales_estimation = db.Column(db.Integer, nullable=True)
+    alerts = db.Column(db.String(255), nullable=True)
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
 
-    def __repr__(self):
-        return f'<Product {self.nom} - EAN: {self.ean}>'
+    historique_prix = db.relationship('HistoriquePrix', backref='produit', lazy=True, cascade="all, delete-orphan")
+
+class HistoriquePrix(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    produit_id = db.Column(db.Integer, db.ForeignKey('product.id', ondelete="CASCADE"), nullable=False)
+    prix_retail = db.Column(db.Float, nullable=False)
+    prix_amazon = db.Column(db.Float, nullable=True)
+    date_enregistrement = db.Column(db.DateTime, default=db.func.current_timestamp())
 
 class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -36,11 +39,3 @@ class Stock(db.Model):
     def __repr__(self):
         return f"<Stock {self.ean} - {self.magasin}>"
     
-class HistoriquePrix(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    produit_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)  # 🔍 Assure-toi que 'product.id' est correct
-    prix_retail = db.Column(db.Float, nullable=False)
-    prix_amazon = db.Column(db.Float, nullable=True)
-    date_enregistrement = db.Column(db.DateTime, default=db.func.current_timestamp())
-
-    produit = db.relationship("Product", backref=db.backref("historique", lazy=True))
