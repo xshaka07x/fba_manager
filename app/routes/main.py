@@ -55,6 +55,29 @@ def dashboard():
                            nb_produits_stock=nb_produits_stock)
 
 
+@main_bp.route('/edit_stock/<int:stock_id>', methods=['POST'])
+def edit_stock(stock_id):
+    stock_item = db.session.query(Stock).get(stock_id)
+    if stock_item:
+        stock_item.nom = request.form.get('nom')
+        stock_item.ean = request.form.get('ean')
+        stock_item.magasin = request.form.get('magasin')
+        stock_item.prix_achat = float(request.form.get('prix_achat'))
+        stock_item.date_achat = datetime.strptime(request.form.get('date_achat'), '%Y-%m-%d')
+        stock_item.quantite = int(request.form.get('quantite'))
+        stock_item.facture_url = request.form.get('facture_url')
+        db.session.commit()
+    return redirect(url_for('main.stock'))
+
+
+@main_bp.route('/delete_stock/<int:stock_id>', methods=['POST'])
+def delete_stock(stock_id):
+    stock_item = db.session.query(Stock).get(stock_id)
+    if stock_item:
+        db.session.delete(stock_item)
+        db.session.commit()
+    return redirect(url_for('main.stock'))
+
 
 @main_bp.route('/settings')
 def settings():

@@ -335,20 +335,20 @@ def scrap_toutes_pages(driver, nb_max_total):
 
 def cliquer_suivant(driver, page_actuelle, eans_page_precedente):
     try:
-        bouton_suivant = WebDriverWait(driver, 5).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, 'a[aria-label=" page"]'))
+        bouton_suivant = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, 'a[aria-label="Suivant"]'))  # ⚡️ Sélecteur corrigé
         )
         bouton_suivant.click()
         print(f"➡️ Passage à la page {page_actuelle + 1}...")
 
-        # Attente jusqu'à ce que les EANs changent, preuve que la page a bien été chargée
-        WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 15).until(
             lambda d: set(recuperer_eans(d)) != eans_page_precedente
         )
         return True
     except Exception as e:
         print(f"⚠️ Erreur lors du changement de page : {e}")
         return False
+
 
 
 
@@ -378,20 +378,28 @@ def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
 
     print(f"🔍 {len(produits_urls)} produits trouvés sur cette page.")
 
+    # 👉 Nouveau compteur total sur cette page
+    total_produits = len(produits_urls)
+    produits_traite = 0
+
     for url in produits_urls:
         if len(produits) >= nb_max:
             break
         try:
             produit = extraire_details_produit(driver, url, timeout_sec=3)
+            produits_traite += 1  # 🧮 Incrémente après chaque tentative
             if produit:
                 produits.append(produit)
                 urls_deja_traitees.add(url)
                 print(f"✅ [SCRAPER] Produit {produit['Nom']} enrichi et sauvegardé.")
+            print(f"📊 Progression : {len(produits)} enregistré(s) / {nb_max} demandé(s) "
+                  f"({produits_traite}/{total_produits} traités sur cette page)")
         except Exception as e:
             print(f"⚠️ Produit ignoré suite à une erreur : {e}", flush=True)
 
     eans_page_courante = {p['EAN'] for p in produits if 'EAN' in p}
     return produits, eans_page_courante, urls_deja_traitees
+
 
 
 
