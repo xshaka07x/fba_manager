@@ -31,7 +31,7 @@ def dashboard():
 
 
     # Récupérer les 30 meilleurs produits en fonction du ROI
-    top_roi_items = db.session.query(Product).filter(Product.roi.isnot(None)).order_by(Product.roi.desc()).limit(30).all()
+    top_roi_items = db.session.query(Product).filter(Product.roi.isnot(None)).order_by(Product.roi.desc()).limit(50).all()
 
     # Récupérer les 5 derniers produits scrapés
     recent_items = db.session.query(Product).order_by(Product.updated_at.desc()).limit(5).all()
