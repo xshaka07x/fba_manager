@@ -154,9 +154,10 @@ def update_stock(stock_id):
 @main_bp.route('/add_stock', methods=['POST'])
 def add_stock():
     try:
-        from app.scraping.scraper import get_selleramp_data
+        from scraping.scraper import get_selleramp_data
     except ModuleNotFoundError:
-        from scraping.scraper import get_selleramp_data  # 🔄 Import alternatif
+        from app.scraping.scraper import get_selleramp_data
+
 
     try:
         nom = request.form.get('nom')

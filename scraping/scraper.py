@@ -29,9 +29,7 @@ from app.utils.db import get_db_connection
 from datetime import datetime
 import pytz
 from datetime import timedelta  # 🔥 Ajout nécessaire en haut du fichier
-import tkinter as tk
-from tkinter import messagebox
-import threading
+
 
 
 # 🔗 Initialisation Flask
