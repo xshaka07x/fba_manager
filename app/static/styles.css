@@ -25,6 +25,23 @@ body {
     overflow-x: hidden;
     white-space: normal;
     word-wrap: break-word;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Espace mieux géré */
+    width: 100%;
+    min-height: 120px; /* Ajuste selon le besoin */
+    padding: 20px;
+    overflow: hidden; /* Évite la barre de scroll */
+    text-align: center;
+}
+
+.card-body h6 {
+    font-size: 1rem; /* Ajuste la taille du texte */
+    white-space: nowrap;
+}
+
+.card-body h4 {
+    font-size: 1.5rem; /* Assure une bonne lisibilité */
 }
 
 /* ✅ Correction du placeholder de la barre de recherche */
