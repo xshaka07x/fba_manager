@@ -15,46 +15,30 @@ from app import db
 def index():
     return redirect(url_for('main.dashboard'))  # 🚀 Redirection vers /dashboard
 
-@main_bp.route('/dashboard')
+@main.route('/dashboard')
 def dashboard():
-    from app.models import Product, Stock
+    # Récupère les produits scrapés (par ex: ceux qui ont un prix Amazon)
+    produits_scrapes = db.session.query(Product).filter(Product.prix_amazon.isnot(None)).all()
 
-    # Récupération des 5 derniers produits scrapés
+    # Calcule la somme des profits
+    profit_scrapes_total = sum(p.profit for p in produits_scrapes if p.profit is not None)
+
+    # Nombre de produits scrapés et en stock
+    nb_produits_scrapes = len(produits_scrapes)
+    nb_produits_stock = db.session.query(Product).filter(Product.statut == "Acheté/en stock").count()
+
+    # Récupérer les 30 meilleurs produits en fonction du ROI
+    top_roi_items = db.session.query(Product).filter(Product.roi.isnot(None)).order_by(Product.roi.desc()).limit(30).all()
+
+    # Récupérer les 5 derniers produits scrapés
     recent_items = db.session.query(Product).order_by(Product.updated_at.desc()).limit(5).all()
 
-    # Récupération des 10 meilleurs ROI
-    top_roi_items = db.session.query(Product).order_by(Product.roi.desc()).limit(30).all()
-
-    # ✅ Profit potentiel total (uniquement les profits positifs)
-    profit_total = db.session.query(db.func.sum(Product.profit)).filter(Product.profit > 0).scalar() or 0
-
-    # ✅ Nombre de produits scrapés
-    nb_produits_scrapes = db.session.query(Product).count()
-
-    # ✅ Nombre de produits en stock avec statut "Acheté/en stock"
-    nb_produits_stock = db.session.query(Stock).filter(Stock.statut == 'Acheté/en stock').count()
-
-
-    # Formatage commun pour les deux listes
-    def format_items(items):
-        return [{
-            'nom': item.nom,
-            'ean': item.ean,
-            'prix_retail': item.prix_retail,
-            'prix_amazon': item.prix_amazon,
-            'roi': item.roi,
-            'profit': item.profit,
-            'sales_estimation': item.sales_estimation,
-            'url': item.url,
-            'updated_at': item.updated_at.strftime("%d/%m/%y") if item.updated_at else 'N/A'
-        } for item in items]
-
-    return render_template('dashboard.html',
-                           recent_items=format_items(recent_items),
-                           top_roi_items=format_items(top_roi_items),
-                           profit_total=round(profit_total, 2),
+    return render_template("dashboard.html", 
+                           profit_scrapes_total=profit_scrapes_total,
                            nb_produits_scrapes=nb_produits_scrapes,
-                           nb_produits_stock=nb_produits_stock)
+                           nb_produits_stock=nb_produits_stock,
+                           top_roi_items=top_roi_items,
+                           recent_items=recent_items)
 
 
 @main_bp.route('/edit_stock/<int:stock_id>', methods=['POST'])
