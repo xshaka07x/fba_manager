@@ -13,7 +13,7 @@ from selenium.common.exceptions import (
 from webdriver_manager.chrome import ChromeDriverManager
 import sys
 import os
-
+sys.stderr = open(os.devnull, "w")  # Cache les erreurs dans un "trou noir"
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if base_dir not in sys.path:
     sys.path.insert(0, base_dir)
@@ -35,6 +35,7 @@ with app.app_context():
     db.create_all()
 
 # ⚙️ Configuration Selenium
+# ⚙️ Configuration Selenium
 options = Options()
 options.add_argument("--disable-gpu")
 options.add_argument("--disable-software-rasterizer")
@@ -44,9 +45,13 @@ options.add_argument("--window-size=1920,1080")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-blink-features=AutomationControlled")
 options.add_argument("--headless=new")
-options.add_argument("--disable-gpu")
-options.add_argument("--disable-software-rasterizer")
-options.page_load_strategy = 'eager'
+options.add_argument("--disable-webrtc")
+options.add_argument("--force-webrtc-ip-handling-policy=default_public_interface_only")
+
+# Suppression des logs inutiles
+options.add_experimental_option('excludeSwitches', ['enable-logging'])
+options.add_experimental_option('excludeSwitches', ['enable-automation'])
+options.add_experimental_option('useAutomationExtension', False)
 
 
 try:
@@ -296,7 +301,19 @@ def get_selleramp_data(ean, prix_magasin, max_retries=1):
                 print(f"⚠️ Produit ignoré (Sales Estimation inconnu) | EAN: {ean}")
                 return None, None, None, None, None
 
-            print(f"🔄 Données SellerAmp récupérées : {prix_amazon}€, ROI: {roi}, Profit: {profit}€, Sales: {sales_estimation}, Alerts: {alerts}")
+            # 💰 Convertir ROI en float pour appliquer le filtre
+            try:
+                roi_clean = re.sub(r'[^\d\.-]', '', roi)  # Supprime tout sauf chiffres, points et tirets
+                roi_value = float(roi_clean) if roi_clean else None
+            except Exception as e:
+                print(f"⚠️ Erreur conversion ROI : {roi} -> {e}")
+                roi_value = None
+
+            if roi_value is None or roi_value <= 10:
+                print(f"⚠️ Produit ignoré (ROI trop bas : {roi_value}%) | EAN: {ean}")
+                return None, None, None, None, None
+
+            print(f"🔄 Données SellerAmp récupérées : {prix_amazon}€, ROI: {roi_value}%, Profit: {profit}€, Sales: {sales_estimation}, Alerts: {alerts}")
             return prix_amazon, roi, profit, sales_estimation, alerts
 
         except Exception as e:
@@ -307,6 +324,7 @@ def get_selleramp_data(ean, prix_magasin, max_retries=1):
                 driver_selleramp.quit()
 
     return None, None, None, None, None
+
 
 
 def scrap_toutes_pages(driver, nb_max_total, url_base):

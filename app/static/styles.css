@@ -118,20 +118,25 @@ h1, h2, h3, h4, h5 {
 }
 
 
-/* ✅ Fixe le menu en haut */
-.menu-top {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 80%; /* ✅ Définit la largeur à 80% */
-    margin: 0 auto; /* ✅ Centre le menu horizontalement */
-    background: #222;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4);
+#menu-top {
+    width: 80%;
+    margin: 0 auto; /* Centre le menu */
+    text-align: center; /* Centre les éléments du menu */
+    background: #222; /* Couleur de fond */
+    padding: 15px 0; /* Espace intérieur */
     display: flex;
-    justify-content: space-around;
-    padding: 15px 0;
-    z-index: 1000;
+    justify-content: center; /* Centre les liens horizontalement */
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ✅ Ajout d'un espacement entre les liens */
+#menu-top a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    transition: background 0.3s;
 }
 
 /* ✅ Espacement correct entre le menu et le contenu */
@@ -139,14 +144,7 @@ body {
     padding-top: 60px;
 }
 
-/* ✅ Ajuste les liens dans le menu */
-.menu-top a {
-    color: white;
-    text-decoration: none;
-    font-size: 1.2rem;
-    padding: 10px 20px;
-    transition: background 0.3s;
-}
+
 
 .menu-top a:hover {
     background: rgba(255, 255, 255, 0.1);
