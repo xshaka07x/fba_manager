@@ -183,35 +183,38 @@ def extraire_details_produit(driver, url, timeout_sec=3):
             ean_code, float(prix.replace("€", "").strip())
         )
 
+        # 🚨 Vérification des filtres (déjà gérée dans get_selleramp_data, mais ajout pour debug)
+        if prix_amazon is None and roi is None and profit is None:
+            print(f"⚠️ Produit {ean_code} ignoré (filtré par SellerAmp)")
+            return None
+
         # ⏱️ Timeout
         if (time.time() - start_time) > 5 and not (prix_amazon and roi and profit):
             print(f"⚡ Timeout > 5s. Produit {ean_code} ignoré.")
             return None
 
-        if prix_amazon and roi and profit:
-            insert_or_update_product(
-                driver.title, ean_code, float(prix.replace("€", "").strip()), url, prix_amazon, roi, profit, sales_estimation, alerts
-            )
-            print(f"💾 Produit enrichi : {driver.title} | EAN: {ean_code}")
-            return {
-                'Nom': driver.title,
-                'Prix': prix,
-                'EAN': ean_code,
-                'URL': url,
-                'Prix_Amazon': prix_amazon,
-                'ROI': roi,
-                'Profit': profit,
-                'Sales_Estimation': sales_estimation,
-                'Alerts': alerts
-            }
+        # ✅ Insertion en DB
+        insert_or_update_product(
+            driver.title, ean_code, float(prix.replace("€", "").strip()), url, prix_amazon, roi, profit, sales_estimation, alerts
+        )
+        print(f"💾 Produit enrichi : {driver.title} | EAN: {ean_code}")
 
-        return None
+        return {
+            'Nom': driver.title,
+            'Prix': prix,
+            'EAN': ean_code,
+            'URL': url,
+            'Prix_Amazon': prix_amazon,
+            'ROI': roi,
+            'Profit': profit,
+            'Sales_Estimation': sales_estimation,
+            'Alerts': alerts
+        }
 
     finally:
         if len(driver.window_handles) > 1:
             driver.close()
             driver.switch_to.window(driver.window_handles[0])
-
 
 
 
@@ -232,13 +235,14 @@ def enregistrer_produit(produit):
 
 
 
-def get_selleramp_data(ean, prix_magasin, max_retries=2):
+def get_selleramp_data(ean, prix_magasin, max_retries=1):
     """🔍 Récupère les données SellerAmp enrichies : ROI, profit, sales_estimation, alerts."""
     from selenium.webdriver.common.keys import Keys
     driver_selleramp = None
     for attempt in range(max_retries):
         try:
             print(f"⚡ Tentative {attempt + 1}/{max_retries} pour EAN {ean}...")
+
             driver_selleramp = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
             driver_selleramp.get('https://sas.selleramp.com/')
 
@@ -283,6 +287,15 @@ def get_selleramp_data(ean, prix_magasin, max_retries=2):
             sales_estimation = driver_selleramp.find_element(By.CSS_SELECTOR, '.estimated_sales_per_mo').text
             alerts = driver_selleramp.find_element(By.CSS_SELECTOR, '#qi-alerts .qi-alert-not').text
 
+            # 🚨 FILTRES 🚨
+            if alerts == "PL":
+                print(f"⚠️ Produit ignoré (Private Label - PL) | EAN: {ean}")
+                return None, None, None, None, None
+
+            if sales_estimation.lower() == "unknown":
+                print(f"⚠️ Produit ignoré (Sales Estimation inconnu) | EAN: {ean}")
+                return None, None, None, None, None
+
             print(f"🔄 Données SellerAmp récupérées : {prix_amazon}€, ROI: {roi}, Profit: {profit}€, Sales: {sales_estimation}, Alerts: {alerts}")
             return prix_amazon, roi, profit, sales_estimation, alerts
 
@@ -294,6 +307,7 @@ def get_selleramp_data(ean, prix_magasin, max_retries=2):
                 driver_selleramp.quit()
 
     return None, None, None, None, None
+
 
 def scrap_toutes_pages(driver, nb_max_total, url_base):
     produits_scrapes = []
