@@ -31,10 +31,10 @@
         <!-- Profit Potentiel -->
         <div class="col">
             <div class="card bg-dark text-white shadow h-100">
-                <div class="card-body text-center">
+                <div class="card-body text-center d-flex flex-column">
                     <h5 class="text-uppercase fw-bold">Profit Potentiel des Scraps</h5>
                     <h3 class="fw-bold text-success">{{ profit_scrapes_total|round(2) }}€</h3>   
-                    <hr class="bg-light">
+                    <br>
                     <h5 class="text-uppercase fw-bold">Profit Potentiel du Stock</h5>
                     <h3 class="fw-bold text-info">27.02€</h3>                                 
                 </div>
@@ -44,12 +44,12 @@
         <!-- Nombre de Produits -->
         <div class="col">
             <div class="card bg-dark text-white shadow h-100">
-                <div class="card-body text-center">
+                <div class="card-body text-center d-flex flex-column">
                     <h5 class="fw-bold">📦 Produits Scrapés</h5>
-                    <p class="display-6 text-warning fw-bold">{{ nb_produits_scrapes }}</p>  
-                    <hr class="bg-light">
+                    <h3 class="fw-bold text-warning">{{ nb_produits_scrapes }}</h3>  
+                    <br>
                     <h5 class="fw-bold">🏬 Produits en Stock</h5>
-                    <p class="display-6 text-primary fw-bold">{{ nb_produits_stock }}</p>  
+                    <h3 class="fw-bold text-primary">{{ nb_produits_stock }}</h3>  
                 </div>
             </div>
         </div>
@@ -57,19 +57,20 @@
         <!-- Dépenses, Recettes et Balance -->
         <div class="col">
             <div class="card bg-dark text-white shadow h-100">
-                <div class="card-body text-center">
+                <div class="card-body text-center d-flex flex-column">
                     <h5 class="fw-bold text-danger">💰 Dépenses</h5>
                     <h3 class="fw-bold">{{ depenses_total | default(0) | round(2) }}€</h3>
-                    <hr class="bg-light">
+                    <br>
                     <h5 class="fw-bold text-success">📈 Recettes</h5>
                     <h3 class="fw-bold">{{ recettes_total | default(0) | round(2) }}€</h3> 
-                    <hr class="bg-light">
+                    <br>
                     <h5 class="fw-bold text-warning">🔄 Balance</h5>
                     <h3 class="fw-bold text-info">{{ balance_total | default(0) | round(2) }}€</h3>  
                 </div>
             </div>
         </div>
     </div>
+
 
 
 
