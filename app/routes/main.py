@@ -9,6 +9,7 @@ from flask import jsonify
 
 main_bp = Blueprint('main', __name__)
 from app import db
+depenses_total = 0  # ✅ Valeur par défaut si aucun calcul n'est fait
 
 
 @main_bp.route('/')
@@ -35,12 +36,14 @@ def dashboard():
     # Récupérer les 5 derniers produits scrapés
     recent_items = db.session.query(Product).order_by(Product.updated_at.desc()).limit(5).all()
 
-    return render_template("dashboard.html", 
-                           profit_scrapes_total=profit_scrapes_total,
-                           nb_produits_scrapes=nb_produits_scrapes,
-                           nb_produits_stock=nb_produits_stock,
-                           top_roi_items=top_roi_items,
-                           recent_items=recent_items)
+    return render_template("dashboard.html",
+                        profit_scrapes_total=profit_scrapes_total,
+                        nb_produits_scrapes=nb_produits_scrapes,
+                        nb_produits_stock=nb_produits_stock,
+                        top_roi_items=top_roi_items,
+                        recent_items=recent_items,
+                        depenses_total=depenses_total)  # ✅ Ajout ici
+
 
 
 @main_bp.route('/edit_stock/<int:stock_id>', methods=['POST'])
