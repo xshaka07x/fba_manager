@@ -36,6 +36,10 @@ def dashboard():
     # Récupérer les 5 derniers produits scrapés
     recent_items = db.session.query(Product).order_by(Product.updated_at.desc()).limit(5).all()
 
+    depenses_total = db.session.query(Stock).with_entities(db.func.sum(Stock.prix_achat)).scalar()
+    depenses_total = depenses_total if depenses_total is not None else 0  # ✅ Protection contre None
+
+
     return render_template("dashboard.html",
                         profit_scrapes_total=profit_scrapes_total,
                         nb_produits_scrapes=nb_produits_scrapes,
