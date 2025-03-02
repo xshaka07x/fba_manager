@@ -90,6 +90,60 @@ if project_path not in sys.path:
     sys.path.insert(0, project_path)
 
 
+
+def get_user_input():
+    """Affiche une fenêtre Tkinter pour saisir jusqu'à 3 URLs et nombres de produits."""
+    root = tk.Tk()
+    root.title("Configuration du Scraper")
+
+    labels = ["URL 1 :", "Produits :", "URL 2 :", "Produits :", "URL 3 :", "Produits :"]
+    entries = []
+
+    for i, text in enumerate(labels):
+        tk.Label(root, text=text).grid(row=i//2, column=(i % 2) * 2)
+        entry = tk.Entry(root, width=40)
+        entry.grid(row=i//2, column=(i % 2) * 2 + 1)
+        entries.append(entry)
+
+    def start_scraping():
+        """Récupère les données et lance le scraping avec plusieurs URLs."""
+        urls_to_scrape = []
+        for i in range(0, len(entries), 2):
+            url = entries[i].get().strip()
+            nb_products = entries[i + 1].get().strip()
+            if url and nb_products.isdigit():
+                urls_to_scrape.append((url, int(nb_products)))
+
+        if not urls_to_scrape:
+            messagebox.showwarning("Attention", "Veuillez saisir au moins une URL valide et un nombre de produits.")
+            return
+
+        print(f"✅ Données récupérées : {urls_to_scrape}")  # Debugging
+        root.destroy()  # Ferme la fenêtre
+
+        # 🔥 Lancement en thread pour éviter de bloquer l'UI
+        thread = threading.Thread(target=launch_scraping, args=(urls_to_scrape,))
+        thread.daemon = True  # Permet de fermer le thread proprement avec l'application
+        thread.start()
+
+    tk.Button(root, text="Lancer le Scraper", command=start_scraping).grid(row=3, columnspan=4, pady=10)
+    root.mainloop()
+
+def launch_scraping(urls_to_scrape):
+    """Lance le scraping pour chaque URL + nombre de produits."""
+    print("🚀 Lancement du scraping...")
+    if not urls_to_scrape:
+        print("⚠️ Aucune URL à scraper !")
+        return
+
+    for url, nb_scrap in urls_to_scrape:
+        print(f"🔍 Scraping en cours : {url} ({nb_scrap} produits)")
+        produits_scrapes = lancer_scraping(url, nb_scrap)
+        print(f"🎉 Scraping terminé pour {url} : {len(produits_scrapes)} produit(s) enrichi(s).")
+    
+    print("✅ Tous les scrapings sont terminés.")
+
+
 def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, roi, profit, sales_estimation, alerts):
     """📝 Insère ou met à jour un produit avec TOUTES les données SellerAmp en DB Railway."""
     try:
@@ -477,7 +531,4 @@ def lancer_scraping(url, nb_scrap_total):
 
 
 if __name__ == "__main__":
-    url = sys.argv[1]
-    nb_scrap = int(sys.argv[2])
-    produits_scrapes = lancer_scraping(url, nb_scrap)
-    print(f"🎉 Scraping terminé. Total : {len(produits_scrapes)} produit(s) enrichi(s).")
+    get_user_input()  # 🔥 Lancer l'interface graphique AVANT de scraper
