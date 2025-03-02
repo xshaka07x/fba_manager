@@ -13,7 +13,9 @@ def create_app():
 
     db.init_app(app)
 
-    from app.routes.main import main_bp
+    with app.app_context():
+        from app.routes.main import main_bp
+        app.register_blueprint(main_bp)
     from app.routes.products import products_bp
     from app.routes.analytics import analytics_bp
 

@@ -1,5 +1,8 @@
-# app/utils/fetch_selleramp.py
-from scraping.scraper import get_selleramp_data
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../scraping')))
+from scraper import get_selleramp_data
+
 
 def fetch_selleramp_info(ean, prix_achat):
     """
