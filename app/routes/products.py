@@ -12,15 +12,15 @@ from datetime import timedelta  # ✅ Pour ajouter une heure
 products_bp = Blueprint('products', __name__)
 paris_tz = pytz.timezone('Europe/Paris')  # ✅ Fuseau horaire Paris
 
+
 @products_bp.route('/')
 def show_products():
     products = Product.query.order_by(Product.updated_at.desc()).all()
 
-    if not products:
-        print("🚨 DEBUG: Aucun produit trouvé en base de données")
-
+    # 🛑 Debug pour voir ce qu'il y a en BDD
+    print(f"🚨 DEBUG: {len(products)} produits trouvés")
     for product in products:
-        print(f"🛒 Produit trouvé : {product.nom}, EAN : {product.ean}")
+        print(f"🛒 Produit: {product.nom}, EAN: {product.ean}, Prix Retail: {product.prix_retail}")
 
     return render_template('products.html', produits=products)
 

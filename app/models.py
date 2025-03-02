@@ -3,7 +3,7 @@ from app import db  # ✅ Après correction app.py, cette ligne fonctionnera
 from datetime import datetime
 
 class Product(db.Model):
-    __tablename__ = 'product'
+    __tablename__ = 'products'
 
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(255), nullable=False)
