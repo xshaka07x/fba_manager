@@ -10,31 +10,15 @@
 <body class="dark-theme">
 
 <!-- ✅ Menu flottant -->
-<div id="menu-bar">
+<div id="menu-bar" class="menu-top">
+
     <a href="{{ url_for('main.dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
     <a href="{{ url_for('products.show_products') }}"><i class="fas fa-box"></i> Produits</a>
     <a href="{{ url_for('main.stock') }}"><i class="fas fa-warehouse"></i> Stock</a>
     <a href="{{ url_for('main.analytics') }}"><i class="fas fa-chart-line"></i> Statistiques</a>
 </div>
 
-<!-- ✅ Menu latéral caché -->
-<div id="full-menu">
-    <h3>📌 Menu</h3>
-    <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
-    <a href="{{ url_for('products.show_products') }}">📦 Produits</a>
-    <a href="{{ url_for('main.stock') }}">🏬 Stock</a>
-    <a href="{{ url_for('main.analytics') }}">📊 Statistiques</a>
-</div>
 
-<!-- ✅ Bouton Menu -->
-<button id="menu-toggle"><i class="fas fa-bars"></i></button>
-
-<script>
-document.getElementById("menu-toggle").addEventListener("click", function() {
-    let menu = document.getElementById("full-menu");
-    menu.classList.toggle("show");
-});
-</script>
 
 
 

@@ -81,24 +81,77 @@ h1, h2, h3, h4, h5 {
     z-index: 1000;
 }
 
-/* 🌟 Amélioration des couleurs ROI */
-/* ✅ Couleurs pour chaque ROI */
-.roi-low { background-color: rgba(255, 0, 0, 0.2) !important; }
-.roi-medium { background-color: rgba(144, 238, 144, 0.2) !important; }
-.roi-high { background-color: rgba(0, 128, 0, 0.2) !important; }
-.roi-excellent { background-color: rgba(128, 0, 128, 0.2) !important; }
+/* ✅ Appliquer la couleur du ROI sur toute la ligne */
+.data-table tbody tr.roi-low td,
+.table tbody tr.roi-low td {
+    background-color: rgba(255, 0, 0, 0.2) !important;
+}
+.data-table tbody tr.roi-medium td,
+.table tbody tr.roi-medium td {
+    background-color: rgba(144, 238, 144, 0.2) !important;
+}
+.data-table tbody tr.roi-high td,
+.table tbody tr.roi-high td {
+    background-color: rgba(0, 128, 0, 0.2) !important;
+}
+.data-table tbody tr.roi-excellent td,
+.table tbody tr.roi-excellent td {
+    background-color: rgba(128, 0, 128, 0.2) !important;
+}
 
-/* ✅ Assure que le hover n'écrase pas la couleur de base */
-.roi-low:hover { background-color: rgba(255, 0, 0, 0.35) !important; }
-.roi-medium:hover { background-color: rgba(144, 238, 144, 0.35) !important; }
-.roi-high:hover { background-color: rgba(0, 128, 0, 0.35) !important; }
-.roi-excellent:hover { background-color: rgba(128, 0, 128, 0.35) !important; }
+/* ✅ Assure que le hover garde bien la teinte */
+.data-table tbody tr.roi-low:hover td,
+.table tbody tr.roi-low:hover td {
+    background-color: rgba(255, 0, 0, 0.35) !important;
+}
+.data-table tbody tr.roi-medium:hover td,
+.table tbody tr.roi-medium:hover td {
+    background-color: rgba(144, 238, 144, 0.35) !important;
+}
+.data-table tbody tr.roi-high:hover td,
+.table tbody tr.roi-high:hover td {
+    background-color: rgba(0, 128, 0, 0.35) !important;
+}
+.data-table tbody tr.roi-excellent:hover td,
+.table tbody tr.roi-excellent:hover td {
+    background-color: rgba(128, 0, 128, 0.35) !important;
+}
 
 
-.data-table tbody tr.roi-low td { background-color: rgba(255, 0, 0, 0.2) !important; }
-.data-table tbody tr.roi-medium td { background-color: rgba(144, 238, 144, 0.2) !important; }
-.data-table tbody tr.roi-high td { background-color: rgba(0, 128, 0, 0.2) !important; }
-.data-table tbody tr.roi-excellent td { background-color: rgba(128, 0, 128, 0.2) !important; }
+/* ✅ Fixe le menu en haut */
+.menu-top {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #222;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 0;
+    z-index: 1000;
+}
+
+/* ✅ Espacement correct entre le menu et le contenu */
+body {
+    padding-top: 60px;
+}
+
+/* ✅ Ajuste les liens dans le menu */
+.menu-top a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    transition: background 0.3s;
+}
+
+.menu-top a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+}
+
 
 
 /* ✅ Amélioration des boutons */
