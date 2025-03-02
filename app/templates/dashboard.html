@@ -62,10 +62,10 @@
                     <h3 class="fw-bold">{{ depenses_total | default(0) | round(2) }}€</h3>
                     <hr class="bg-light">
                     <h5 class="fw-bold text-success">📈 Recettes</h5>
-                    <h3 class="fw-bold">{{ recettes_total|round(2) }}€</h3>   
+                    <h3 class="fw-bold">{{ recettes_total | default(0) | round(2) }}€</h3> 
                     <hr class="bg-light">
                     <h5 class="fw-bold text-warning">🔄 Balance</h5>
-                    <h3 class="fw-bold">{{ balance_total|round(2) }}€</h3>   
+                    <h3 class="fw-bold">{{ balance_total | default(0) | round(2) }}€</h3>  
                 </div>
             </div>
         </div>

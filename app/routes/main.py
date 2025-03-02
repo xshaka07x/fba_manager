@@ -36,8 +36,17 @@ def dashboard():
     # Récupérer les 5 derniers produits scrapés
     recent_items = db.session.query(Product).order_by(Product.updated_at.desc()).limit(5).all()
 
+   # Calcul des dépenses
     depenses_total = db.session.query(db.func.sum(Stock.prix_achat)).scalar()
     depenses_total = float(depenses_total) if depenses_total else 0  # ✅ Conversion en float
+
+    # Calcul des recettes (ajoute ici la logique selon ton modèle)
+    recettes_total = db.session.query(db.func.sum(Product.profit)).scalar()
+    recettes_total = float(recettes_total) if recettes_total else 0  # ✅ Conversion en float
+
+    # Calcul de la balance
+    balance_total = recettes_total - depenses_total
+
 
 
 
@@ -47,7 +56,10 @@ def dashboard():
                         nb_produits_stock=nb_produits_stock,
                         top_roi_items=top_roi_items,
                         recent_items=recent_items,
-                        depenses_total=depenses_total)  # ✅ Ajout ici
+                        depenses_total=depenses_total,
+                        recettes_total=recettes_total,  # ✅ Ajout ici
+                        balance_total=balance_total)    # ✅ Ajout ici
+
 
 
 
