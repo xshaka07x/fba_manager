@@ -37,15 +37,15 @@ class Stock(db.Model):
     ean = db.Column(db.String(13), nullable=False, unique=True)
     magasin = db.Column(db.String(100), nullable=False)
     prix_achat = db.Column(db.Float, nullable=False)
-    prix_amazon = db.Column(db.Float, nullable=True)
-    roi = db.Column(db.Float, nullable=True)
-    profit = db.Column(db.Float, nullable=True)
-    sales_estimation = db.Column(db.Integer, nullable=True)
-    date_achat = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    prix_amazon = db.Column(db.Float, nullable=True)  # ✅ Nouvelle colonne
+    roi = db.Column(db.Float, nullable=True)  # ✅ Nouvelle colonne
+    profit = db.Column(db.Float, nullable=True)  # ✅ Nouvelle colonne
+    sales_estimation = db.Column(db.Integer, nullable=True)  # ✅ Nouvelle colonne
+    date_achat = db.Column(db.DateTime, nullable=False)
     quantite = db.Column(db.Integer, nullable=False)
     facture_url = db.Column(db.String(255), nullable=True)
     statut = db.Column(db.String(50), nullable=False, default="Acheté/en stock")
-    nom = db.Column(db.String(255), nullable=False)
+    nom = db.Column(db.String(255), nullable=False)  # ⚠️ Peut être récupéré si dispo sur SellerAmp
     seuil_alerte = db.Column(db.Integer, default=5)
 
     def __repr__(self):
