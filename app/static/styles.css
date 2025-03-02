@@ -118,7 +118,7 @@ h1, h2, h3, h4, h5 {
 }
 
 #menu-top {
-    width: 55%;
+    width: 50%;
     margin: 0 auto; /* Centre le menu horizontalement */
     text-align: center;
     background: #222;
@@ -139,7 +139,8 @@ h1, h2, h3, h4, h5 {
 #menu-top a {
     color: white;
     text-decoration: none;
-    font-size: 1.2rem;
+    font-size: 1.8rem;
+    font-weight: bold;
     padding: 10px 7%;
     transition: background 0.3s;
 }
