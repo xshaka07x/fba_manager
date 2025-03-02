@@ -26,7 +26,8 @@ def dashboard():
 
     # Nombre de produits scrapés et en stock
     nb_produits_scrapes = len(produits_scrapes)
-    nb_produits_stock = db.session.query(Product).filter(Product.statut == "Acheté/en stock").count()
+    nb_produits_stock = db.session.query(Stock).filter(Stock.statut == "Acheté/en stock").count()
+
 
     # Récupérer les 30 meilleurs produits en fonction du ROI
     top_roi_items = db.session.query(Product).filter(Product.roi.isnot(None)).order_by(Product.roi.desc()).limit(30).all()
