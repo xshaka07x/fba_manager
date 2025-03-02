@@ -44,6 +44,26 @@ body {
     font-size: 1.5rem; /* Assure une bonne lisibilité */
 }
 
+
+/* ✅ Ajustement de la taille du texte dans les cartes */
+.card-body h5 {
+    font-size: 1rem; /* Réduction du texte des titres */
+}
+
+.card-body h3 {
+    font-size: 1.4rem; /* Réduction du texte des montants */
+}
+
+.card-body p {
+    font-size: 1.2rem; /* Ajustement des chiffres */
+}
+
+hr.bg-light {
+    margin: 8px 0; /* Réduction des espaces entre les sections */
+}
+
+
+
 /* ✅ Correction du placeholder de la barre de recherche */
 input::placeholder {
     color: #bbb !important;
