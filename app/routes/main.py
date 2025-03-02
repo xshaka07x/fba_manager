@@ -153,7 +153,11 @@ def update_stock(stock_id):
 
 @main_bp.route('/add_stock', methods=['POST'])
 def add_stock():
-    from app.scraping.selleramp import get_selleramp_data  # ✅ Import de la fonction SellerAmp
+    try:
+        from app.scraping.scraper import get_selleramp_data
+    except ModuleNotFoundError:
+        from scraping.scraper import get_selleramp_data  # 🔄 Import alternatif
+
     try:
         nom = request.form.get('nom')
         ean = request.form.get('ean')
