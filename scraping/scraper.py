@@ -28,6 +28,10 @@ from app.utils.db import get_db_connection
 from datetime import datetime
 import pytz
 from datetime import timedelta  # 🔥 Ajout nécessaire en haut du fichier
+import tkinter as tk
+from tkinter import messagebox
+import threading
+
 
 # 🔗 Initialisation Flask
 app = create_app()
@@ -35,23 +39,42 @@ with app.app_context():
     db.create_all()
 
 # ⚙️ Configuration Selenium
-# ⚙️ Configuration Selenium
 options = Options()
+
+# 🛑 Désactiver WebRTC et WebSockets
+options.add_argument("--disable-webrtc")
+options.add_argument("--disable-features=WebRtcHideLocalIpsWithMdns")
+options.add_argument("--force-webrtc-ip-handling-policy=default_public_interface_only")
+options.add_argument("--disable-ipv6")
+options.add_argument("--disable-web-security")
+options.add_argument("--disable-background-networking")
+
+# 🚀 Désactiver le GPU et WebGL
 options.add_argument("--disable-gpu")
 options.add_argument("--disable-software-rasterizer")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-features=VizDisplayCompositor")
-options.add_argument("--window-size=1920,1080")
-options.add_argument("--no-sandbox")
-options.add_argument("--disable-blink-features=AutomationControlled")
-options.add_argument("--headless=new")
-options.add_argument("--disable-webrtc")
-options.add_argument("--force-webrtc-ip-handling-policy=default_public_interface_only")
+options.add_argument("--disable-accelerated-2d-canvas")
+options.add_argument("--disable-accelerated-video-decode")
+options.add_argument("--disable-accelerated-mjpeg-decode")
+options.add_argument("--disable-accelerated-video")
+options.add_argument("--disable-gl-drawing-for-tests")
 
-# Suppression des logs inutiles
-options.add_experimental_option('excludeSwitches', ['enable-logging'])
-options.add_experimental_option('excludeSwitches', ['enable-automation'])
-options.add_experimental_option('useAutomationExtension', False)
+# 🔇 Suppression des logs inutiles
+options.add_experimental_option("excludeSwitches", ["enable-logging", "enable-automation", "ignore-certificate-errors"])
+options.add_experimental_option("useAutomationExtension", False)
+
+# 🕶️ Mode headless pour éviter les erreurs graphiques
+options.add_argument("--headless=new")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+
+# 🎯 Suppression des logs système
+os.environ["WTF_CSRF_ENABLED"] = "False"
+os.environ["PYTHONWARNINGS"] = "ignore"
+sys.stderr = open(os.devnull, "w")  # Supprime les erreurs
+sys.stdout = open(os.devnull, "w")  # Supprime les logs visibles
+
 
 
 try:
