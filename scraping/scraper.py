@@ -295,41 +295,39 @@ def get_selleramp_data(ean, prix_magasin, max_retries=2):
 
     return None, None, None, None, None
 
-def scrap_toutes_pages(driver, nb_max_total):
+def scrap_toutes_pages(driver, nb_max_total, url_base):
     produits_scrapes = []
     page_actuelle = 1
-    eans_page_precedente = set()  # Pour vérifier si la page a bien changé
-    urls_deja_traitees = set()    # Gérer les produits déjà scrapés
+    urls_deja_traitees = set()
 
     while len(produits_scrapes) < nb_max_total:
-        print(f"\n📄 Scraping - Page {page_actuelle} ({len(produits_scrapes)}/{nb_max_total})")
+        url_pagination = f"{url_base}?page={page_actuelle}"
+        print(f"\n📄 Scraping - Page {page_actuelle} ({len(produits_scrapes)}/{nb_max_total}) - {url_pagination}")
 
-        # Scraper les produits sur la page actuelle
+        driver.get(url_pagination)
+        time.sleep(3)  # Attente pour chargement complet
+
         produits_page, eans_page_courante, urls_deja_traitees = scrap_produits_sur_page(
             driver, nb_max_total - len(produits_scrapes), urls_deja_traitees
         )
 
         produits_scrapes.extend(produits_page)
 
-        # Mettre à jour les URLs déjà traitées
-        urls_deja_traitees.update([produit['url'] for produit in produits_page])
-
         print(f"✅ {len(produits_scrapes)} produit(s) récupéré(s) sur {nb_max_total}.")
 
-        # Si l'objectif est atteint, on arrête
         if len(produits_scrapes) >= nb_max_total:
             print("🎯 Objectif de scraping atteint.")
             break
 
-        # Essayer de passer à la page suivante
-        if cliquer_suivant(driver, page_actuelle, eans_page_precedente):
-            page_actuelle += 1
-            eans_page_precedente = eans_page_courante.copy()  # MAJ des EANs pour la vérification sur la prochaine page
-        else:
-            print("⚠️ Plus de pages disponibles ou navigation échouée.")
+        # Vérifier s'il reste des produits sur la page, sinon arrêt
+        if not produits_page:
+            print("⚠️ Plus de produits trouvés, arrêt du scraping.")
             break
 
+        page_actuelle += 1
+
     return produits_scrapes
+
 
 
 
@@ -403,24 +401,24 @@ def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
 
 
 
-
-
-
-
-
-
 def lancer_scraping(url, nb_scrap_total):
-    """🚀 Lancement principal du scraping sans JSON."""
+    """🚀 Lancement principal du scraping avec pagination par URL."""
     try:
         print(f"🚀 [SCRAPER] Scraping pour : {url}")
+
+        # Extraire l'URL de base sans `?page=`
+        url_base = re.sub(r'\?page=\d+', '', url)
+
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        driver.get(url)
-        produits_scrapes = []
-        produits_scrapes = scrap_toutes_pages(driver, nb_scrap_total)
+        driver.get(url_base)
+
+        produits_scrapes = scrap_toutes_pages(driver, nb_scrap_total, url_base)
         print(f"🎉 FIN : {len(produits_scrapes)} produits enrichis et insérés en DB.")
         return produits_scrapes
+
     finally:
         driver.quit()
+
 
 
 if __name__ == "__main__":
