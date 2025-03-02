@@ -503,23 +503,23 @@ def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
 
 
 
-def launch_scraping(url, nb_scrap_total):
-    """🚀 Lancement principal du scraping avec pagination par URL."""
-    try:
-        print(f"🚀 [SCRAPER] Scraping pour : {url}")
+def launch_scraping(urls_to_scrape):
+    """Lance le scraping pour chaque URL + nombre de produits."""
+    print("🚀 Thread lancé pour le scraping...", flush=True)
+    print("📋 Paramètres reçus :", urls_to_scrape, flush=True)
 
-        # Extraire l'URL de base sans `?page=`
-        url_base = re.sub(r'\?page=\d+', '', url)
+    if not urls_to_scrape:
+        print("⚠️ Aucune URL à scraper !", flush=True)
+        return
 
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        driver.get(url_base)
+    for url, nb_scrap in urls_to_scrape:
+        print(f"🔍 Début du scraping : {url} ({nb_scrap} produits)", flush=True)
+        produits_scrapes = lancer_scraping(url, nb_scrap)
+        print(f"🎉 Scraping terminé pour {url} : {len(produits_scrapes) if produits_scrapes else 0} produit(s) enrichi(s).", flush=True)
 
-        produits_scrapes = scrap_toutes_pages(driver, nb_scrap_total, url_base)
-        print(f"🎉 FIN : {len(produits_scrapes)} produits enrichis et insérés en DB.")
-        return produits_scrapes
+    print("✅ Tous les scrapings sont terminés.", flush=True)
 
-    finally:
-        driver.quit()
+
 
 
 

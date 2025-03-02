@@ -139,9 +139,9 @@ h1, h2, h3, h4, h5 {
 #menu-top a {
     color: white;
     text-decoration: none;
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     font-weight: bold;
-    padding: 10px 7%;
+    padding: 6px 7%;
     transition: background 0.3s;
 }
 
