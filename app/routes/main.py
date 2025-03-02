@@ -15,7 +15,8 @@ from app import db
 def index():
     return redirect(url_for('main.dashboard'))  # 🚀 Redirection vers /dashboard
 
-@main.route('/dashboard')
+@main_bp.route('/dashboard')
+
 def dashboard():
     # Récupère les produits scrapés (par ex: ceux qui ont un prix Amazon)
     produits_scrapes = db.session.query(Product).filter(Product.prix_amazon.isnot(None)).all()
