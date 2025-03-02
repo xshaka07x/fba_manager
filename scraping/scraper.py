@@ -503,7 +503,7 @@ def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
 
 
 
-def lancer_scraping(url, nb_scrap_total):
+def launch_scraping(url, nb_scrap_total):
     """🚀 Lancement principal du scraping avec pagination par URL."""
     try:
         print(f"🚀 [SCRAPER] Scraping pour : {url}")

@@ -118,11 +118,11 @@ h1, h2, h3, h4, h5 {
 }
 
 #menu-top {
-    width: 60%;
+    width: 55%;
     margin: 0 auto; /* Centre le menu horizontalement */
     text-align: center;
     background: #222;
-    padding: 15px 0;
+    padding: 6px 0;
     display: flex;
     justify-content: center;
     align-items: center;
