@@ -3,14 +3,57 @@
 {% block title %}Stock - FBA Manager{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-end mb-3">
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addStockModal">
-        <i class="fas fa-plus"></i> Ajouter un produit
-    </button>
-</div>
+
 
 <div class="container mt-4">
     <h1 class="mb-4">📦 Gestion du Stock</h1>
+
+    <!-- ✅ Bouton pour afficher le formulaire d'ajout -->
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addStockModal">
+            <i class="fas fa-plus"></i> Ajouter un produit
+        </button>
+    </div>
+
+    <!-- ✅ Modale pour ajouter un produit dans le stock -->
+    <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addStockModalLabel">Ajouter un Produit au Stock</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addStockForm" method="post" action="/add_stock">
+                        <div class="mb-3">
+                            <label class="form-label">Nom du produit</label>
+                            <input type="text" name="nom" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">EAN</label>
+                            <input type="text" name="ean" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Prix d’achat (€)</label>
+                            <input type="number" step="0.01" name="prix_achat" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Quantité</label>
+                            <input type="number" name="quantite" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Lien vers la facture (optionnel)</label>
+                            <input type="url" name="facture_url" class="form-control">
+                        </div>
+                        <input type="hidden" name="statut" value="Acheté/en stock">  <!-- ✅ Statut par défaut -->
+                        <button type="submit" class="btn btn-success w-100">✅ Ajouter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
     <!-- Tableau du stock -->
     <!-- ✅ Correction des colonnes et ajout des actions -->
