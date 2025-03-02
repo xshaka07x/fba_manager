@@ -23,7 +23,7 @@ def dashboard():
     recent_items = db.session.query(Product).order_by(Product.updated_at.desc()).limit(5).all()
 
     # Récupération des 10 meilleurs ROI
-    top_roi_items = db.session.query(Product).order_by(Product.roi.desc()).limit(10).all()
+    top_roi_items = db.session.query(Product).order_by(Product.roi.desc()).limit(30).all()
 
     # ✅ Profit potentiel total (uniquement les profits positifs)
     profit_total = db.session.query(db.func.sum(Product.profit)).filter(Product.profit > 0).scalar() or 0
