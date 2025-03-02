@@ -94,13 +94,17 @@
                 </td>
                 <td>
                     <form method="post" action="/update_stock/{{ item.id }}">
-                        <select name="statut" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <select name="statut" class="form-select form-select-sm {% if item.statut == 'Acheté/en stock' %} bg-success text-white 
+                        {% elif item.statut == 'Envoyé chez Amazon' %} bg-warning text-dark 
+                        {% elif item.statut == 'Vendu' %} bg-danger text-white 
+                        {% endif %}" onchange="this.form.submit()">
                             <option value="Acheté/en stock" {% if item.statut == 'Acheté/en stock' %}selected{% endif %}>Acheté/en stock</option>
                             <option value="Envoyé chez Amazon" {% if item.statut == 'Envoyé chez Amazon' %}selected{% endif %}>Envoyé chez Amazon</option>
                             <option value="Vendu" {% if item.statut == 'Vendu' %}selected{% endif %}>Vendu</option>
                         </select>
                     </form>
                 </td>
+                
                 <td>
                     {% if item.quantite <= item.seuil_alerte %}
                         <span class="badge bg-danger">Stock bas !</span>
