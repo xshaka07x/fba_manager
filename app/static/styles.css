@@ -45,21 +45,22 @@ body {
 }
 
 
-/* ✅ Ajustement de la taille du texte dans les cartes */
 .card-body h5 {
     font-size: 1rem; /* Réduction du texte des titres */
+    margin-bottom: 8px; /* Espacement avec le chiffre */
 }
 
 .card-body h3 {
-    font-size: 1.4rem; /* Réduction du texte des montants */
+    font-size: 1.8rem; /* Taille ajustée des valeurs */
+    margin-bottom: 10px; /* Espacement entre les sections */
+}
+
+hr.bg-light {
+    margin: 10px 0; /* Réduction des espaces entre les sections */
 }
 
 .card-body p {
     font-size: 1.2rem; /* Ajustement des chiffres */
-}
-
-hr.bg-light {
-    margin: 8px 0; /* Réduction des espaces entre les sections */
 }
 
 
