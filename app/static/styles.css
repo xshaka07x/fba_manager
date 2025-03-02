@@ -82,17 +82,24 @@ h1, h2, h3, h4, h5 {
 }
 
 /* 🌟 Amélioration des couleurs ROI */
+/* ✅ Couleurs pour chaque ROI */
 .roi-low { background-color: rgba(255, 0, 0, 0.2) !important; }
-.roi-low:hover { background-color: rgba(255, 0, 0, 0.35) !important; }
-
 .roi-medium { background-color: rgba(144, 238, 144, 0.2) !important; }
-.roi-medium:hover { background-color: rgba(144, 238, 144, 0.35) !important; }
-
 .roi-high { background-color: rgba(0, 128, 0, 0.2) !important; }
-.roi-high:hover { background-color: rgba(0, 128, 0, 0.35) !important; }
-
 .roi-excellent { background-color: rgba(128, 0, 128, 0.2) !important; }
+
+/* ✅ Assure que le hover n'écrase pas la couleur de base */
+.roi-low:hover { background-color: rgba(255, 0, 0, 0.35) !important; }
+.roi-medium:hover { background-color: rgba(144, 238, 144, 0.35) !important; }
+.roi-high:hover { background-color: rgba(0, 128, 0, 0.35) !important; }
 .roi-excellent:hover { background-color: rgba(128, 0, 128, 0.35) !important; }
+
+
+.data-table tbody tr.roi-low td { background-color: rgba(255, 0, 0, 0.2) !important; }
+.data-table tbody tr.roi-medium td { background-color: rgba(144, 238, 144, 0.2) !important; }
+.data-table tbody tr.roi-high td { background-color: rgba(0, 128, 0, 0.2) !important; }
+.data-table tbody tr.roi-excellent td { background-color: rgba(128, 0, 128, 0.2) !important; }
+
 
 /* ✅ Amélioration des boutons */
 .btn {
