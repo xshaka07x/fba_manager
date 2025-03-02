@@ -24,43 +24,54 @@
 </style>
 
 <div class="container">
-    <h1 class="mb-4">🚀 Dashboard - Résumé de l'activité</h1>
+    <h1 class="mb-4 text-center">🚀 Dashboard - Résumé de l'activité</h1>
 
-    <!-- Résumé Financier -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card bg-dark text-white shadow">
-                <div class="card-body">                           
+    <!-- 📊 Résumé Financier -->
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <!-- Profit Potentiel -->
+        <div class="col">
+            <div class="card bg-dark text-white shadow h-100">
+                <div class="card-body text-center">
                     <h5 class="text-uppercase fw-bold">Profit Potentiel des Scraps</h5>
-                    <h5 class="fw-bold">106.04€</h5>   
+                    <h3 class="fw-bold text-success">106.04€</h3>   
+                    <hr class="bg-light">
                     <h5 class="text-uppercase fw-bold">Profit Potentiel du Stock</h5>
-                    <h5 class="fw-bold">27.02€</h5>                                 
+                    <h3 class="fw-bold text-info">27.02€</h3>                                 
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-dark text-white shadow">
-                <div class="card-body">
+
+        <!-- Nombre de Produits -->
+        <div class="col">
+            <div class="card bg-dark text-white shadow h-100">
+                <div class="card-body text-center">
                     <h5 class="card-title">📦 Nombre de Produits Scrapés</h5>
-                    <p class="display-6">{{ nb_produits_scrapes }}</p>
-                    <h5 class="card-title">🏬 Produits en Stock (Acheté/en stock)</h5>
-                    <p class="display-6">{{ nb_produits_stock }}</p>
+                    <p class="display-6 text-warning fw-bold">{{ nb_produits_scrapes }}</p>
+                    <hr class="bg-light">
+                    <h5 class="card-title">🏬 Produits en Stock</h5>
+                    <p class="display-6 text-primary fw-bold">{{ nb_produits_stock }}</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-dark text-white shadow">
-                <div class="card-body">
-                    <h5 class="text-uppercase fw-bold">Depenses</h5>
-                    <h5 class="fw-bold">106.04€</h5>   
-                    <h5 class="text-uppercase fw-bold">Recettes</h5>
-                    <h5 class="fw-bold">106.04€</h5>   
-                    <h4 class="text-uppercase fw-bold">Balance</h4>
-                    <h4 class="fw-bold">106.04€</h4>   
+
+        <!-- Dépenses & Recettes -->
+        <div class="col">
+            <div class="card bg-dark text-white shadow h-100">
+                <div class="card-body text-center">
+                    <h5 class="text-uppercase fw-bold">💰 Dépenses</h5>
+                    <h3 class="fw-bold text-danger">106.04€</h3>   
+                    <hr class="bg-light">
+                    <h5 class="text-uppercase fw-bold">📈 Recettes</h5>
+                    <h3 class="fw-bold text-success">106.04€</h3>   
+                    <hr class="bg-light">
+                    <h4 class="text-uppercase fw-bold">🔄 Balance</h4>
+                    <h3 class="fw-bold text-warning">106.04€</h3>   
                 </div>
             </div>
         </div>
     </div>
+
+
 
     <!-- ✅ Tableau Top 10 ROI -->
     <div class="row mb-4">
