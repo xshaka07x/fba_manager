@@ -8,23 +8,24 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-# Configuring selenium for fetch_selleramp without scraping the product details
+# Configuration Selenium
 options = Options()
 options.add_argument("--headless=new")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 
 def fetch_selleramp_info(ean, prix_magasin, max_retries=1):
-    """Fetch SellerAmp data based on the EAN provided (without scraping)."""
+    """🔍 Récupère les données SellerAmp (sans scraping)."""
     driver_selleramp = None
 
     for attempt in range(max_retries):
         try:
             print(f"⚡ Attempt {attempt + 1}/{max_retries} for EAN {ean}...")
 
-            # Initializing Selenium WebDriver for SellerAmp site
             driver_selleramp = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
             driver_selleramp.get('https://sas.selleramp.com/')
 
@@ -39,16 +40,16 @@ def fetch_selleramp_info(ean, prix_magasin, max_retries=1):
             ).send_keys(ean + Keys.RETURN)
             time.sleep(3)
 
-            # Handling multiple results or no result case
+            # Gestion des erreurs
             if driver_selleramp.find_elements(By.XPATH, "//*[contains(text(), 'Please choose the most suitable match:')]"):
                 print(f"⚠️ Multiple choices detected for EAN {ean}. Ignoring product.")
-                return None, None, None, None
+                return None, None, None, None, None  # ✅ Retourne 5 valeurs
 
             if driver_selleramp.find_elements(By.XPATH, "//*[contains(text(), 'No results were found')]"):
                 print(f"⚠️ No results found for EAN {ean}. Ignoring product.")
-                return None, None, None, None
+                return None, None, None, None, None  # ✅ Retourne 5 valeurs
 
-            # Fetching data
+            # Récupération des données
             WebDriverWait(driver_selleramp, 10).until(
                 EC.presence_of_element_located((By.ID, 'qi_sale_price'))
             )
@@ -64,11 +65,12 @@ def fetch_selleramp_info(ean, prix_magasin, max_retries=1):
             )
             roi = driver_selleramp.find_element(By.ID, 'qi-roi').text
             profit = driver_selleramp.find_element(By.ID, 'qi-profit').text
-
-            # Fetching sales estimation
             sales_estimation = driver_selleramp.find_element(By.CSS_SELECTOR, '.estimated_sales_per_mo').text
 
-            return prix_amazon, roi, profit, sales_estimation
+            # 🔄 Ajout de la 5e valeur (alerts)
+            alerts = None  # SellerAmp ne semble pas fournir cette info ici, donc on met `None`
+
+            return prix_amazon, roi, profit, sales_estimation, alerts  # ✅ Retourne bien 5 valeurs
         except Exception as e:
             print(f"⚠️ Error in fetching data for EAN {ean}: {e}")
             time.sleep(2)
@@ -76,4 +78,4 @@ def fetch_selleramp_info(ean, prix_magasin, max_retries=1):
             if driver_selleramp:
                 driver_selleramp.quit()
 
-    return None, None, None, None
+    return None, None, None, None, None  # ✅ Toujours retourner 5 valeurs même en cas d'erreur
