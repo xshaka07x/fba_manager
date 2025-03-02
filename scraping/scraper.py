@@ -33,9 +33,6 @@ from datetime import timedelta  # 🔥 Ajout nécessaire en haut du fichier
 
 
 # 🔗 Initialisation Flask
-app = create_app()
-with app.app_context():
-    db.create_all()
 
 # ⚙️ Configuration Selenium
 options = Options()
