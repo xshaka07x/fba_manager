@@ -63,21 +63,6 @@ def dashboard():
 
 
 
-@main_bp.route('/edit_stock/<int:stock_id>', methods=['POST'])
-def edit_stock(stock_id):
-    stock_item = db.session.query(Stock).get(stock_id)
-    if stock_item:
-        stock_item.nom = request.form.get('nom')
-        stock_item.ean = request.form.get('ean')
-        stock_item.magasin = request.form.get('magasin')
-        stock_item.prix_achat = float(request.form.get('prix_achat'))
-        stock_item.date_achat = datetime.strptime(request.form.get('date_achat'), '%Y-%m-%d')
-        stock_item.quantite = int(request.form.get('quantite'))
-        stock_item.facture_url = request.form.get('facture_url')
-        db.session.commit()
-    return redirect(url_for('main.stock'))
-
-
 @main_bp.route('/delete_stock/<int:stock_id>', methods=['POST'])
 def delete_stock(stock_id):
     stock_item = db.session.query(Stock).get(stock_id)
@@ -85,6 +70,19 @@ def delete_stock(stock_id):
         db.session.delete(stock_item)
         db.session.commit()
     return redirect(url_for('main.stock'))
+
+@main_bp.route('/edit_stock/<int:stock_id>', methods=['GET', 'POST'])
+def edit_stock(stock_id):
+    stock_item = db.session.query(Stock).get(stock_id)
+    if request.method == 'POST':
+        stock_item.nom = request.form.get('nom')
+        stock_item.magasin = request.form.get('magasin')
+        stock_item.prix_achat = float(request.form.get('prix_achat'))
+        stock_item.quantite = int(request.form.get('quantite'))
+        db.session.commit()
+        return redirect(url_for('main.stock'))
+    return render_template('edit_stock.html', stock_item=stock_item)
+
 
 
 @main_bp.route('/settings')
@@ -155,20 +153,34 @@ def update_stock(stock_id):
 
 @main_bp.route('/add_stock', methods=['POST'])
 def add_stock():
+    from app.scraping.selleramp import get_selleramp_data  # ✅ Import de la fonction SellerAmp
     try:
         nom = request.form.get('nom')
         ean = request.form.get('ean')
+        magasin = request.form.get('magasin')
         prix_achat = float(request.form.get('prix_achat'))
         quantite = int(request.form.get('quantite'))
         facture_url = request.form.get('facture_url') or None
-        date_achat = datetime.utcnow()  # ✅ Date actuelle
-        statut = "Acheté/en stock"  # ✅ Statut par défaut
+        date_achat = datetime.utcnow()
+        statut = "Acheté/en stock"
 
+        # ✅ Récupération des données SellerAmp
+        prix_amazon, roi, profit, sales_estimation, alerts = get_selleramp_data(ean, prix_achat)
+
+        if prix_amazon is None or roi is None or profit is None or sales_estimation is None:
+            print(f"⚠️ Produit {nom} (EAN: {ean}) ignoré car données SellerAmp incomplètes.")
+            return "Erreur : Impossible de récupérer les données SellerAmp.", 400
+
+        # ✅ Ajout en base de données
         nouveau_stock = Stock(
             nom=nom,
             ean=ean,
-            magasin="Non spécifié",  # ✅ Valeur par défaut
+            magasin=magasin,
             prix_achat=prix_achat,
+            prix_amazon=prix_amazon,
+            roi=roi,
+            profit=profit,
+            sales_estimation=sales_estimation,
             date_achat=date_achat,
             quantite=quantite,
             facture_url=facture_url,
@@ -183,4 +195,3 @@ def add_stock():
     except Exception as e:
         print(f"❌ ERREUR - Impossible d'ajouter le produit : {str(e)}")
         return f"Erreur lors de l'ajout : {str(e)}", 500
-

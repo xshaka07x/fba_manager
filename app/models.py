@@ -31,18 +31,22 @@ class HistoriquePrix(db.Model):
 
 
 class Stock(db.Model):
+    __tablename__ = "stock"
+
     id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(255), nullable=False)
     ean = db.Column(db.String(13), nullable=False, unique=True)
     magasin = db.Column(db.String(100), nullable=False)
     prix_achat = db.Column(db.Float, nullable=False)
-    date_achat = db.Column(db.DateTime, nullable=False)
+    prix_amazon = db.Column(db.Float, nullable=True)
+    roi = db.Column(db.Float, nullable=True)
+    profit = db.Column(db.Float, nullable=True)
+    sales_estimation = db.Column(db.Integer, nullable=True)
+    date_achat = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     quantite = db.Column(db.Integer, nullable=False)
     facture_url = db.Column(db.String(255), nullable=True)
     statut = db.Column(db.String(50), nullable=False, default="Acheté/en stock")
-    seuil_alerte = db.Column(db.Integer, default=5)  # ✅ Ajout d'un seuil d'alerte
-
+    nom = db.Column(db.String(255), nullable=False)
+    seuil_alerte = db.Column(db.Integer, default=5)
 
     def __repr__(self):
-        return f"<Stock {self.ean} - {self.magasin}>"
-    
+        return f"<Stock {self.nom} - {self.ean} - {self.magasin}>"
