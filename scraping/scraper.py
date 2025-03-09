@@ -132,6 +132,9 @@ def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, difference
         if profit is not None and profit <= 0:
             return False
 
+        # Calcul du ROI
+        roi = (profit * 100 / prix_retail) if prix_retail > 0 else 0
+
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -143,21 +146,22 @@ def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, difference
         if result:
             cursor.execute("""
                 UPDATE products_keepa 
-                SET nom = %s, prix_retail = %s, prix_amazon = %s, difference = %s, profit = %s, updated_at = %s
+                SET nom = %s, prix_retail = %s, prix_amazon = %s, difference = %s, profit = %s, roi = %s, updated_at = %s
                 WHERE id = %s
-            """, (nom, prix_retail, prix_amazon, difference, profit, updated_at, result[0]))
+            """, (nom, prix_retail, prix_amazon, difference, profit, roi, updated_at, result[0]))
         else:
             cursor.execute("""
-                INSERT INTO products_keepa (nom, ean, prix_retail, prix_amazon, difference, profit, url, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """, (nom, ean, prix_retail, prix_amazon, difference, profit, url, updated_at))
+                INSERT INTO products_keepa (nom, ean, prix_retail, prix_amazon, difference, profit, roi, url, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (nom, ean, prix_retail, prix_amazon, difference, profit, roi, url, updated_at))
 
         conn.commit()
         cursor.close()
         conn.close()
         return True
 
-    except Exception:
+    except Exception as e:
+        print(f"Erreur lors de l'insertion/mise à jour du produit : {str(e)}")
         return False
 
 

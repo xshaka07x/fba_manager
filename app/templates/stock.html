@@ -35,7 +35,7 @@
                             <input type="text" name="magasin" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Prix d’achat (€)</label>
+                            <label class="form-label">Prix d'achat (€)</label>
                             <input type="number" step="0.01" name="prix_achat" class="form-control" required>
                         </div>
                         <div class="mb-3">
@@ -54,8 +54,91 @@
         </div>
     </div>
 
+    <!-- Modal pour la sélection de quantité -->
+    <div class="modal fade" id="quantityModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier la quantité</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="quantityForm">
+                        <input type="hidden" id="stockId" name="stockId">
+                        <input type="hidden" id="newStatus" name="newStatus">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="quantityType" id="allQuantity" value="all" checked>
+                                <label class="form-check-label" for="allQuantity">
+                                    Concerne la totalité du stock
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="quantityType" id="partialQuantity" value="partial">
+                                <label class="form-check-label" for="partialQuantity">
+                                    Concerne une partie du stock
+                                </label>
+                            </div>
+                        </div>
+                        <div id="partialQuantityInput" class="mb-3" style="display: none;">
+                            <label class="form-label">Quantité à modifier :</label>
+                            <input type="number" class="form-control" id="quantity" name="quantity" min="1">
+                            <small class="text-muted">Stock total disponible : <span id="totalQuantity"></span></small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Confirmer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const quantityModal = new bootstrap.Modal(document.getElementById('quantityModal'));
+        const quantityForm = document.getElementById('quantityForm');
+        const partialQuantityInput = document.getElementById('partialQuantityInput');
+        
+        // Gestion de l'affichage du champ de quantité
+        document.querySelectorAll('input[name="quantityType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                partialQuantityInput.style.display = this.value === 'partial' ? 'block' : 'none';
+            });
+        });
 
+        // Intercepte les changements de statut
+        document.querySelectorAll('select[name="statut"]').forEach(select => {
+            select.addEventListener('change', function(e) {
+                e.preventDefault();
+                const stockId = this.closest('tr').dataset.stockId;
+                const totalQty = this.closest('tr').dataset.quantity;
+                document.getElementById('stockId').value = stockId;
+                document.getElementById('newStatus').value = this.value;
+                document.getElementById('totalQuantity').textContent = totalQty;
+                document.getElementById('quantity').max = totalQty;
+                quantityModal.show();
+            });
+        });
+
+        // Gestion du formulaire de quantité
+        quantityForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch('/update_stock_quantity', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erreur lors de la mise à jour : ' + data.message);
+                }
+            });
+        });
+    });
+    </script>
 
     <!-- Tableau du stock -->
     <!-- ✅ Correction des colonnes et ajout des actions -->
@@ -77,7 +160,7 @@
         </thead>
         <tbody>
             {% for item in stock_items %}
-            <tr>
+            <tr data-stock-id="{{ item.id }}" data-quantity="{{ item.quantite }}">
                 <th scope="row">{{ loop.index }}</th>
                 <td class="nom-col" title="{{ item.nom }}">{{ item.nom }}</td>
                 <td>{{ item.ean }}</td>
@@ -98,7 +181,7 @@
                                     {% elif item.statut == 'Envoyé chez Amazon' %} bg-warning text-dark 
                                     {% elif item.statut == 'Vendu' %} bg-danger text-white 
                                     {% endif %} p-1 rounded text-center">
-                            <select name="statut" class="form-select form-select-sm bg-transparent text-white" onchange="this.form.submit()">
+                            <select name="statut" class="form-select form-select-sm bg-transparent text-white">
                                 <option value="Acheté/en stock" {% if item.statut == 'Acheté/en stock' %}selected{% endif %}>Acheté/en stock</option>
                                 <option value="Envoyé chez Amazon" {% if item.statut == 'Envoyé chez Amazon' %}selected{% endif %}>Envoyé chez Amazon</option>
                                 <option value="Vendu" {% if item.statut == 'Vendu' %}selected{% endif %}>Vendu</option>

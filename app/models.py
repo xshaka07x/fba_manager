@@ -61,6 +61,7 @@ class ProductKeepa(db.Model):
     prix_amazon = db.Column(db.Float, nullable=True)
     difference = db.Column(db.Float, nullable=True)
     profit = db.Column(db.Float, nullable=True)
+    roi = db.Column(db.Float, nullable=True)
     url = db.Column(db.String(255), nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

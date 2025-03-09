@@ -17,48 +17,45 @@ def index():
     return redirect(url_for('main.dashboard'))  # 🚀 Redirection vers /dashboard
 
 @main_bp.route('/dashboard')
-
 def dashboard():
-    # Récupère les produits scrapés (par ex: ceux qui ont un prix Amazon)
-    produits_scrapes = db.session.query(Product).filter(Product.prix_amazon.isnot(None)).all()
-
-    # Calcule la somme des profits
-    profit_scrapes_total = sum(p.profit for p in produits_scrapes if p.profit is not None)
-
-    # Nombre de produits scrapés et en stock
-    nb_produits_scrapes = len(produits_scrapes)
-    nb_produits_stock = db.session.query(Stock).filter(Stock.statut == "Acheté/en stock").count()
-
-
-    # Récupérer les 30 meilleurs produits en fonction du ROI
-    top_roi_items = db.session.query(Product).filter(Product.roi.isnot(None)).order_by(Product.roi.desc()).limit(50).all()
-
-    # Récupérer les 5 derniers produits scrapés
-    recent_items = db.session.query(Product).order_by(Product.updated_at.desc()).limit(5).all()
-
-   # Calcul des dépenses
-    depenses_total = db.session.query(db.func.sum(Stock.prix_achat)).scalar()
-    depenses_total = float(depenses_total) if depenses_total else 0  # ✅ Conversion en float
-
-    # Calcul des recettes (ajoute ici la logique selon ton modèle)
-    recettes_total = db.session.query(db.func.sum(Product.profit)).scalar()
-    recettes_total = float(recettes_total) if recettes_total else 0  # ✅ Conversion en float
-
-    # Calcul de la balance
-    balance_total = recettes_total - depenses_total
-
-
-
+    # Récupération des produits de la table products_keepa
+    nb_produits_keepa = db.session.query(ProductKeepa).count()
+    
+    # Calcul du profit total des produits scrapés
+    profit_scrapes_total = db.session.query(db.func.sum(ProductKeepa.profit)).scalar() or 0
+    
+    # Calcul de la quantité totale en stock
+    total_quantite_stock = db.session.query(db.func.sum(Stock.quantite)).filter(Stock.statut == "Acheté/en stock").scalar() or 0
+    
+    # Calcul du profit potentiel du stock
+    stock_items = db.session.query(Stock).filter(Stock.statut == "Acheté/en stock").all()
+    profit_stock_total = sum((item.prix_amazon - item.prix_achat) * item.quantite if item.prix_amazon else 0 for item in stock_items)
+    
+    # Calcul des dépenses (prix_achat * quantité pour tous les produits en stock)
+    depenses_total = db.session.query(db.func.sum(Stock.prix_achat * Stock.quantite)).scalar() or 0
+    
+    # Calcul des recettes (prix_amazon * quantité pour les produits vendus)
+    stock_vendus = db.session.query(Stock).filter(Stock.statut == "Vendu").all()
+    recettes_total = sum((item.prix_amazon * item.quantite if item.prix_amazon else 0) for item in stock_vendus)
+    
+    # Top 50 produits avec le meilleur ROI
+    top_roi_items = db.session.query(ProductKeepa).filter(
+        ProductKeepa.roi.isnot(None),
+        ProductKeepa.roi > 0
+    ).order_by(ProductKeepa.roi.desc()).limit(50).all()
+    
+    # 5 derniers produits scrapés
+    recent_items = db.session.query(ProductKeepa).order_by(ProductKeepa.updated_at.desc()).limit(5).all()
 
     return render_template("dashboard.html",
                         profit_scrapes_total=profit_scrapes_total,
-                        nb_produits_scrapes=nb_produits_scrapes,
-                        nb_produits_stock=nb_produits_stock,
+                        profit_stock_total=profit_stock_total,
+                        nb_produits_keepa=nb_produits_keepa,
+                        total_quantite_stock=total_quantite_stock,
                         top_roi_items=top_roi_items,
                         recent_items=recent_items,
                         depenses_total=depenses_total,
-                        recettes_total=recettes_total,  # ✅ Ajout ici
-                        balance_total=balance_total)    # ✅ Ajout ici
+                        recettes_total=recettes_total)
 
 
 

@@ -21,6 +21,28 @@
     .roi-medium { background-color: rgba(144, 238, 144, 0.2) !important; }
     .roi-high { background-color: rgba(0, 128, 0, 0.2) !important; }
     .roi-excellent { background-color: rgba(128, 0, 128, 0.2) !important; }
+
+    /* Style pour le bouton flottant sur mobile */
+    @media (max-width: 768px) {
+        .floating-camera {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #007bff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .floating-camera i {
+            color: white;
+            font-size: 24px;
+        }
+    }
 </style>
 
 <div class="container">
@@ -36,7 +58,7 @@
                     <h3 class="fw-bold text-success">{{ profit_scrapes_total|round(2) }}€</h3>   
                     <br>
                     <h5 class="text-uppercase fw-bold">Profit Potentiel du Stock</h5>
-                    <h3 class="fw-bold text-info">27.02€</h3>                                 
+                    <h3 class="fw-bold text-info">{{ profit_stock_total|round(2) }}€</h3>                                 
                 </div>
             </div>
         </div>
@@ -46,10 +68,10 @@
             <div class="card bg-dark text-white shadow h-100">
                 <div class="card-body text-center d-flex flex-column">
                     <h5 class="fw-bold">📦 Produits Scrapés</h5>
-                    <h3 class="fw-bold text-warning">{{ nb_produits_scrapes }}</h3>  
+                    <h3 class="fw-bold text-warning">{{ nb_produits_keepa }}</h3>  
                     <br>
                     <h5 class="fw-bold">🏬 Produits en Stock</h5>
-                    <h3 class="fw-bold text-primary">{{ nb_produits_stock }}</h3>  
+                    <h3 class="fw-bold text-primary">{{ total_quantite_stock }}</h3>  
                 </div>
             </div>
         </div>
@@ -59,29 +81,24 @@
             <div class="card bg-dark text-white shadow h-100">
                 <div class="card-body text-center d-flex flex-column">
                     <h5 class="fw-bold text-danger">💰 Dépenses</h5>
-                    <h3 class="fw-bold">{{ depenses_total | default(0) | round(2) }}€</h3>
+                    <h3 class="fw-bold">{{ depenses_total|round(2) }}€</h3>
                     <br>
                     <h5 class="fw-bold text-success">📈 Recettes</h5>
-                    <h3 class="fw-bold">{{ recettes_total | default(0) | round(2) }}€</h3> 
+                    <h3 class="fw-bold">{{ recettes_total|round(2) }}€</h3> 
                     <br>
                     <h5 class="fw-bold text-warning">🔄 Balance</h5>
-                    <h3 class="fw-bold text-info">{{ balance_total | default(0) | round(2) }}€</h3>  
+                    <h3 class="fw-bold text-info">{{ (recettes_total - depenses_total)|round(2) }}€</h3>  
                 </div>
             </div>
         </div>
     </div>
 
-
-
-
-
-
-    <!-- ✅ Tableau Top 10 ROI -->
+    <!-- ✅ Tableau Top 50 Meilleur Potentiel -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card bg-dark text-white shadow" style="overflow-x:auto;">
                 <div class="card-header">
-                    <h5>🏆 Top 50 Produits avec le Meilleur ROI</h5>
+                    <h5>🏆 Top 50 Produits Meilleur Potentiel</h5>
                 </div>
                 <div class="card-body">
                     <table class="table table-dark table-hover table-sm">
@@ -94,7 +111,6 @@
                                 <th>Prix Amazon</th>
                                 <th>ROI</th>
                                 <th>Profit</th>
-                                <th>Ventes Estimées</th>
                                 <th>Lien</th>
                                 <th>Date</th>
                             </tr>
@@ -113,12 +129,11 @@
                                 <td class="nom-col" title="{{ item.nom }}">{{ item.nom }}</td>
                                 <td>{{ item.ean }}</td>
                                 <td>{{ item.prix_retail }}€</td>
-                                <td>{{ item.prix_amazon if item.prix_amazon else 'N/A' }}€</td>
-                                <td>{{ item.roi }}%</td>
-                                <td>{{ item.profit }}€</td>
-                                <td>{{ item.sales_estimation }}</td>
+                                <td>{{ item.prix_amazon }}€</td>
+                                <td>{{ "%.2f"|format(item.roi) }}%</td>
+                                <td>{{ "%.2f"|format(item.profit) }}€</td>
                                 <td><a href="{{ item.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                                <td>{{ item.updated_at }}</td>
+                                <td>{{ item.updated_at.strftime('%d/%m/%Y %H:%M') }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>                                       
@@ -146,7 +161,6 @@
                                 <th>Prix Amazon</th>
                                 <th>ROI</th>
                                 <th>Profit</th>
-                                <th>Ventes Estimées</th>
                                 <th>Lien</th>
                                 <th>Date</th>
                             </tr>
@@ -165,12 +179,11 @@
                                 <td class="nom-col" title="{{ item.nom }}">{{ item.nom }}</td>
                                 <td>{{ item.ean }}</td>
                                 <td>{{ item.prix_retail }}€</td>
-                                <td>{{ item.prix_amazon if item.prix_amazon else 'N/A' }}€</td>
-                                <td>{{ item.roi }}</td>
-                                <td>{{ item.profit }}€</td>
-                                <td>{{ item.sales_estimation }}</td>
+                                <td>{{ item.prix_amazon }}€</td>
+                                <td>{{ "%.2f"|format(item.roi) }}%</td>
+                                <td>{{ "%.2f"|format(item.profit) }}€</td>
                                 <td><a href="{{ item.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                                <td>{{ item.updated_at }}</td>
+                                <td>{{ item.updated_at.strftime('%d/%m/%Y %H:%M') }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>                                       
@@ -179,7 +192,12 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Bouton flottant appareil photo (visible uniquement sur mobile) -->
+    <div class="floating-camera d-md-none">
+        <i class="fas fa-camera"></i>
+    </div>
+
     <div class="card shadow-lg p-3 mb-4">
         <div class="card-header bg-dark text-white">
             <h5 class="text-uppercase fw-bold">⚠️ Produits en stock bas</h5>
