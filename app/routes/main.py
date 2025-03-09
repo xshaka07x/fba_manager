@@ -1,9 +1,8 @@
 # app/routes/main.py
 from flask import Blueprint, render_template, redirect, url_for, request  # ✨ Ajout de redirect et url_for
-from app.models import Product, Stock, ProductKeepa
+from app.models import Product, Stock, ProductKeepa, Magasin
 from datetime import datetime
 from datetime import timedelta  # ✅ Pour ajouter une heure
-from app.models import Product, Stock
 from flask import jsonify
 from app.utils.fetch_selleramp import fetch_selleramp_info
 import uuid
@@ -202,37 +201,6 @@ def add_stock():
         return f"Erreur lors de l'ajout : {str(e)}", 500
     
     
-# app/routes/main.py
-from app.utils.fetch_selleramp import fetch_selleramp_info
-
-def add_product_to_stock(ean, magasin, prix_achat, quantite, facture_url=None):
-    """Ajoute un produit dans le stock en récupérant les données depuis SellerAmp."""
-    try:
-        # Récupérer les données SellerAmp
-        prix_amazon, roi, profit, sales_estimation = fetch_selleramp_info(ean, prix_achat)
-
-        if not prix_amazon:
-            raise ValueError(f"Impossible de récupérer les données SellerAmp pour l'EAN {ean}")
-
-        # Insérer le produit dans la base de données
-        insert_into_stock_db(ean, magasin, prix_achat, prix_amazon, roi, profit, sales_estimation, quantite, facture_url)
-        print(f"✅ Produit ajouté dans le stock avec l'EAN {ean}")
-
-    except Exception as e:
-        print(f"❌ Erreur lors de l'ajout du produit: {e}")
-
-def insert_into_stock_db(ean, magasin, prix_achat, prix_amazon, roi, profit, sales_estimation, quantite, facture_url):
-    """Insère les informations dans la table stock."""
-    try:
-        cursor.execute("""
-            INSERT INTO stock (ean, magasin, prix_achat, prix_amazon, roi, profit, sales_estimation, quantite, facture_url)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (ean, magasin, prix_achat, prix_amazon, roi, profit, sales_estimation, quantite, facture_url))
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        print(f"⚠️ Erreur lors de l'insertion dans la base de données: {e}")
-
 @main_bp.route('/scrap')
 def scrap():
     products = ProductKeepa.query.order_by(ProductKeepa.updated_at.desc()).all()
