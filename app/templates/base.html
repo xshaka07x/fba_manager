@@ -15,52 +15,31 @@
                 bottom: 0;
                 left: 0;
                 right: 0;
-                background: #343a40;
+                background: rgba(52, 58, 64, 0.95);
                 display: flex;
                 justify-content: space-around;
                 padding: 10px 0;
                 z-index: 1000;
-                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-                margin-bottom: 15px;
-            }
-            #menu-top.show {
-                display: block;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+                backdrop-filter: blur(10px);
             }
             #menu-top a {
-                display: block;
                 color: white;
                 text-decoration: none;
-                padding: 8px 15px;
-                margin: 5px 0;
-                border-radius: 5px;
-                white-space: nowrap;
-            }
-            #menu-top a:hover {
-                background: rgba(255,255,255,0.1);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                font-size: 0.8rem;
+                padding: 5px;
+                transition: all 0.3s ease;
             }
             #menu-top a i {
-                margin-right: 10px;
-                width: 20px;
-                text-align: center;
+                font-size: 1.5rem;
+                margin-bottom: 4px;
             }
-            .menu-toggle {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                width: 50px;
-                height: 50px;
-                background: #007bff;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                z-index: 1001;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            }
-            .menu-toggle i {
-                color: white;
-                font-size: 24px;
+            #menu-top a:hover, #menu-top a.active {
+                color: #007bff;
+                transform: translateY(-2px);
             }
             .container {
                 margin-bottom: 80px;
@@ -68,25 +47,55 @@
         }
         
         /* Style pour le menu desktop */
-        #menu-top {
-            margin-bottom: 20px;
+        @media (min-width: 769px) {
+            #menu-top {
+                background: #343a40;
+                padding: 15px;
+                margin-bottom: 20px;
+                display: flex;
+                justify-content: space-around;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            #menu-top a {
+                color: white;
+                text-decoration: none;
+                padding: 8px 15px;
+                border-radius: 5px;
+                transition: all 0.3s ease;
+            }
+            #menu-top a:hover {
+                background: rgba(255,255,255,0.1);
+            }
+            #menu-top a i {
+                margin-right: 10px;
+            }
         }
     </style>
 </head>
 <body class="dark-theme">
 
-<!-- ✅ Menu flottant -->
+<!-- Menu de navigation -->
 <div id="menu-top">
-    <a href="{{ url_for('main.dashboard') }}"><i class="fas fa-home"></i>Dashboard</a>
-    <a href="{{ url_for('products.show_products') }}"><i class="fas fa-box"></i>Produits</a>
-    <a href="{{ url_for('main.stock') }}"><i class="fas fa-warehouse"></i>Stock</a>
-    <a href="{{ url_for('main.scrap') }}"><i class="fas fa-search"></i>Scrap</a>
-    <a href="{{ url_for('main.analytics') }}"><i class="fas fa-tasks"></i>Organisation</a>
-</div>
-
-<!-- Bouton menu mobile -->
-<div class="menu-toggle d-md-none">
-    <i class="fas fa-bars"></i>
+    <a href="{{ url_for('main.dashboard') }}" {% if request.endpoint == 'main.dashboard' %}class="active"{% endif %}>
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+    </a>
+    <a href="{{ url_for('products.show_products') }}" {% if request.endpoint == 'products.show_products' %}class="active"{% endif %}>
+        <i class="fas fa-box"></i>
+        <span>Produits</span>
+    </a>
+    <a href="{{ url_for('main.stock') }}" {% if request.endpoint == 'main.stock' %}class="active"{% endif %}>
+        <i class="fas fa-warehouse"></i>
+        <span>Stock</span>
+    </a>
+    <a href="{{ url_for('main.scrap') }}" {% if request.endpoint == 'main.scrap' %}class="active"{% endif %}>
+        <i class="fas fa-search"></i>
+        <span>Scrap</span>
+    </a>
+    <a href="{{ url_for('main.analytics') }}" {% if request.endpoint == 'main.analytics' %}class="active"{% endif %}>
+        <i class="fas fa-tasks"></i>
+        <span>Organisation</span>
+    </a>
 </div>
 
 <!-- ✅ CONTENU PRINCIPAL -->

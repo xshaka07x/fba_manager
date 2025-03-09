@@ -6,6 +6,8 @@ from datetime import timedelta  # ✅ Pour ajouter une heure
 from flask import jsonify
 from app.utils.fetch_selleramp import fetch_selleramp_info
 import uuid
+from scraping.scraper import insert_or_update_product
+from app.utils.fetch_keepa import get_keepa_data
 
 main_bp = Blueprint('main', __name__)
 from app import db
@@ -160,9 +162,27 @@ def add_stock():
         
         # Utilisation de la fonction de scraping pour récupérer les données
         from scraping.scraper import insert_or_update_product
+        from app.utils.fetch_keepa import get_keepa_data
         
-        # Récupération des données via la fonction de scraping
-        success = insert_or_update_product(nom, ean, prix_achat, None, None, None, None)
+        # Récupération des données Keepa
+        keepa_data = get_keepa_data(ean, prix_achat)
+        if not keepa_data:
+            return "Erreur : Impossible de récupérer les données Keepa.", 500
+            
+        prix_amazon = keepa_data.get('prix_amazon', 0)
+        difference = prix_amazon - prix_achat if prix_amazon else 0
+        profit = difference * 0.7 if difference > 0 else 0  # 70% de marge
+        
+        # Insertion dans products_keepa
+        success = insert_or_update_product(
+            nom=nom,
+            ean=ean,
+            prix_retail=prix_achat,
+            url="",  # URL vide car pas pertinent ici
+            prix_amazon=prix_amazon,
+            difference=difference,
+            profit=profit
+        )
         
         if not success:
             return "Erreur : Impossible de récupérer les données du produit.", 500
