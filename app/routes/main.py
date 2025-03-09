@@ -6,6 +6,7 @@ from datetime import timedelta  # ✅ Pour ajouter une heure
 from app.models import Product, Stock
 from flask import jsonify
 from app.utils.fetch_selleramp import fetch_selleramp_info
+import uuid
 
 main_bp = Blueprint('main', __name__)
 from app import db
@@ -96,11 +97,10 @@ def analytics():
 
 @main_bp.route('/stock')
 def stock():
-    from app.models import Product, Stock  # ✅ Vérifie que Stock est bien importé
-
+    """📦 Route de la page de gestion du stock."""
+    magasins = db.session.query(Magasin).all()
     stock_items = db.session.query(Stock).order_by(Stock.date_achat.desc()).all()
-
-    return render_template('stock.html', stock_items=stock_items)
+    return render_template('stock.html', stock_items=stock_items, magasins=magasins)
 
 
 @main_bp.route('/search', methods=['GET'])
@@ -151,45 +151,53 @@ def update_stock(stock_id):
 @main_bp.route('/add_stock', methods=['POST'])
 def add_stock():
     try:
+        # Récupération des données du formulaire
+        nom = request.form.get('nom')
         ean = request.form.get('ean')
         magasin = request.form.get('magasin')
         prix_achat = float(request.form.get('prix_achat'))
         quantite = int(request.form.get('quantite'))
         facture_url = request.form.get('facture_url') or None
-        statut = "Acheté/en stock"
+        
+        # Utilisation de la fonction de scraping pour récupérer les données
+        from scraping.scraper import insert_or_update_product
+        
+        # Récupération des données via la fonction de scraping
+        success = insert_or_update_product(nom, ean, prix_achat, None, None, None, None)
+        
+        if not success:
+            return "Erreur : Impossible de récupérer les données du produit.", 500
+            
+        # Récupération des données mises à jour
+        product = db.session.query(ProductKeepa).filter_by(ean=ean).first()
+        
+        if not product:
+            return "Erreur : Produit non trouvé après scraping.", 500
 
-        print(f"🛒 Ajout de stock - EAN: {ean}, Magasin: {magasin}, Prix: {prix_achat}, Quantité: {quantite}")
-
-        # ✅ Récupération des données SellerAmp
-        prix_amazon, roi, profit, sales_estimation, alerts = fetch_selleramp_info(ean, prix_achat)
-
-        if prix_amazon is None:
-            return "Erreur : Impossible de récupérer les données SellerAmp.", 500
-
-        # ✅ Insérer en base de données
+        # Création de l'entrée dans le stock
         new_stock = Stock(
+            group_id=str(uuid.uuid4()),  # Génération d'un nouveau UUID
             ean=ean,
+            nom=nom,
             magasin=magasin,
             prix_achat=prix_achat,
-            prix_amazon=prix_amazon,
-            roi=roi,
-            profit=profit,
-            sales_estimation=sales_estimation,
-            date_achat=request.form.get('date_achat'),
+            prix_amazon=product.prix_amazon,
+            roi=product.roi,
+            profit=product.profit,
+            sales_estimation=product.sales_estimation,
+            date_achat=datetime.now(),
             quantite=quantite,
             facture_url=facture_url,
-            statut=statut,
-            nom=f"Produit {ean}",  # ⚠️ À remplacer si SellerAmp permet de récupérer le nom
-            seuil_alerte=5  # Valeur par défaut
+            statut="Acheté/en stock"
         )
 
         db.session.add(new_stock)
         db.session.commit()
 
-        print(f"✅ Stock ajouté : {new_stock}")
         return redirect(url_for('main.stock'))
 
     except Exception as e:
+        db.session.rollback()
         print(f"❌ Erreur lors de l'ajout de stock : {e}")
         return f"Erreur lors de l'ajout : {str(e)}", 500
     

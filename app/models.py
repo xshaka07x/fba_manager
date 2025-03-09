@@ -73,3 +73,15 @@ class ProductKeepa(db.Model):
 
     def __repr__(self):
         return f'<ProductKeepa {self.nom}>'
+
+class Magasin(db.Model):
+    __tablename__ = "magasin"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), unique=True, nullable=False)
+    adresse = db.Column(db.String(255))
+    ville = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Magasin {self.nom}>"

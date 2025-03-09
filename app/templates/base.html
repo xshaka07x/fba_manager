@@ -12,14 +12,16 @@
         @media (max-width: 768px) {
             #menu-top {
                 position: fixed;
-                bottom: 20px;
-                right: 20px;
+                bottom: 0;
+                left: 0;
+                right: 0;
                 background: #343a40;
-                border-radius: 10px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                display: flex;
+                justify-content: space-around;
+                padding: 10px 0;
                 z-index: 1000;
-                display: none;
-                padding: 10px;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                margin-bottom: 15px;
             }
             #menu-top.show {
                 display: block;
@@ -63,6 +65,11 @@
             .container {
                 margin-bottom: 80px;
             }
+        }
+        
+        /* Style pour le menu desktop */
+        #menu-top {
+            margin-bottom: 20px;
         }
     </style>
 </head>
