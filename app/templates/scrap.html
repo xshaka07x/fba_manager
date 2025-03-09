@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+.store-logo {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+</style>
+
 <div class="container-fluid px-4">
     <div class="card bg-dark text-white mb-4">
         <div class="card-header">
@@ -18,7 +26,7 @@
                             <th>Différence</th>
                             <th>Profit Estimé</th>
                             <th>Dernière MAJ</th>
-                            <th>Actions</th>
+                            <th>Magasin</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -36,9 +44,15 @@
                             </td>
                             <td>{{ product.updated_at.strftime('%d/%m/%Y %H:%M') }}</td>
                             <td>
-                                <a href="{{ product.url }}" target="_blank" class="btn btn-sm btn-primary">
+                                {% if 'stokomani.fr' in product.url %}
+                                <a href="{{ product.url }}" target="_blank">
+                                    <img src="{{ url_for('static', filename='images/stokomani-logo.png') }}" alt="Stokomani" class="store-logo" title="Voir sur Stokomani">
+                                </a>
+                                {% else %}
+                                <a href="{{ product.url }}" target="_blank" class="text-info">
                                     <i class="fas fa-external-link-alt"></i>
                                 </a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
