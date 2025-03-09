@@ -1,6 +1,6 @@
 # app/routes/main.py
 from flask import Blueprint, render_template, redirect, url_for, request  # ✨ Ajout de redirect et url_for
-from app.models import Product, Stock
+from app.models import Product, Stock, ProductKeepa
 from datetime import datetime
 from datetime import timedelta  # ✅ Pour ajouter une heure
 from app.models import Product, Stock
@@ -227,3 +227,8 @@ def insert_into_stock_db(ean, magasin, prix_achat, prix_amazon, roi, profit, sal
     except Exception as e:
         db.rollback()
         print(f"⚠️ Erreur lors de l'insertion dans la base de données: {e}")
+
+@main_bp.route('/scrap')
+def scrap():
+    products = ProductKeepa.query.order_by(ProductKeepa.updated_at.desc()).all()
+    return render_template('scrap.html', products=products)

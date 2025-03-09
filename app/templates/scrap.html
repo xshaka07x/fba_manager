@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Produits Scrapés (Keepa)</h2>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>EAN</th>
+                    <th>Prix Retail</th>
+                    <th>Prix Amazon</th>
+                    <th>Différence</th>
+                    <th>Profit Estimé</th>
+                    <th>Dernière MAJ</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.nom }}</td>
+                    <td>{{ product.ean }}</td>
+                    <td>{{ "%.2f"|format(product.prix_retail) }}€</td>
+                    <td>{{ "%.2f"|format(product.prix_amazon) }}€</td>
+                    <td>{{ "%.2f"|format(product.difference) }}€</td>
+                    <td>{{ "%.2f"|format(product.profit) }}€</td>
+                    <td>{{ product.updated_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>
+                        <a href="{{ product.url }}" target="_blank" class="btn btn-sm btn-primary">Voir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

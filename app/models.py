@@ -50,3 +50,19 @@ class Stock(db.Model):
 
     def __repr__(self):
         return f"<Stock {self.nom} - {self.ean} - {self.magasin}>"
+
+class ProductKeepa(db.Model):
+    __tablename__ = 'products_keepa'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(255), nullable=False)
+    ean = db.Column(db.String(13), nullable=False)
+    prix_retail = db.Column(db.Float, nullable=False)
+    prix_amazon = db.Column(db.Float, nullable=True)
+    difference = db.Column(db.Float, nullable=True)
+    profit = db.Column(db.Float, nullable=True)
+    url = db.Column(db.String(255), nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<ProductKeepa {self.nom}>'

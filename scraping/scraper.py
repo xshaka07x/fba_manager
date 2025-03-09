@@ -29,10 +29,23 @@ from app.utils.db import get_db_connection
 from datetime import datetime
 import pytz
 from datetime import timedelta  # 🔥 Ajout nécessaire en haut du fichier
+from app.utils.fetch_keepa import get_asin_from_ean, get_keepa_data
+import requests
+import json
 
+# Import du nouveau module Keepa
+
+KEEPA_API_KEY = os.getenv("KEEPA_API_KEY", "ftclrhsi754hf3tblbljldbonk7n4cuthggk8gnt88c4k2sjkmre8th8cjf65jnc")
+KEEPA_URL = "https://api.keepa.com/product"
+
+if not KEEPA_API_KEY:
+    raise ValueError("❌ ERREUR: La clé Keepa API n'est pas définie. Configure 'KEEPA_API_KEY' dans vos variables d'environnement.")
 
 
 # 🔗 Initialisation Flask
+app = create_app()
+with app.app_context():
+    db.create_all()
 
 # ⚙️ Configuration Selenium
 options = Options()
@@ -65,6 +78,9 @@ options.add_experimental_option("useAutomationExtension", False)
 options.add_argument("--headless=new")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--window-size=1920,1080")  # Taille de fenêtre fixe
+options.add_argument("--start-maximized")  # Maximiser la fenêtre
+options.add_argument("--disable-blink-features=AutomationControlled")  # Désactiver la détection d'automatisation
 
 # 🎯 Suppression des logs système
 os.environ["WTF_CSRF_ENABLED"] = "False"
@@ -98,60 +114,51 @@ if project_path not in sys.path:
     sys.path.insert(0, project_path)
 
 
-def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, roi, profit, sales_estimation, alerts):
-    """📝 Insère ou met à jour un produit avec TOUTES les données SellerAmp en DB Railway."""
+def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, difference, profit):
+    """📝 Insère ou met à jour un produit avec les données Keepa en DB."""
     try:
+        # Vérification des critères de filtrage
+        if not ean or ean == "Non disponible":
+            print(f"❌ [SCRAPER] Produit ignoré - Pas d'EAN : {nom}")
+            return False
+
+        # Vérifier si le profit est positif (critère de filtrage)
+        if profit is not None and profit <= 0:
+            print(f"❌ [SCRAPER] Produit ignoré - Profit négatif ou nul ({profit}€) : {nom}")
+            return False
+
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # ✅ Sécurisation et LOG du format ROI et PROFIT
-        try:
-            roi_clean = re.sub(r'[^\d\.-]', '', roi)  # Supprime tout sauf chiffres, points et tirets
-            roi = float(roi_clean) if roi_clean else None
-        except Exception as e:
-            logging.error(f"⚠️ Erreur conversion ROI : {roi} -> {e}")
-            roi = None
-
-        try:
-            profit_clean = re.sub(r'[^\d\.-]', '', profit)  # Supprime € et espaces
-            profit = float(profit_clean) if profit_clean else None
-        except Exception as e:
-            logging.error(f"⚠️ Erreur conversion PROFIT : {profit} -> {e}")
-            profit = None
-
-        try:
-            prix_amazon = float(prix_amazon) if prix_amazon.replace(".", "").isdigit() else None
-        except Exception as e:
-            logging.error(f"⚠️ Erreur conversion Prix Amazon : {prix_amazon} -> {e}")
-            prix_amazon = None
-
-        logging.info(f"🔄 Insertion : ROI={roi}, Profit={profit}, Prix_Amazon={prix_amazon}")
-
-        cursor.execute("SELECT id FROM products WHERE ean = %s AND url = %s", (ean, url))
+        cursor.execute("SELECT id FROM products_keepa WHERE ean = %s AND url = %s", (ean, url))
         result = cursor.fetchone()
         paris_timezone = pytz.timezone("Europe/Paris")
-        updated_at = datetime.now(paris_timezone) + timedelta(hours=1)  # 🕒 ✅ On ajoute 1h ici
+        updated_at = datetime.now(paris_timezone)
 
         if result:
             cursor.execute("""
-                UPDATE products 
-                SET nom = %s, prix_retail = %s, prix_amazon = %s, roi = %s, profit = %s, sales_estimation = %s, alerts = %s, updated_at = %s
+                UPDATE products_keepa 
+                SET nom = %s, prix_retail = %s, prix_amazon = %s, difference = %s, profit = %s, updated_at = %s
                 WHERE id = %s
-            """, (nom, prix_retail, prix_amazon, roi, profit, sales_estimation, alerts, updated_at, result[0]))
+            """, (nom, prix_retail, prix_amazon, difference, profit, updated_at, result[0]))
             print(f"🔄 [SCRAPER] Produit mis à jour : {nom} | EAN: {ean}")
         else:
             cursor.execute("""
-                INSERT INTO products (nom, ean, prix_retail, url, prix_amazon, roi, profit, sales_estimation, alerts)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (nom, ean, prix_retail, url, prix_amazon, roi, profit, sales_estimation, alerts))
+                INSERT INTO products_keepa (nom, ean, prix_retail, prix_amazon, difference, profit, url, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (nom, ean, prix_retail, prix_amazon, difference, profit, url, updated_at))
             print(f"🆕 [SCRAPER] Produit inséré : {nom} | EAN: {ean}")
 
         conn.commit()
         cursor.close()
         conn.close()
+        return True
 
     except Exception as e:
-        logging.error(f"❌ Erreur DB: {e}")
+        print(f"❌ Erreur DB: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 
 def set_items_per_page(driver):
@@ -175,20 +182,42 @@ def set_items_per_page(driver):
 
 
 def scroll_page(driver, max_scrolls=15, wait_time=1):
-    """📜 Scroll dynamique avec chargement incrémental."""
+    """📜 Scroll dynamique avec chargement incrémental et vérification des produits."""
     print("🔄 Scroll pour chargement des produits...", flush=True)
     last_height = 0
+    no_change_count = 0
+    max_no_change = 3  # Nombre maximum de scrolls sans changement avant d'arrêter
+
     for i in range(max_scrolls):
+        # Scroll vers le bas
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(wait_time)
+
+        # Vérification de la hauteur
         new_height = driver.execute_script("return document.body.scrollHeight")
-        produits_visibles = driver.find_elements(By.CSS_SELECTOR, 'a.product-card-link')
-        print(f"📈 Scroll {i + 1} - Produits visibles : {len(produits_visibles)}", flush=True)
         if new_height == last_height:
+            no_change_count += 1
+            print(f"⚠️ Scroll {i + 1} - Aucun changement de hauteur ({no_change_count}/{max_no_change})", flush=True)
+        else:
+            no_change_count = 0
+            print(f"✅ Scroll {i + 1} - Nouvelle hauteur: {new_height}", flush=True)
+
+        # Vérification des produits
+        produits_visibles = driver.find_elements(By.CSS_SELECTOR, 'div.col-sx-zento a.format-img-zento')
+        print(f"📈 Scroll {i + 1} - Produits visibles : {len(produits_visibles)}", flush=True)
+
+        # Si on a des produits et qu'on n'a pas eu de changement depuis un moment, on arrête
+        if len(produits_visibles) > 0 and no_change_count >= max_no_change:
+            print("✅ Chargement des produits terminé", flush=True)
             break
+
         last_height = new_height
 
+    # Vérification finale
+    produits_finaux = driver.find_elements(By.CSS_SELECTOR, 'div.col-sx-zento a.format-img-zento')
+    print(f"🎯 Total des produits chargés : {len(produits_finaux)}", flush=True)
 
+# La fonction get_keepa_data est importée depuis app.utils.fetch_keepa
 def extraire_details_produit(driver, url, timeout_sec=5):
     """🔍 Extraction des données produit (nom, prix, EAN, URL)."""
     try:
@@ -245,10 +274,13 @@ def enregistrer_produit(produit):
     """💾 Enregistre le produit si non existant en DB."""
     if produit and produit['EAN']:
         insert_or_update_product(
-            produit['Nom'],
-            produit['EAN'],
-            float(produit['Prix'].replace("€", "").strip()),
-            produit['URL']
+            nom=produit['Nom'],
+            ean=produit['EAN'],
+            prix_retail=float(produit['Prix'].replace("€", "").strip()),
+            url=produit['URL'],
+            prix_amazon=0,  # Valeur par défaut
+            difference=0,  # Valeur par défaut
+            profit=0  # Valeur par défaut
         )
         print(f"💾 [SCRAPER] Produit traité pour la DB : {produit['Nom']} | EAN: {produit['EAN']}")
     else:
@@ -257,135 +289,83 @@ def enregistrer_produit(produit):
 
 
 
-def get_selleramp_data(ean, prix_magasin, max_retries=1):
-    """🔍 Récupère les données SellerAmp enrichies : ROI, profit, sales_estimation, alerts."""
-    from selenium.webdriver.common.keys import Keys
-    driver_selleramp = None
-    for attempt in range(max_retries):
-        try:
-            print(f"⚡ Tentative {attempt + 1}/{max_retries} pour EAN {ean}...")
-
-            driver_selleramp = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-            driver_selleramp.get('https://sas.selleramp.com/')
-
-            WebDriverWait(driver_selleramp, 15).until(
-                EC.presence_of_element_located((By.ID, "loginform-email"))
-            ).send_keys("thomasroger1189@gmail.com")
-            driver_selleramp.find_element(By.ID, "loginform-password").send_keys("Gintoki62")
-            driver_selleramp.find_element(By.NAME, "login-button").click()
-
-            WebDriverWait(driver_selleramp, 45).until(
-                EC.presence_of_element_located((By.ID, 'saslookup-search_term'))
-            ).send_keys(ean + Keys.RETURN)
-            time.sleep(3)
-
-            # ✅ Détection choix multiples ou EAN introuvable
-            if driver_selleramp.find_elements(By.XPATH, "//*[contains(text(), 'Please choose the most suitable match:')]"):
-                print(f"⚠️ Choix multiple détecté pour EAN {ean}. Produit ignoré.")
-                return None, None, None, None, None
-
-            if driver_selleramp.find_elements(By.XPATH, "//*[contains(text(), 'No results were found')]"):
-                print(f"⚠️ Aucun résultat SellerAmp pour EAN {ean}. Produit ignoré.")
-                return None, None, None, None, None
-
-            # ✅ Récupération des données
-            WebDriverWait(driver_selleramp, 10).until(
-                EC.presence_of_element_located((By.ID, 'qi_sale_price'))
-            )
-            prix_amazon = driver_selleramp.find_element(By.ID, 'qi_sale_price').get_attribute('value')
-
-            cost_input = driver_selleramp.find_element(By.ID, 'qi_cost')
-            cost_input.clear()
-            cost_input.send_keys(str(prix_magasin))
-            cost_input.send_keys(Keys.RETURN)
-
-            WebDriverWait(driver_selleramp, 10).until(
-                lambda d: d.find_element(By.ID, 'qi-roi').text != '- ∞%'
-            )
-            roi = driver_selleramp.find_element(By.ID, 'qi-roi').text
-            profit = driver_selleramp.find_element(By.ID, 'qi-profit').text
-
-            # ✅ Récupération sales_estimation et alerts
-            sales_estimation = driver_selleramp.find_element(By.CSS_SELECTOR, '.estimated_sales_per_mo').text
-            alerts = driver_selleramp.find_element(By.CSS_SELECTOR, '#qi-alerts .qi-alert-not').text
-
-            # 🚨 FILTRES 🚨
-            if alerts == "PL":
-                print(f"⚠️ Produit ignoré (Private Label - PL) | EAN: {ean}")
-                return None, None, None, None, None
-
-            if sales_estimation.lower() == "unknown":
-                print(f"⚠️ Produit ignoré (Sales Estimation inconnu) | EAN: {ean}")
-                return None, None, None, None, None
-
-            # 💰 Convertir ROI en float pour appliquer le filtre
-            try:
-                roi_clean = re.sub(r'[^\d\.-]', '', roi)  # Supprime tout sauf chiffres, points et tirets
-                roi_value = float(roi_clean) if roi_clean else None
-            except Exception as e:
-                print(f"⚠️ Erreur conversion ROI : {roi} -> {e}")
-                roi_value = None
-
-            if roi_value is None or roi_value <= 10:
-                print(f"⚠️ Produit ignoré (ROI trop bas : {roi_value}%) | EAN: {ean}")
-                return None, None, None, None, None
-
-            print(f"🔄 Données SellerAmp récupérées : {prix_amazon}€, ROI: {roi_value}%, Profit: {profit}€, Sales: {sales_estimation}, Alerts: {alerts}")
-            return prix_amazon, roi, profit, sales_estimation, alerts
-
-        except Exception as e:
-            print(f"⚠️ Erreur SellerAmp EAN {ean}: {e}")
-            time.sleep(2)
-        finally:
-            if driver_selleramp:
-                driver_selleramp.quit()
-
-    return None, None, None, None, None
-
 
 
 def scrap_toutes_pages(driver, nb_max_total, url_base):
+    """📄 Scrape toutes les pages nécessaires pour obtenir le nombre de produits demandé."""
     produits_scrapes = []
+    produits_valides = 0  # Compteur de produits valides
     page_actuelle = 1
     urls_deja_traitees = set()
 
-    while len(produits_scrapes) < nb_max_total:
-        # ✅ Construire proprement l'URL de la page actuelle
-        if "pageNumber-3=" in url_base:
-            url_pagination = re.sub(r'pageNumber-3=\d+', f'pageNumber-3={page_actuelle}', url_base)
-        else:
-            url_pagination = url_base + f"&pageNumber-3={page_actuelle}" if "?" in url_base else url_base + f"?pageNumber-3={page_actuelle}"
+    print(f"📊 Objectif : {nb_max_total} produits valides à scraper (avec EAN et ROI > 10%)")
 
-        print(f"\n📄 Scraping - Page {page_actuelle} ({len(produits_scrapes)}/{nb_max_total}) - {url_pagination}")
-
-        driver.get(url_pagination)
-        time.sleep(3)  # Attente pour chargement complet
-
-        # ✅ Vérifier si la page a bien chargé en détectant les produits
+    while produits_valides < nb_max_total:
         try:
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, 'div.col-sx-zento a.format-img-zento'))
+            # ✅ Construire proprement l'URL de la page actuelle
+            if "pageNumber-3=" in url_base:
+                url_pagination = re.sub(r'pageNumber-3=\d+', f'pageNumber-3={page_actuelle}', url_base)
+            else:
+                url_pagination = url_base + f"&pageNumber-3={page_actuelle}" if "?" in url_base else url_base + f"?pageNumber-3={page_actuelle}"
+
+            print(f"\n📄 Scraping - Page {page_actuelle} ({produits_valides}/{nb_max_total} produits valides) - {url_pagination}")
+
+            print("🌐 Chargement de la page...")
+            driver.get(url_pagination)
+            print("⏳ Attente du chargement complet...")
+            time.sleep(3)  # Attente pour chargement complet
+
+            # ✅ Vérifier si la page a bien chargé en détectant les produits
+            try:
+                print("🔍 Vérification de la présence des produits...")
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, 'div.col-sx-zento a.format-img-zento'))
+                )
+                print("✅ Produits détectés sur la page")
+            except TimeoutException:
+                print(f"⛔ Aucune donnée détectée sur la page {page_actuelle}. Arrêt du scraping.")
+                break
+
+            # ✅ Scraper les produits de la page
+            print("🔍 Début du scraping des produits...")
+            produits_page, eans_page_courante, urls_deja_traitees = scrap_produits_sur_page(
+                driver, float('inf'), urls_deja_traitees  # Utiliser inf pour traiter tous les produits
             )
-        except TimeoutException:
-            print(f"⛔ Aucune donnée détectée sur la page {page_actuelle}. Arrêt du scraping.")
+
+            # Compter les produits valides ajoutés
+            for produit in produits_page:
+                try:
+                    # Vérifier si le produit a été inséré avec succès
+                    if insert_or_update_product(
+                        nom=produit['nom'],
+                        ean=produit['ean'],
+                        prix_retail=produit['prix_retail'],
+                        url=produit['url'],
+                        prix_amazon=produit['prix_amazon'],
+                        difference=produit['difference'],
+                        profit=produit['profit']
+                    ):
+                        produits_valides += 1
+                        produits_scrapes.append(produit)
+                        print(f"✅ Produit valide ajouté ({produits_valides}/{nb_max_total})")
+                except Exception as e:
+                    print(f"❌ Erreur lors de l'insertion du produit : {str(e)}")
+                    continue
+
+            print(f"✅ {len(produits_page)} produits traités sur cette page")
+            print(f"📊 Total des produits valides : {produits_valides}/{nb_max_total}")
+
+            # ✅ Vérification avant de passer à la page suivante
+            if not produits_page:
+                print("⚠️ Aucun produit enregistré sur cette page, tentative de la suivante...")
+            
+            page_actuelle += 1  # 📌 Passage automatique à la page suivante
+
+        except Exception as e:
+            print(f"❌ Erreur lors du scraping de la page {page_actuelle}: {str(e)}")
             break
 
-        # ✅ Scraper les produits de la page
-        produits_page, eans_page_courante, urls_deja_traitees = scrap_produits_sur_page(
-            driver, nb_max_total - len(produits_scrapes), urls_deja_traitees
-        )
-
-        produits_scrapes.extend(produits_page)
-
-        print(f"✅ {len(produits_scrapes)} produit(s) récupéré(s) sur {nb_max_total}.")
-
-        # ✅ Vérification avant de passer à la page suivante
-        if not produits_page:
-            print("⚠️ Aucun produit enregistré sur cette page, tentative de la suivante...")
-        
-        page_actuelle += 1  # 📌 Passage automatique à la page suivante
-
-    print("🎉 Fin du scraping.")
+    print(f"🎉 Fin du scraping. {produits_valides} produits valides ajoutés sur {nb_max_total} demandés.")
     return produits_scrapes
 
 
@@ -398,7 +378,7 @@ def ean_existe_deja(ean):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM products WHERE ean = %s", (ean,))
+        cursor.execute("SELECT COUNT(*) FROM products_keepa WHERE ean = %s", (ean,))
         result = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -408,102 +388,277 @@ def ean_existe_deja(ean):
         return False
 
 
-def scrap_produits_sur_page(driver, nb_max, urls_deja_traitees):
-    """🔎 Scrape les produits de la page en cours, enrichit avec SellerAmp et insère en DB si valide."""
+
+def scrap_produits_sur_page(driver, nb_max_produits, urls_deja_traitees):
+    """🔍 Scrape les produits sur la page courante."""
     produits = []
-    scroll_page(driver, max_scrolls=15, wait_time=1)
-    produits_urls = [
-        a.get_attribute('href') for a in driver.find_elements(By.CSS_SELECTOR, 'div.col-sx-zento a.format-img-zento')
-    ]
+    eans_page_courante = []
+    
+    print("🔍 Recherche des produits sur la page...")
+    try:
+        # Vérifier si la page est chargée
+        print("⏳ Attente du chargement de la page...")
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.TAG_NAME, "body"))
+        )
+        print("✅ Page chargée")
+        
+        # Trouver tous les produits sur la page
+        elements_produits = driver.find_elements(By.CSS_SELECTOR, 'div.col-sx-zento')
+        print(f"✅ {len(elements_produits)} produits trouvés sur la page")
+        
+        if not elements_produits:
+            print("⚠️ Aucun produit trouvé sur la page")
+            return [], [], urls_deja_traitees
 
-    print(f"🔍 {len(produits_urls)} produits trouvés sur cette page.")
-
-    total_produits = len(produits_urls)
-    produits_traite = 0
-
-    for url in produits_urls:
-        if len(produits) >= nb_max:
-            break
-        try:
-            # 🔍 Étape 1 : Extraction produit
-            produit = extraire_details_produit(driver, url, timeout_sec=3)
-            produits_traite += 1  
-            
-            if not produit or produit['EAN'] == "Non disponible":
-                print(f"⚠️ Produit ignoré (EAN manquant) : {url}")
-                continue
-
-            nom, prix_retail, ean, url_produit = produit['Nom'], produit['Prix'], produit['EAN'], produit['URL']
-            
+        # Traiter tous les produits de la page jusqu'à atteindre le nombre total souhaité
+        for element in elements_produits:
             try:
-                # Nettoyage : Suppression des espaces insécables, "€", "HT" et remplacement de la virgule
-                prix_retail = re.sub(r'[^\d,]', '', prix_retail)  # Supprime tout sauf chiffres et virgule
-                prix_retail = prix_retail.replace(",", ".")  # Convertit en notation décimale anglaise
-                prix_retail = float(prix_retail)  # Conversion en float
-            except ValueError:
-                print(f"⚠️ Produit ignoré (Prix non valide) : {url}")
+                # Récupérer le lien du produit
+                lien_produit = element.find_element(By.CSS_SELECTOR, 'a.format-img-zento').get_attribute('href')
+                if lien_produit in urls_deja_traitees:
+                    print(f"⏭️ Produit déjà traité : {lien_produit}")
+                    continue
+
+                print(f"\n🔍 Traitement du produit : {lien_produit}")
+                
+                # Ouvrir le produit dans un nouvel onglet
+                driver.execute_script("window.open('');")
+                driver.switch_to.window(driver.window_handles[1])
+                driver.get(lien_produit)
+                
+                # Attendre le chargement de la page
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.TAG_NAME, "body"))
+                )
+                
+                # Récupérer le nom du produit
+                try:
+                    nom_element = driver.find_element(By.CSS_SELECTOR, 'div.template-grid-whilist h1.green-text')
+                    nom_produit = nom_element.text.strip()
+                    print(f"📝 Nom du produit : {nom_produit}")
+                except NoSuchElementException:
+                    print("⚠️ Nom du produit non trouvé")
+                    driver.close()
+                    driver.switch_to.window(driver.window_handles[0])
+                    continue
+                
+                # Récupérer le prix
+                try:
+                    prix_element = driver.find_element(By.CSS_SELECTOR, 'li.price.price-with-taxes.content-price-detail-zento span.price-value')
+                    prix_text = prix_element.text.strip().replace('€', '').replace(',', '.').strip()
+                    prix_retail = float(prix_text)
+                    print(f"💰 Prix retail : {prix_retail}€")
+                except (NoSuchElementException, ValueError):
+                    print("⚠️ Prix non trouvé ou invalide")
+                    driver.close()
+                    driver.switch_to.window(driver.window_handles[0])
+                    continue
+                
+                # Récupérer l'EAN depuis le script
+                try:
+                    # Chercher l'élément avec l'attribut data-product
+                    product_element = driver.find_element(By.CSS_SELECTOR, '[data-product]')
+                    product_data = product_element.get_attribute('data-product')
+                    
+                    # Parser le JSON
+                    product_json = json.loads(product_data)
+                    
+                    # Extraire l'EAN depuis le chemin stock.ean13
+                    ean = product_json.get('stock', {}).get('ean13')
+                    
+                    if ean:
+                        print(f"🔢 EAN : {ean}")
+                    else:
+                        print("⚠️ EAN non trouvé dans les données du produit")
+                        driver.close()
+                        driver.switch_to.window(driver.window_handles[0])
+                        continue
+                except Exception as e:
+                    print(f"⚠️ Erreur lors de la récupération de l'EAN : {str(e)}")
+                    driver.close()
+                    driver.switch_to.window(driver.window_handles[0])
+                    continue
+                
+                # Vérifier si l'EAN existe déjà
+                if ean_existe_deja(ean):
+                    print(f"⏭️ EAN {ean} déjà présent dans la base de données")
+                    driver.close()
+                    driver.switch_to.window(driver.window_handles[0])
+                    continue
+                
+                # Récupérer les données Keepa
+                print("🔍 Récupération des données Keepa...")
+                keepa_data = get_keepa_data(ean, prix_retail)
+                
+                if keepa_data and keepa_data.get('status') == 'OK':
+                    prix_amazon = keepa_data.get('prix_amazon')
+                    difference = keepa_data.get('difference')
+                    profit = keepa_data.get('profit')
+                    
+                    # Vérifier que toutes les valeurs nécessaires sont présentes
+                    if all([prix_amazon, difference, profit]):
+                        print(f"✅ Données Keepa récupérées :")
+                        print(f"   - Prix Amazon : {prix_amazon}€")
+                        print(f"   - Difference : {difference}")
+                        print(f"   - Profit : {profit}")
+                    else:
+                        print("❌ Données Keepa incomplètes")
+                        print(f"   - Prix Amazon : {prix_amazon}")
+                        print(f"   - Difference : {difference}")
+                        print(f"   - Profit : {profit}")
+                        driver.close()
+                        driver.switch_to.window(driver.window_handles[0])
+                        continue
+                else:
+                    print("❌ Pas de données Keepa disponibles")
+                    driver.close()
+                    driver.switch_to.window(driver.window_handles[0])
+                    continue
+                
+                # Créer le produit
+                produit = {
+                    'nom': nom_produit,
+                    'ean': ean,
+                    'prix_retail': prix_retail,
+                    'prix_amazon': prix_amazon,
+                    'difference': difference,
+                    'profit': profit,
+                    'url': lien_produit
+                }
+                
+                # Ajouter à la liste des produits
+                produits.append(produit)
+                eans_page_courante.append(ean)
+                urls_deja_traitees.add(lien_produit)
+                print(f"✅ Produit ajouté avec succès")
+                
+                # Insérer le produit en base de données
+                print("💾 Sauvegarde en base de données...")
+                try:
+                    insert_or_update_product(
+                        nom=nom_produit,
+                        ean=ean,
+                        prix_retail=prix_retail,
+                        url=lien_produit,
+                        prix_amazon=prix_amazon,
+                        difference=difference,
+                        profit=profit
+                    )
+                    print("✅ Produit sauvegardé en base de données")
+                except Exception as e:
+                    print(f"❌ Erreur lors de la sauvegarde en base de données : {str(e)}")
+                
+                # Fermer l'onglet et revenir à la liste
+                driver.close()
+                driver.switch_to.window(driver.window_handles[0])
+                
+                # Si on a atteint le nombre total d'entrées souhaité, on arrête
+                if len(produits) >= nb_max_produits:
+                    print(f"🎯 Nombre total d'entrées atteint ({nb_max_produits})")
+                    break
+                
+            except Exception as e:
+                print(f"❌ Erreur lors du traitement du produit : {str(e)}")
+                if len(driver.window_handles) > 1:
+                    driver.close()
+                    driver.switch_to.window(driver.window_handles[0])
                 continue
-
-
-            print(f"🔍 Produit trouvé : {nom} | Prix magasin : {prix_retail}€ | EAN : {ean}")
-
-            # 🔎 Étape 2 : Récupération SellerAmp
-            prix_amazon, roi, profit, sales_estimation, alerts = get_selleramp_data(ean, prix_retail)
-
-            if not prix_amazon or not roi or not profit or not sales_estimation:
-                print(f"⚠️ Produit ignoré (Données SellerAmp incomplètes) : {url}")
-                continue
-
-            # 🚨 Étape 3 : Vérification des critères (ROI min 10%)
-            try:
-                roi_value = float(re.sub(r'[^\d\.-]', '', roi))
-            except ValueError:
-                roi_value = 0
-
-            if roi_value < 10:
-                print(f"⚠️ Produit ignoré (ROI trop bas : {roi_value}%) | {nom}")
-                continue
-
-            # ✅ Étape 4 : Insertion en base de données
-            insert_or_update_product(nom, ean, prix_retail, url_produit, prix_amazon, roi, profit, sales_estimation, alerts)
-            print(f"✅ Produit ajouté en DB : {nom} | Prix : {prix_retail}€ | ROI : {roi_value}%")
-
-            produits.append(produit)
-            urls_deja_traitees.add(url)
-
-            print(f"📊 Progression : {len(produits)} enregistré(s) / {nb_max} demandé(s) "
-                  f"({produits_traite}/{total_produits} traités sur cette page)")
-
-        except Exception as e:
-            print(f"⚠️ Produit ignoré suite à une erreur : {e}", flush=True)
-
-    eans_page_courante = {p['EAN'] for p in produits if 'EAN' in p}
-    return produits, eans_page_courante, urls_deja_traitees
+        
+        print(f"\n📊 Résumé de la page : {len(produits)} produits traités avec succès")
+        return produits, eans_page_courante, urls_deja_traitees
+        
+    except Exception as e:
+        print(f"❌ Erreur lors du scraping de la page : {str(e)}")
+        print("Stack trace complet :")
+        import traceback
+        traceback.print_exc()
+        return [], [], urls_deja_traitees
 
 
 
 def lancer_scraping(url, nb_scrap_total):
     """🚀 Lancement principal du scraping avec pagination par URL."""
+    driver = None
     try:
-        print(f"🚀 [SCRAPER] Scraping pour : {url}")
+        print(f"🚀 [SCRAPER] Démarrage du scraping pour : {url}")
+        print(f"📊 Nombre de produits à scraper : {nb_scrap_total}")
 
         # Extraire l'URL de base sans ?page=
         url_base = re.sub(r'\?page=\d+', '', url)
+        print(f"🔗 URL de base : {url_base}")
 
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        driver.get(url_base)
+        # Vérifier si le site est accessible
+        print("🌐 Vérification de l'accessibilité du site...")
+        try:
+            response = requests.get(url_base, timeout=10)
+            if response.status_code != 200:
+                print(f"❌ Site non accessible (status code: {response.status_code})")
+                return []
+            print("✅ Site accessible")
+        except Exception as e:
+            print(f"❌ Erreur lors de la vérification du site : {str(e)}")
+            return []
 
-        produits_scrapes = scrap_toutes_pages(driver, nb_scrap_total, url_base)
-        print(f"🎉 FIN : {len(produits_scrapes)} produits enrichis et insérés en DB.")
-        return produits_scrapes
+        print("⚙️ Initialisation du driver Chrome...")
+        try:
+            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+            print("✅ Driver Chrome initialisé")
+        except Exception as e:
+            print(f"❌ Erreur lors de l'initialisation du driver Chrome : {str(e)}")
+            print("Stack trace complet :")
+            import traceback
+            traceback.print_exc()
+            return []
+
+        print("🌐 Chargement de la page...")
+        try:
+            driver.get(url_base)
+            print("✅ Page chargée")
+        except Exception as e:
+            print(f"❌ Erreur lors du chargement de la page : {str(e)}")
+            return []
+
+        print("⏳ Attente du chargement complet...")
+        time.sleep(5)  # Attente plus longue pour le chargement initial
+
+        print("🔄 Démarrage du scraping des pages...")
+        try:
+            produits_scrapes = scrap_toutes_pages(driver, nb_scrap_total, url_base)
+            print(f"🎉 FIN : {len(produits_scrapes)} produits enrichis et insérés en DB.")
+            return produits_scrapes
+        except Exception as e:
+            print(f"❌ Erreur lors du scraping des pages : {str(e)}")
+            print("Stack trace complet :")
+            import traceback
+            traceback.print_exc()
+            return []
+
+    except Exception as e:
+        print(f"❌ Erreur générale lors du scraping : {str(e)}")
+        print("Stack trace complet :")
+        import traceback
+        traceback.print_exc()
+        return []
 
     finally:
-        driver.quit()
+        if driver:
+            try:
+                print("🛑 Fermeture du driver Chrome...")
+                driver.quit()
+                print("✅ Driver Chrome fermé")
+            except Exception as e:
+                print(f"⚠️ Erreur lors de la fermeture du driver : {str(e)}")
 
 
 
 if __name__ == "__main__":
-    url = sys.argv[1]
-    nb_scrap = int(sys.argv[2])
-    produits_scrapes = lancer_scraping(url, nb_scrap)
-    print(f"🎉 Scraping terminé. Total : {len(produits_scrapes)} produit(s) enrichi(s).")
+    print("🚀 Démarrage du script de scraping")
+    try:
+        url = sys.argv[1]
+        nb_scrap = int(sys.argv[2])
+        print(f"📝 Arguments reçus : URL={url}, NB_PRODUITS={nb_scrap}")
+        produits_scrapes = lancer_scraping(url, nb_scrap)
+        print(f"🎉 Scraping terminé. Total : {len(produits_scrapes)} produit(s) enrichi(s).")
+    except Exception as e:
+        print(f"❌ Erreur lors de l'exécution du script : {str(e)}")
