@@ -1,5 +1,5 @@
 # app/routes/main.py
-from flask import Blueprint, render_template, redirect, url_for, request  # ✨ Ajout de redirect et url_for
+from flask import Blueprint, render_template, redirect, url_for, request, jsonify
 from app.models import Product, Stock, ProductKeepa, Magasin
 from datetime import datetime
 from datetime import timedelta  # ✅ Pour ajouter une heure
@@ -13,6 +13,9 @@ main_bp = Blueprint('main', __name__)
 from app import db
 depenses_total = 0  # ✅ Valeur par défaut si aucun calcul n'est fait
 
+# Import des fonctions après la création du Blueprint
+from app.utils.fetch_keepa import get_keepa_data
+from scraping.scraper import insert_or_update_product
 
 @main_bp.route('/')
 def index():

@@ -22,16 +22,16 @@ import signal
 import time
 import re
 import logging
-from app import create_app, db
-from app.models import Product
+from app import db
+from app.models import ProductKeepa
 from mysql.connector import Error
 from app.utils.db import get_db_connection
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
-from datetime import timedelta  # 🔥 Ajout nécessaire en haut du fichier
 from app.utils.fetch_keepa import get_asin_from_ean, get_keepa_data
 import requests
 import json
+from sqlalchemy.orm import Session
 
 # Import du nouveau module Keepa
 
@@ -123,6 +123,10 @@ if project_path not in sys.path:
     sys.path.insert(0, project_path)
 
 
+def get_db_connection():
+    """📝 Retourne une connexion à la base de données."""
+    return db.session
+
 def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, difference, profit):
     """📝 Insère ou met à jour un produit avec les données Keepa en DB."""
     try:
@@ -135,33 +139,40 @@ def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, difference
         # Calcul du ROI
         roi = (profit * 100 / prix_retail) if prix_retail > 0 else 0
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT id FROM products_keepa WHERE ean = %s AND url = %s", (ean, url))
-        result = cursor.fetchone()
         paris_timezone = pytz.timezone("Europe/Paris")
         updated_at = datetime.now(paris_timezone)
 
-        if result:
-            cursor.execute("""
-                UPDATE products_keepa 
-                SET nom = %s, prix_retail = %s, prix_amazon = %s, difference = %s, profit = %s, roi = %s, updated_at = %s
-                WHERE id = %s
-            """, (nom, prix_retail, prix_amazon, difference, profit, roi, updated_at, result[0]))
-        else:
-            cursor.execute("""
-                INSERT INTO products_keepa (nom, ean, prix_retail, prix_amazon, difference, profit, roi, url, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (nom, ean, prix_retail, prix_amazon, difference, profit, roi, url, updated_at))
+        # Utilisation de SQLAlchemy au lieu de SQL brut
+        existing_product = ProductKeepa.query.filter_by(ean=ean, url=url).first()
 
-        conn.commit()
-        cursor.close()
-        conn.close()
+        if existing_product:
+            existing_product.nom = nom
+            existing_product.prix_retail = prix_retail
+            existing_product.prix_amazon = prix_amazon
+            existing_product.difference = difference
+            existing_product.profit = profit
+            existing_product.roi = roi
+            existing_product.updated_at = updated_at
+        else:
+            new_product = ProductKeepa(
+                nom=nom,
+                ean=ean,
+                prix_retail=prix_retail,
+                prix_amazon=prix_amazon,
+                difference=difference,
+                profit=profit,
+                roi=roi,
+                url=url,
+                updated_at=updated_at
+            )
+            db.session.add(new_product)
+
+        db.session.commit()
         return True
 
     except Exception as e:
         print(f"Erreur lors de l'insertion/mise à jour du produit : {str(e)}")
+        db.session.rollback()
         return False
 
 
