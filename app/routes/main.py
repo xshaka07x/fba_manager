@@ -163,18 +163,17 @@ def add_stock():
         quantite = int(request.form.get('quantite'))
         facture_url = request.form.get('facture_url') or None
         
-        # Utilisation de la fonction de scraping pour récupérer les données
-        from scraping.scraper import insert_or_update_product
-        from app.utils.fetch_keepa import get_keepa_data
-        
         # Récupération des données Keepa
         keepa_data = get_keepa_data(ean, prix_achat)
         if not keepa_data:
             return "Erreur : Impossible de récupérer les données Keepa.", 500
             
         prix_amazon = keepa_data.get('prix_amazon', 0)
-        difference = prix_amazon - prix_achat if prix_amazon else 0
-        profit = difference * 0.7 if difference > 0 else 0  # 70% de marge
+        difference = keepa_data.get('difference', 0)
+        profit = keepa_data.get('profit', 0)
+        
+        # Calcul du ROI comme dans scraper.py
+        roi = (profit * 100 / prix_achat) if prix_achat > 0 else 0
         
         # Insertion dans products_keepa
         success = insert_or_update_product(
@@ -188,14 +187,8 @@ def add_stock():
         )
         
         if not success:
-            return "Erreur : Impossible de récupérer les données du produit.", 500
+            return "Erreur : Impossible de mettre à jour les données du produit.", 500
             
-        # Récupération des données mises à jour
-        product = db.session.query(ProductKeepa).filter_by(ean=ean).first()
-        
-        if not product:
-            return "Erreur : Produit non trouvé après scraping.", 500
-
         # Création de l'entrée dans le stock
         new_stock = Stock(
             group_id=str(uuid.uuid4()),  # Génération d'un nouveau UUID
@@ -203,10 +196,9 @@ def add_stock():
             nom=nom,
             magasin=magasin,
             prix_achat=prix_achat,
-            prix_amazon=product.prix_amazon,
-            roi=product.roi,
-            profit=product.profit,
-            sales_estimation=product.sales_estimation,
+            prix_amazon=prix_amazon,
+            roi=roi,
+            profit=profit,
             date_achat=datetime.now(),
             quantite=quantite,
             facture_url=facture_url,
@@ -266,7 +258,6 @@ def update_stock_quantity():
                 prix_amazon=stock_item.prix_amazon,
                 roi=stock_item.roi,
                 profit=stock_item.profit,
-                sales_estimation=stock_item.sales_estimation,
                 date_achat=stock_item.date_achat,
                 quantite=quantity,
                 facture_url=stock_item.facture_url,

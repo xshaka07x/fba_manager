@@ -42,7 +42,6 @@ class Stock(db.Model):
     prix_amazon = db.Column(db.Float, nullable=True)
     roi = db.Column(db.Float, nullable=True)
     profit = db.Column(db.Float, nullable=True)
-    sales_estimation = db.Column(db.Integer, nullable=True)
     date_achat = db.Column(db.DateTime, nullable=False)
     quantite = db.Column(db.Integer, nullable=False)
     facture_url = db.Column(db.String(255), nullable=True)
