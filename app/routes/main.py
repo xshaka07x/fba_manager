@@ -175,20 +175,6 @@ def add_stock():
         # Calcul du ROI comme dans scraper.py
         roi = (profit * 100 / prix_achat) if prix_achat > 0 else 0
         
-        # Insertion dans products_keepa
-        success = insert_or_update_product(
-            nom=nom,
-            ean=ean,
-            prix_retail=prix_achat,
-            url="",  # URL vide car pas pertinent ici
-            prix_amazon=prix_amazon,
-            difference=difference,
-            profit=profit
-        )
-        
-        if not success:
-            return "Erreur : Impossible de mettre à jour les données du produit.", 500
-            
         # Création de l'entrée dans le stock
         new_stock = Stock(
             group_id=str(uuid.uuid4()),  # Génération d'un nouveau UUID
@@ -239,9 +225,17 @@ def update_stock_quantity():
             return jsonify({'success': True})
         
         elif quantity_type == 'partial':
-            quantity = int(request.form.get('quantity', 0))
-            if quantity <= 0 or quantity > stock_item.quantite:
-                return jsonify({'success': False, 'message': 'Quantité invalide'}), 400
+            try:
+                quantity = int(request.form.get('quantity', 0))
+            except ValueError:
+                return jsonify({'success': False, 'message': 'La quantité doit être un nombre entier'}), 400
+
+            # Validation stricte de la quantité
+            if quantity < 1:
+                return jsonify({'success': False, 'message': 'La quantité doit être au minimum 1'}), 400
+            if quantity >= stock_item.quantite:
+                return jsonify({'success': False, 
+                              'message': f'La quantité doit être inférieure à la quantité en stock ({stock_item.quantite})'}), 400
 
             # Si c'est le premier split, générer un UUID pour le groupe
             if not stock_item.group_id:
