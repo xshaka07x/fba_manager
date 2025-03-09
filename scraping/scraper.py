@@ -13,42 +13,33 @@ from selenium.common.exceptions import (
 from webdriver_manager.chrome import ChromeDriverManager
 import sys
 import os
+import signal
+import time
+import re
+import logging
+import pytz
+import requests
+import json
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
+
 sys.stderr = open(os.devnull, "w")  # Cache les erreurs dans un "trou noir"
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if base_dir not in sys.path:
     sys.path.insert(0, base_dir)
 
-import signal
-import time
-import re
-import logging
 from app import db
 from app.models import ProductKeepa
-from mysql.connector import Error
-from app.utils.db import get_db_connection
-from datetime import datetime, timedelta
-import pytz
 from app.utils.fetch_keepa import get_asin_from_ean, get_keepa_data
-import requests
-import json
-from sqlalchemy.orm import Session
 
 # Import du nouveau module Keepa
-
 KEEPA_API_KEY = os.getenv("KEEPA_API_KEY", "ftclrhsi754hf3tblbljldbonk7n4cuthggk8gnt88c4k2sjkmre8th8cjf65jnc")
 KEEPA_URL = "https://api.keepa.com/product"
 
 if not KEEPA_API_KEY:
     raise ValueError("❌ ERREUR: La clé Keepa API n'est pas définie. Configure 'KEEPA_API_KEY' dans vos variables d'environnement.")
 
-
-# 🔗 Initialisation Flask
-app = create_app()
-with app.app_context():
-    db.create_all()
-
 # En haut du fichier, après les imports
-import logging
 logging.getLogger('selenium').setLevel(logging.CRITICAL)
 os.environ['WDM_LOG_LEVEL'] = '0'
 
@@ -358,13 +349,8 @@ def scrap_toutes_pages(url_base, nb_produits):
 def ean_existe_deja(ean):
     """🔍 Vérifie si un produit avec cet EAN existe déjà dans la base de données."""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM products_keepa WHERE ean = %s", (ean,))
-        result = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        return result[0] > 0  # Renvoie True si l'EAN existe déjà
+        count = db.session.query(ProductKeepa).filter_by(ean=ean).count()
+        return count > 0
     except Exception as e:
         print(f"⚠️ Erreur lors de la vérification de l'EAN {ean} : {e}")
         return False
