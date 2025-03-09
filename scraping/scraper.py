@@ -393,6 +393,7 @@ def scrap_produits_sur_page(driver, nb_max_produits, urls_deja_traitees):
     """🔍 Scrape les produits sur la page courante."""
     produits = []
     eans_page_courante = []
+    produits_valides = 0  # Compteur pour les produits valides
     
     print("🔍 Recherche des produits sur la page...")
     try:
@@ -411,8 +412,12 @@ def scrap_produits_sur_page(driver, nb_max_produits, urls_deja_traitees):
             print("⚠️ Aucun produit trouvé sur la page")
             return [], [], urls_deja_traitees
 
-        # Traiter tous les produits de la page jusqu'à atteindre le nombre total souhaité
+        # Traiter les produits jusqu'à atteindre le nombre souhaité
         for element in elements_produits:
+            if produits_valides >= nb_max_produits:
+                print(f"✅ Nombre maximum de produits valides atteint ({nb_max_produits})")
+                break
+
             try:
                 # Récupérer le lien du produit
                 lien_produit = element.find_element(By.CSS_SELECTOR, 'a.format-img-zento').get_attribute('href')
@@ -558,6 +563,23 @@ def scrap_produits_sur_page(driver, nb_max_produits, urls_deja_traitees):
                     print(f"🎯 Nombre total d'entrées atteint ({nb_max_produits})")
                     break
                 
+                # Après l'insertion réussie d'un produit :
+                if insert_or_update_product(
+                    nom=nom_produit,
+                    ean=ean,
+                    prix_retail=prix_retail,
+                    url=lien_produit,
+                    prix_amazon=prix_amazon,
+                    difference=difference,
+                    profit=profit
+                ):
+                    produits_valides += 1
+                    print(f"✅ Produit valide ajouté ({produits_valides}/{nb_max_produits})")
+                    
+                    if produits_valides >= nb_max_produits:
+                        print(f"🎯 Objectif atteint : {nb_max_produits} produits valides")
+                        return produits, eans_page_courante, urls_deja_traitees
+
             except Exception as e:
                 print(f"❌ Erreur lors du traitement du produit : {str(e)}")
                 if len(driver.window_handles) > 1:
@@ -565,7 +587,7 @@ def scrap_produits_sur_page(driver, nb_max_produits, urls_deja_traitees):
                     driver.switch_to.window(driver.window_handles[0])
                 continue
         
-        print(f"\n📊 Résumé de la page : {len(produits)} produits traités avec succès")
+        print(f"\n📊 Résumé de la page : {produits_valides} produits valides sur {len(produits)} traités")
         return produits, eans_page_courante, urls_deja_traitees
         
     except Exception as e:

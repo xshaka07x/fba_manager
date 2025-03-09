@@ -1,39 +1,51 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Produits Scrapés (Keepa)</h2>
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Nom</th>
-                    <th>EAN</th>
-                    <th>Prix Retail</th>
-                    <th>Prix Amazon</th>
-                    <th>Différence</th>
-                    <th>Profit Estimé</th>
-                    <th>Dernière MAJ</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for product in products %}
-                <tr>
-                    <td>{{ product.nom }}</td>
-                    <td>{{ product.ean }}</td>
-                    <td>{{ "%.2f"|format(product.prix_retail) }}€</td>
-                    <td>{{ "%.2f"|format(product.prix_amazon) }}€</td>
-                    <td>{{ "%.2f"|format(product.difference) }}€</td>
-                    <td>{{ "%.2f"|format(product.profit) }}€</td>
-                    <td>{{ product.updated_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                    <td>
-                        <a href="{{ product.url }}" target="_blank" class="btn btn-sm btn-primary">Voir</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="container-fluid px-4">
+    <div class="card bg-dark text-white mb-4">
+        <div class="card-header">
+            <h2 class="card-title">📊 Produits Scrapés (Keepa)</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover data-table">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>EAN</th>
+                            <th>Prix Retail</th>
+                            <th>Prix Amazon</th>
+                            <th>Différence</th>
+                            <th>Profit Estimé</th>
+                            <th>Dernière MAJ</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>{{ product.nom }}</td>
+                            <td>{{ product.ean }}</td>
+                            <td class="text-success">{{ "%.2f"|format(product.prix_retail) }}€</td>
+                            <td class="text-info">{{ "%.2f"|format(product.prix_amazon) }}€</td>
+                            <td class="{% if product.difference > 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ "%.2f"|format(product.difference) }}€
+                            </td>
+                            <td class="{% if product.profit > 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ "%.2f"|format(product.profit) }}€
+                            </td>
+                            <td>{{ product.updated_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td>
+                                <a href="{{ product.url }}" target="_blank" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %} 
