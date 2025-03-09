@@ -34,19 +34,25 @@ class Stock(db.Model):
     __tablename__ = "stock"
 
     id = db.Column(db.Integer, primary_key=True)
-    ean = db.Column(db.String(13), nullable=False, unique=True)
+    group_id = db.Column(db.String(36), nullable=False)  # UUID pour grouper les parties d'un même produit
+    parent_id = db.Column(db.Integer, db.ForeignKey('stock.id'), nullable=True)  # Pour tracer la relation parent-enfant
+    ean = db.Column(db.String(13), nullable=False)
     magasin = db.Column(db.String(100), nullable=False)
     prix_achat = db.Column(db.Float, nullable=False)
-    prix_amazon = db.Column(db.Float, nullable=True)  # ✅ Nouvelle colonne
-    roi = db.Column(db.Float, nullable=True)  # ✅ Nouvelle colonne
-    profit = db.Column(db.Float, nullable=True)  # ✅ Nouvelle colonne
-    sales_estimation = db.Column(db.Integer, nullable=True)  # ✅ Nouvelle colonne
+    prix_amazon = db.Column(db.Float, nullable=True)
+    roi = db.Column(db.Float, nullable=True)
+    profit = db.Column(db.Float, nullable=True)
+    sales_estimation = db.Column(db.Integer, nullable=True)
     date_achat = db.Column(db.DateTime, nullable=False)
     quantite = db.Column(db.Integer, nullable=False)
     facture_url = db.Column(db.String(255), nullable=True)
     statut = db.Column(db.String(50), nullable=False, default="Acheté/en stock")
-    nom = db.Column(db.String(255), nullable=False)  # ⚠️ Peut être récupéré si dispo sur SellerAmp
+    nom = db.Column(db.String(255), nullable=False)
     seuil_alerte = db.Column(db.Integer, default=5)
+
+    # Relation pour les entrées enfants
+    children = db.relationship('Stock', backref=db.backref('parent', remote_side=[id]),
+                             cascade='all, delete-orphan')
 
     def __repr__(self):
         return f"<Stock {self.nom} - {self.ean} - {self.magasin}>"

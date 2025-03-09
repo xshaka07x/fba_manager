@@ -86,6 +86,7 @@
                             <small class="text-muted">Stock total disponible : <span id="totalQuantity"></span></small>
                         </div>
                         <button type="submit" class="btn btn-primary">Confirmer</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     </form>
                 </div>
             </div>
@@ -106,16 +107,27 @@
         });
 
         // Intercepte les changements de statut
-        document.querySelectorAll('select[name="statut"]').forEach(select => {
+        document.querySelectorAll('.status-select').forEach(select => {
             select.addEventListener('change', function(e) {
                 e.preventDefault();
-                const stockId = this.closest('tr').dataset.stockId;
+                const stockId = this.dataset.stockId;
+                const newStatus = this.value;
+                const originalValue = this.dataset.originalValue;
                 const totalQty = this.closest('tr').dataset.quantity;
+                
+                // Stockage des valeurs pour la modale
                 document.getElementById('stockId').value = stockId;
-                document.getElementById('newStatus').value = this.value;
+                document.getElementById('newStatus').value = newStatus;
                 document.getElementById('totalQuantity').textContent = totalQty;
                 document.getElementById('quantity').max = totalQty;
+                
+                // Afficher la modale
                 quantityModal.show();
+                
+                // Si la modale est fermée sans validation, remettre l'ancien statut
+                document.querySelector('[data-bs-dismiss="modal"]').addEventListener('click', () => {
+                    this.value = originalValue;
+                });
             });
         });
 
@@ -134,7 +146,18 @@
                     location.reload();
                 } else {
                     alert('Erreur lors de la mise à jour : ' + data.message);
+                    // Remettre l'ancien statut en cas d'erreur
+                    const select = document.querySelector(`.status-select[data-stock-id="${formData.get('stockId')}"]`);
+                    select.value = select.dataset.originalValue;
                 }
+                quantityModal.hide();
+            })
+            .catch(error => {
+                alert('Erreur lors de la mise à jour');
+                // Remettre l'ancien statut en cas d'erreur
+                const select = document.querySelector(`.status-select[data-stock-id="${formData.get('stockId')}"]`);
+                select.value = select.dataset.originalValue;
+                quantityModal.hide();
             });
         });
     });
@@ -160,9 +183,15 @@
         </thead>
         <tbody>
             {% for item in stock_items %}
-            <tr data-stock-id="{{ item.id }}" data-quantity="{{ item.quantite }}">
+            <tr data-stock-id="{{ item.id }}" data-quantity="{{ item.quantite }}" 
+                {% if item.parent_id %}class="child-row" style="background-color: rgba(0,0,0,0.2);"{% endif %}>
                 <th scope="row">{{ loop.index }}</th>
-                <td class="nom-col" title="{{ item.nom }}">{{ item.nom }}</td>
+                <td class="nom-col" title="{{ item.nom }}">
+                    {% if item.parent_id %}
+                        <i class="fas fa-level-up-alt fa-rotate-90 me-2"></i>
+                    {% endif %}
+                    {{ item.nom }}
+                </td>
                 <td>{{ item.ean }}</td>
                 <td>{{ item.magasin }}</td>
                 <td>{{ item.prix_achat }}€</td>
@@ -176,18 +205,18 @@
                     {% endif %}
                 </td>
                 <td>
-                    <form method="post" action="/update_stock/{{ item.id }}">
-                        <div class="{% if item.statut == 'Acheté/en stock' %} bg-success text-white 
-                                    {% elif item.statut == 'Envoyé chez Amazon' %} bg-warning text-dark 
-                                    {% elif item.statut == 'Vendu' %} bg-danger text-white 
-                                    {% endif %} p-1 rounded text-center">
-                            <select name="statut" class="form-select form-select-sm bg-transparent text-white">
-                                <option value="Acheté/en stock" {% if item.statut == 'Acheté/en stock' %}selected{% endif %}>Acheté/en stock</option>
-                                <option value="Envoyé chez Amazon" {% if item.statut == 'Envoyé chez Amazon' %}selected{% endif %}>Envoyé chez Amazon</option>
-                                <option value="Vendu" {% if item.statut == 'Vendu' %}selected{% endif %}>Vendu</option>
-                            </select>
-                        </div>
-                    </form>
+                    <div class="{% if item.statut == 'Acheté/en stock' %} bg-success text-white 
+                                {% elif item.statut == 'Envoyé chez Amazon' %} bg-warning text-dark 
+                                {% elif item.statut == 'Vendu' %} bg-danger text-white 
+                                {% endif %} p-1 rounded text-center">
+                        <select class="form-select form-select-sm bg-transparent text-white status-select" 
+                                data-original-value="{{ item.statut }}"
+                                data-stock-id="{{ item.id }}">
+                            <option value="Acheté/en stock" {% if item.statut == 'Acheté/en stock' %}selected{% endif %}>Acheté/en stock</option>
+                            <option value="Envoyé chez Amazon" {% if item.statut == 'Envoyé chez Amazon' %}selected{% endif %}>Envoyé chez Amazon</option>
+                            <option value="Vendu" {% if item.statut == 'Vendu' %}selected{% endif %}>Vendu</option>
+                        </select>
+                    </div>
                 </td>
                 
                 

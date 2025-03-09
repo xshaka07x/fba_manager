@@ -229,3 +229,61 @@ def insert_into_stock_db(ean, magasin, prix_achat, prix_amazon, roi, profit, sal
 def scrap():
     products = ProductKeepa.query.order_by(ProductKeepa.updated_at.desc()).all()
     return render_template('scrap.html', products=products)
+
+@main_bp.route('/update_stock_quantity', methods=['POST'])
+def update_stock_quantity():
+    try:
+        stock_id = request.form.get('stockId')
+        new_status = request.form.get('newStatus')
+        quantity_type = request.form.get('quantityType')
+        
+        stock_item = Stock.query.get(stock_id)
+        if not stock_item:
+            return jsonify({'success': False, 'message': 'Article non trouvé'}), 404
+
+        if quantity_type == 'all':
+            # Mise à jour du statut pour tout le stock
+            stock_item.statut = new_status
+            db.session.commit()
+            return jsonify({'success': True})
+        
+        elif quantity_type == 'partial':
+            quantity = int(request.form.get('quantity', 0))
+            if quantity <= 0 or quantity > stock_item.quantite:
+                return jsonify({'success': False, 'message': 'Quantité invalide'}), 400
+
+            # Si c'est le premier split, générer un UUID pour le groupe
+            if not stock_item.group_id:
+                import uuid
+                stock_item.group_id = str(uuid.uuid4())
+
+            # Créer une nouvelle entrée pour la quantité partielle
+            new_stock = Stock(
+                group_id=stock_item.group_id,  # Même groupe que le parent
+                parent_id=stock_item.id,  # Référence au parent
+                ean=stock_item.ean,
+                magasin=stock_item.magasin,
+                prix_achat=stock_item.prix_achat,
+                prix_amazon=stock_item.prix_amazon,
+                roi=stock_item.roi,
+                profit=stock_item.profit,
+                sales_estimation=stock_item.sales_estimation,
+                date_achat=stock_item.date_achat,
+                quantite=quantity,
+                facture_url=stock_item.facture_url,
+                statut=new_status,
+                nom=stock_item.nom,
+                seuil_alerte=stock_item.seuil_alerte
+            )
+            
+            # Mettre à jour la quantité de l'article original
+            stock_item.quantite -= quantity
+            
+            db.session.add(new_stock)
+            db.session.commit()
+            
+            return jsonify({'success': True})
+            
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
