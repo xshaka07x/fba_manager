@@ -32,8 +32,13 @@ def show_products():
 def scan_barcode():
     try:
         ean = request.json.get('ean')
+        prix_retail = request.json.get('prix_retail')
+        
         if not ean:
             return jsonify({'success': False, 'message': 'Code-barres non fourni'}), 400
+            
+        if not prix_retail:
+            return jsonify({'success': False, 'message': 'Prix retail non fourni'}), 400
 
         # Vérifier si le produit existe déjà dans la table scan
         existing_product = Scan.query.filter_by(ean=ean).first()
@@ -41,7 +46,7 @@ def scan_barcode():
             return jsonify({'success': False, 'message': 'Ce produit existe déjà dans la base de données'}), 400
 
         # Récupérer les données Keepa
-        keepa_data = get_keepa_data(ean)
+        keepa_data = get_keepa_data(ean, prix_retail)
         if not keepa_data:
             return jsonify({'success': False, 'message': 'Impossible de récupérer les données Keepa'}), 400
 
