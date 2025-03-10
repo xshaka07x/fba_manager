@@ -118,7 +118,7 @@ def get_db_connection():
     """📝 Retourne une connexion à la base de données."""
     return db.session
 
-def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, difference, profit):
+def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, difference, profit, sales_estimation):
     """📝 Insère ou met à jour un produit avec les données Keepa en DB."""
     try:
         if not ean or ean == "Non disponible":
@@ -129,6 +129,11 @@ def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, difference
 
         # Calcul du ROI
         roi = (profit * 100 / prix_retail) if prix_retail > 0 else 0
+
+        # Vérification du ROI maximal
+        if roi > 800:
+            print(f"⚠️ Produit ignoré (ROI anormalement élevé : {roi}%) | {nom}")
+            return False
 
         paris_timezone = pytz.timezone("Europe/Paris")
         updated_at = datetime.now(paris_timezone)
@@ -143,6 +148,7 @@ def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, difference
             existing_product.difference = difference
             existing_product.profit = profit
             existing_product.roi = roi
+            existing_product.sales_estimation = sales_estimation
             existing_product.updated_at = updated_at
         else:
             new_product = ProductKeepa(
@@ -154,6 +160,7 @@ def insert_or_update_product(nom, ean, prix_retail, url, prix_amazon, difference
                 profit=profit,
                 roi=roi,
                 url=url,
+                sales_estimation=sales_estimation,
                 updated_at=updated_at
             )
             db.session.add(new_product)
@@ -286,7 +293,8 @@ def enregistrer_produit(produit):
             url=produit['URL'],
             prix_amazon=0,  # Valeur par défaut
             difference=0,  # Valeur par défaut
-            profit=0  # Valeur par défaut
+            profit=0,  # Valeur par défaut
+            sales_estimation=0  # Valeur par défaut
         )
         print(f"💾 [SCRAPER] Produit traité pour la DB : {produit['Nom']} | EAN: {produit['EAN']}")
     else:
@@ -412,6 +420,22 @@ def scrap_produits_sur_page(driver, nb_max_produits, urls_deja_traitees):
                         prix_amazon = keepa_data.get('prix_amazon')
                         difference = keepa_data.get('difference')
                         profit = keepa_data.get('profit')
+                        sales_estimation = keepa_data.get('sales_estimation', 0)
+                        is_pl = keepa_data.get('is_pl', False)
+                        
+                        # Ignorer les Private Labels
+                        if is_pl:
+                            print(f"❌ Produit ignoré car Private Label: {nom_produit}")
+                            driver.close()
+                            driver.switch_to.window(driver.window_handles[0])
+                            continue
+
+                        # Ignorer les produits avec peu de ventes
+                        if sales_estimation <= 1:
+                            print(f"❌ Produit ignoré car peu de ventes ({sales_estimation}): {nom_produit}")
+                            driver.close()
+                            driver.switch_to.window(driver.window_handles[0])
+                            continue
                         
                         if all([prix_amazon, difference, profit]):
                             produit = {
@@ -421,7 +445,8 @@ def scrap_produits_sur_page(driver, nb_max_produits, urls_deja_traitees):
                                 'prix_amazon': prix_amazon,
                                 'difference': difference,
                                 'profit': profit,
-                                'url': lien_produit
+                                'url': lien_produit,
+                                'sales_estimation': sales_estimation
                             }
                             
                             if insert_or_update_product(
@@ -431,9 +456,10 @@ def scrap_produits_sur_page(driver, nb_max_produits, urls_deja_traitees):
                                 url=lien_produit,
                                 prix_amazon=prix_amazon,
                                 difference=difference,
-                                profit=profit
+                                profit=profit,
+                                sales_estimation=sales_estimation
                             ):
-                                print("✅ Produit ajouté.")
+                                print(f"✅ Produit ajouté - Ventes estimées: {sales_estimation}")
                                 produits.append(produit)
                                 eans_page_courante.append(ean)
                                 urls_deja_traitees.add(lien_produit)
@@ -494,8 +520,12 @@ def lancer_scraping(url, nb_scrap_total):
 
 if __name__ == "__main__":
     try:
-        url = sys.argv[1]
-        nb_scrap = int(sys.argv[2])
-        lancer_scraping(url, nb_scrap)
+        from app import create_app
+        app = create_app()
+        
+        with app.app_context():
+            url = sys.argv[1]
+            nb_scrap = int(sys.argv[2])
+            lancer_scraping(url, nb_scrap)
     except Exception as e:
         print(f"❌ Erreur lors de l'exécution du script : {str(e)}")

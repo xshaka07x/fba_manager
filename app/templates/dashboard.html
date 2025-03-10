@@ -111,8 +111,9 @@
                                 <th>Prix Amazon</th>
                                 <th>ROI</th>
                                 <th>Profit</th>
+                                <th>Ventes/30j</th>
                                 <th>Lien</th>
-                                <th>Date</th>
+                                <th>MAJ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -132,8 +133,9 @@
                                 <td>{{ item.prix_amazon }}€</td>
                                 <td>{{ "%.2f"|format(item.roi) }}%</td>
                                 <td>{{ "%.2f"|format(item.profit) }}€</td>
+                                <td>{{ item.sales_estimation }}</td>
                                 <td><a href="{{ item.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                                <td>{{ item.updated_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ item.updated_at.strftime('%d/%m') }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>                                       

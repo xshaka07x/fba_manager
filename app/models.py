@@ -68,6 +68,7 @@ class ProductKeepa(db.Model):
     profit = db.Column(db.Float, nullable=True)
     roi = db.Column(db.Float, nullable=True)
     url = db.Column(db.String(255), nullable=False)
+    sales_estimation = db.Column(db.Integer, nullable=True, default=0)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):

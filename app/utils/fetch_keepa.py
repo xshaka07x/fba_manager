@@ -100,6 +100,80 @@ def get_keepa_data(ean, prix_retail):
             difference = current_amazon_price - prix_retail
             profit = difference * 0.7
             
+            # Estimation des ventes basée sur l'historique du rang des ventes sur 30 jours
+            sales_estimation = 0
+            if 'stats' in product:
+                # Récupération de l'historique du rang des ventes
+                sales_rank_history = product.get('stats', {}).get('salesRankDrops30', None)
+                if sales_rank_history is not None:
+                    # Le nombre de drops dans le rang = nombre approximatif de ventes
+                    sales_estimation = sales_rank_history[0] if isinstance(sales_rank_history, list) else sales_rank_history
+                    print(f"Ventes estimées pour {ean}: {sales_estimation} (basé sur les variations de rang sur 30 jours)")
+
+            # Vérification améliorée pour Private Label
+            is_pl = False
+            manufacturer = product.get('manufacturer', '').lower()
+            brand = product.get('brand', '').lower()
+            title = product.get('title', '').lower()
+            
+            # Marques connues qui ne sont PAS des Private Labels
+            known_brands = {
+                'samsung', 'apple', 'sony', 'lg', 'philips', 'nintendo', 'microsoft', 'hp', 
+                'dell', 'asus', 'acer', 'lenovo', 'logitech', 'canon', 'nikon', 'adidas', 
+                'nike', 'puma', 'tefal', 'moulinex', 'seb', 'lego', 'playmobil', 'mattel',
+                'hasbro', 'bandai', 'vtech', 'fisher-price', 'chicco', 'pampers', 'huggies'
+            }
+
+            # Mots-clés indiquant un PL
+            pl_keywords = [
+                'generic', 'générique', 'marque générique', 'sans marque', 'unbranded',
+                'vendeur pro', 'marque distributeur', 'white label', 'own brand',
+                'private label', 'pl ', 'mdp', 'mdd'
+            ]
+
+            # Indicateurs de marque distributeur
+            store_brands = [
+                'amazon basics', 'amazonbasics', 'carrefour', 'auchan', 'leclerc', 'lidl', 
+                'casino', 'monoprix', 'intermarché', 'u ', 'stokomani'
+            ]
+
+            def is_known_brand():
+                return any(brand.startswith(kb) or manufacturer.startswith(kb) for kb in known_brands)
+
+            # 1. Vérification des marques connues (non PL)
+            if is_known_brand():
+                is_pl = False
+                print(f"Marque connue détectée pour {ean}: {brand or manufacturer}")
+            
+            # 2. Vérification des mots-clés PL
+            elif any(keyword in manufacturer for keyword in pl_keywords) or \
+                 any(keyword in brand for keyword in pl_keywords) or \
+                 any(keyword in title.lower() for keyword in pl_keywords):
+                is_pl = True
+                print(f"Mots-clés PL détectés pour {ean}")
+
+            # 3. Vérification des marques distributeur
+            elif any(sb in brand.lower() or sb in manufacturer.lower() for sb in store_brands):
+                is_pl = True
+                print(f"Marque distributeur détectée pour {ean}")
+
+            # 4. Vérification des cas particuliers
+            elif manufacturer == '' or brand == '':
+                is_pl = True
+                print(f"Marque/Fabricant manquant pour {ean}")
+            elif manufacturer == brand and manufacturer != '':
+                is_pl = True
+                print(f"Fabricant = Marque pour {ean}")
+            elif manufacturer.lower() in title.lower() or brand.lower() in title.lower():
+                is_pl = True
+                print(f"Marque dans le titre pour {ean}")
+
+            # Debug info
+            print(f"Analyse PL pour {ean}:")
+            print(f"- Marque: {brand}")
+            print(f"- Fabricant: {manufacturer}")
+            print(f"- Résultat: {'PL' if is_pl else 'Non PL'}")
+
             return {
                 'status': 'OK',
                 'prix_amazon': current_amazon_price,
@@ -107,7 +181,9 @@ def get_keepa_data(ean, prix_retail):
                 'profit': profit,
                 'asin': product.get('asin'),
                 'nom': product.get('title', 'Nom non trouvé'),
-                'url': f"https://www.amazon.fr/dp/{product.get('asin')}"
+                'url': f"https://www.amazon.fr/dp/{product.get('asin')}",
+                'sales_estimation': sales_estimation,
+                'is_pl': is_pl
             }
         else:
             print(f"Aucun prix valide trouvé sur Keepa pour EAN {ean}")
