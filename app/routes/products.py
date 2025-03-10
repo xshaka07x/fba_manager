@@ -1,6 +1,6 @@
 # app/routes/products.py
 from flask import Blueprint, render_template, jsonify, request
-from app.models import Product
+from app.models import Product, ProductKeepa, Scan
 from app import db
 import json
 import os
@@ -15,14 +15,16 @@ paris_tz = pytz.timezone('Europe/Paris')  # ✅ Fuseau horaire Paris
 
 @products_bp.route('/')
 def show_products():
-    products = Product.query.order_by(Product.updated_at.desc()).all()
+    produits_keepa = ProductKeepa.query.order_by(ProductKeepa.updated_at.desc()).all()
+    produits_scan = Scan.query.order_by(Scan.updated_at.desc()).all()
 
     # 🛑 Debug pour voir ce qu'il y a en BDD
-    print(f"🚨 DEBUG: {len(products)} produits trouvés")
-    for product in products:
-        print(f"🛒 Produit: {product.nom}, EAN: {product.ean}, Prix Retail: {product.prix_retail}")
+    print(f"🚨 DEBUG: {len(produits_keepa)} produits Keepa trouvés")
+    print(f"🚨 DEBUG: {len(produits_scan)} produits Scan trouvés")
 
-    return render_template('products.html', produits=products)
+    return render_template('products.html', 
+                         produits_keepa=produits_keepa,
+                         produits_scan=produits_scan)
 
 
 @products_bp.route('/update_price/<int:product_id>', methods=['POST'])
@@ -136,6 +138,6 @@ def import_json():
             return jsonify({'message': f'✅ {inserted_count} produit(s) importé(s) avec succès !'}), 200
 
         except Exception as e:
-            return jsonify({'error': f'🚨 Erreur lors de l’importation : {str(e)}'}), 500
+            return jsonify({'error': f'🚨 Erreur lors de l'importation : {str(e)}'}), 500
     else:
         return jsonify({'error': '❌ Format de fichier non pris en charge'}), 400
