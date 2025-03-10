@@ -244,24 +244,44 @@ function renderTasks() {
 // Configuration Google OAuth2
 function initGoogleAuth() {
     console.log('Initializing Google Auth...');
+    
+    // Afficher le bouton de connexion par défaut
+    document.getElementById('driveFiles').innerHTML = `
+        <div class="text-center">
+            <p class="mb-3">Connectez-vous pour accéder à vos fichiers Google Drive</p>
+            <button onclick="handleAuthClick()" class="btn btn-primary btn-lg">
+                <i class="fab fa-google me-2"></i> Se connecter avec Google Drive
+            </button>
+        </div>
+    `;
+
     const client = google.accounts.oauth2.initTokenClient({
         client_id: '578826390064-f8u5r0jjh6ldru9o4ngrnttr0nchmha4.apps.googleusercontent.com',
         scope: 'https://www.googleapis.com/auth/drive.readonly',
-        callback: (response) => {
-            if (response.access_token) {
+        callback: (tokenResponse) => {
+            if (tokenResponse && tokenResponse.access_token) {
                 console.log('Token received, loading Drive API...');
                 gapi.load('client', async () => {
-                    await gapi.client.init({
-                        apiKey: 'AIzaSyDypf6yeu64eaK5YSlOiYI3udg0nv-3nQA',
-                        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-                    });
-                    gapi.client.setToken({
-                        access_token: response.access_token
-                    });
-                    loadDriveFiles();
+                    try {
+                        await gapi.client.init({
+                            apiKey: 'AIzaSyDypf6yeu64eaK5YSlOiYI3udg0nv-3nQA',
+                            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+                        });
+                        gapi.client.setToken({
+                            access_token: tokenResponse.access_token
+                        });
+                        loadDriveFiles();
+                    } catch (error) {
+                        console.error('Error initializing GAPI client:', error);
+                        handleError(error);
+                    }
                 });
             }
         },
+        error_callback: (error) => {
+            console.error('Error getting token:', error);
+            handleError(error);
+        }
     });
 
     window.tokenClient = client;
@@ -270,7 +290,14 @@ function initGoogleAuth() {
 function handleAuthClick() {
     console.log('Auth click handler triggered');
     if (window.tokenClient) {
-        window.tokenClient.requestAccessToken();
+        try {
+            window.tokenClient.requestAccessToken({
+                prompt: 'consent'
+            });
+        } catch (error) {
+            console.error('Error requesting token:', error);
+            handleError(error);
+        }
     } else {
         console.error('Token client not initialized');
         handleError({ error: 'Token client not initialized' });
