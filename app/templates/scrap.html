@@ -7,6 +7,12 @@
     height: 30px;
     object-fit: contain;
 }
+.nom-col {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 </style>
 
 <div class="container-fluid px-4">
@@ -33,7 +39,7 @@
                     <tbody>
                         {% for product in products %}
                         <tr>
-                            <td>{{ product.nom }}</td>
+                            <td class="nom-col" title="{{ product.nom }}">{{ product.nom }}</td>
                             <td>{{ product.ean }}</td>
                             <td class="text-success">{{ "%.2f"|format(product.prix_retail) }}€</td>
                             <td class="text-info">{{ "%.2f"|format(product.prix_amazon) }}€</td>

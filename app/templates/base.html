@@ -2,355 +2,96 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FBA Manager{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+    
+    <!-- jQuery first, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- DataTables JS -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom CSS -->
     <style>
-        /* Style commun pour le menu */
-        #menu-top {
-            background: #343a40;
-            display: flex;
-            justify-content: space-around;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+        body {
+            background-color: #f8f9fa;
         }
-
-        #menu-top a {
+        .navbar {
+            background-color: #343a40;
+        }
+        .sidebar {
+            background-color: #343a40;
             color: white;
-            text-decoration: none;
-            transition: all 0.3s ease;
+            min-height: 100vh;
         }
-
-        #menu-top a:hover, #menu-top a.active {
-            color: #007bff;
+        .nav-link {
+            color: white;
         }
-
-        /* Style pour le menu mobile */
+        .nav-link:hover {
+            color: #17a2b8;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
         @media (max-width: 768px) {
-            #menu-top {
-                padding: 8px;
-                background: rgba(52, 58, 64, 0.98);
-                backdrop-filter: blur(10px);
-                width: 100%;
-                margin: 0;
+            .main-content {
+                margin-left: 0;
+            }
+            .mobile-menu {
                 position: fixed;
+                bottom: 0;
+                left: 0;
                 right: 0;
-                top: 0;
+                background-color: #343a40;
+                padding: 8px;
+                z-index: 1000;
                 display: flex;
                 justify-content: space-between;
                 box-sizing: border-box;
-                z-index: 1000;
+                width: 100%;
             }
-            
-            #menu-top a {
+            .mobile-menu a {
+                color: white;
+                text-decoration: none;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                justify-content: center;
-                font-size: 0.75rem;
-                padding: 8px 4px;
-                flex: 1;
-                text-align: center;
-                margin: 0;
-                white-space: nowrap;
+                font-size: 0.8rem;
                 min-width: 0;
+                white-space: nowrap;
             }
-            
-            #menu-top a i {
+            .mobile-menu i {
                 font-size: 1.2rem;
                 margin-bottom: 4px;
             }
-
-            #menu-top a span {
+            .mobile-menu span {
                 font-size: 0.7rem;
-                width: 100%;
-                text-align: center;
-                overflow: hidden;
-                text-overflow: ellipsis;
             }
-
-            .container {
-                margin-top: 70px;
-                padding-left: 8px;
-                padding-right: 8px;
-                max-width: 100%;
-                width: 100%;
-                margin-left: 0;
-                margin-right: 0;
-            }
-        }
-        
-        /* Style pour le menu desktop */
-        @media (min-width: 769px) {
-            #menu-top {
-                padding: 15px;
-                margin-bottom: 20px;
-            }
-            
-            #menu-top a {
-                padding: 8px 15px;
-                border-radius: 5px;
-            }
-            
-            #menu-top a:hover {
-                background: rgba(255,255,255,0.1);
-            }
-            
-            #menu-top a i {
-                margin-right: 10px;
+            .container-fluid {
+                margin-bottom: 70px;
             }
         }
     </style>
 </head>
-<body class="dark-theme">
-
-<!-- Menu de navigation -->
-<div id="menu-top">
-    <a href="{{ url_for('main.dashboard') }}" {% if request.endpoint == 'main.dashboard' %}class="active"{% endif %}>
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-    </a>
-    <a href="{{ url_for('products.show_products') }}" {% if request.endpoint == 'products.show_products' %}class="active"{% endif %}>
-        <i class="fas fa-box"></i>
-        <span>Produits</span>
-    </a>
-    <a href="{{ url_for('main.stock') }}" {% if request.endpoint == 'main.stock' %}class="active"{% endif %}>
-        <i class="fas fa-warehouse"></i>
-        <span>Stock</span>
-    </a>
-    <a href="{{ url_for('main.scrap') }}" {% if request.endpoint == 'main.scrap' %}class="active"{% endif %}>
-        <i class="fas fa-search"></i>
-        <span>Scrap</span>
-    </a>
-    <a href="{{ url_for('main.organisation') }}" {% if request.endpoint == 'main.organisation' %}class="active"{% endif %}>
-        <i class="fas fa-tasks"></i>
-        <span>Organisation</span>
-    </a>
-</div>
-
-<!-- ✅ CONTENU PRINCIPAL -->
-<div class="container mt-4">
+<body>
     {% block content %}{% endblock %}
-</div>
 
-
-<!-- ✅ Modale pour ajouter un produit -->
-<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark text-white">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addProductLabel">Ajouter un Produit</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addProductForm">
-                    <div class="mb-3">
-                        <label class="form-label">Nom du produit</label>
-                        <input type="text" name="nom" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">EAN</label>
-                        <input type="text" name="ean" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Prix d'achat (€)</label>
-                        <input type="number" step="0.01" name="prix_retail" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Prix Amazon (€)</label>
-                        <input type="number" step="0.01" name="prix_amazon" class="form-control">
-                    </div>
-                    <button type="submit" class="btn btn-success w-100">✅ Ajouter</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<!-- ✅ BOOTSTRAP SCRIPT -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Ajout de DataTables -->
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-
-<script>
-$(document).ready(function() {
-    // DataTables initialization
-    if ($('.data-table').length) {
-        $('.data-table').DataTable({
-            "paging": true,
-            "searching": true,
-            "info": true,
-            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tous"]],
-            "language": {
-                "search": "🔍 Rechercher :",
-                "lengthMenu": "Afficher _MENU_ entrées",
-                "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-                "paginate": { "first": "⏮", "last": "⏭", "next": "➡", "previous": "⬅" }
-            }
-        });
-    }
-
-    // Tooltips initialization
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-
-    // Sales chart initialization
-    const salesChartEl = document.getElementById("salesChart");
-    if (salesChartEl) {
-        let ctx = salesChartEl.getContext("2d");
-        let salesChart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin"],
-                datasets: [
-                    {
-                        label: "Achats",
-                        data: [12, 19, 3, 5, 2, 3],
-                        borderColor: "rgba(255, 99, 132, 1)",
-                        backgroundColor: "rgba(255, 99, 132, 0.2)",
-                        borderWidth: 2,
-                    },
-                    {
-                        label: "Ventes",
-                        data: [8, 15, 6, 10, 4, 5],
-                        borderColor: "rgba(54, 162, 235, 1)",
-                        backgroundColor: "rgba(54, 162, 235, 0.2)",
-                        borderWidth: 2,
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-});
-</script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                let url = this.getAttribute('data-url');
-                if (confirm("⚠️ Voulez-vous vraiment supprimer cet élément ? Cette action est irréversible.")) {
-                    window.location.href = url;
-                }
-            });
-        });
-    });
-</script>
-<script>
-    document.getElementById("toggleSidebar").addEventListener("click", function() {
-        let sidebar = document.getElementById("sidebar");
-        let content = document.querySelector(".flex-grow-1");
-        if (sidebar.style.marginLeft === "-250px") {
-            sidebar.style.marginLeft = "0";
-            content.style.marginLeft = "250px";
-        } else {
-            sidebar.style.marginLeft = "-250px";
-            content.style.marginLeft = "0";
-        }
-    });
-
-    document.getElementById("globalSearch").addEventListener("input", function() {
-        let query = this.value.trim();
-        let resultsList = document.getElementById("searchResults");
-
-        if (query.length < 2) {
-            resultsList.style.display = "none";
-            return;
-        }
-
-        fetch(`/search?q=${query}`)
-            .then(response => response.json())
-            .then(results => {
-                resultsList.innerHTML = "";
-                if (results.length > 0) {
-                    results.forEach(result => {
-                        let item = document.createElement("li");
-                        item.classList.add("list-group-item", "list-group-item-action", "bg-dark", "text-white");
-                        item.innerHTML = `<b>[${result.type}]</b> ${result.nom}`;
-                        item.onclick = () => window.location.href = result.url;
-                        resultsList.appendChild(item);
-                    });
-                    resultsList.style.display = "block";
-                } else {
-                    resultsList.style.display = "none";
-                }
-            });
-    });
-
-    document.addEventListener("click", function(e) {
-        if (!document.getElementById("globalSearch").contains(e.target)) {
-            document.getElementById("searchResults").style.display = "none";
-        }
-    });
-
-    document.getElementById("addProductForm").addEventListener("submit", function(e) {
-        e.preventDefault();
-        let formData = new FormData(this);
-        let jsonObject = {};
-        formData.forEach((value, key) => { jsonObject[key] = value; });
-
-        fetch("/products/add", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(jsonObject)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("✅ Produit ajouté avec succès !");
-                location.reload();
-            } else {
-                alert("❌ Erreur : " + data.message);
-            }
-        });
-    });
-</script>
-<script>
-    document.getElementById("toggleSidebar").addEventListener("click", function() {
-        document.getElementById("sidebar").classList.toggle("active");
-    });
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const menuToggle = document.querySelector('.menu-toggle');
-    const menuTop = document.getElementById('menu-top');
-    let isMenuOpen = false;
-
-    menuToggle.addEventListener('click', function() {
-        isMenuOpen = !isMenuOpen;
-        menuTop.classList.toggle('show');
-        menuToggle.innerHTML = isMenuOpen ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
-    });
-
-    // Fermer le menu si on clique en dehors
-    document.addEventListener('click', function(e) {
-        if (isMenuOpen && !menuTop.contains(e.target) && !menuToggle.contains(e.target)) {
-            isMenuOpen = false;
-            menuTop.classList.remove('show');
-            menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
-        }
-    });
-});
-</script>
-
+    <!-- Scripts spécifiques aux pages -->
+    {% block scripts %}{% endblock %}
 </body>
 </html>
