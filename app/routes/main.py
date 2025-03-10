@@ -99,6 +99,12 @@ def analytics():
     return render_template('analytics.html')
 
 
+@main_bp.route('/organisation')
+def organisation():
+    """📈 Route de la page d'organisation."""
+    return render_template('organisation.html')
+
+
 @main_bp.route('/stock')
 def stock():
     """📦 Route de la page de gestion du stock."""

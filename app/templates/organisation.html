@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}Organisation - FBA Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Section To-Do List et Calendrier -->
+    <div class="row mb-4">
+        <!-- To-Do List Card -->
+        <div class="col-md-6">
+            <div class="card bg-dark text-white h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">📝 To-Do List</h5>
+                    <button class="btn btn-primary btn-sm" onclick="addNewTask()">
+                        <i class="fas fa-plus"></i> Ajouter
+                    </button>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group todo-list" id="todoList">
+                        <!-- Les tâches seront ajoutées ici dynamiquement -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Google Calendar Card -->
+        <div class="col-md-6">
+            <div class="card bg-dark text-white h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">📅 Calendrier</h5>
+                </div>
+                <div class="card-body">
+                    <iframe src="https://calendar.google.com/calendar/embed?src=bento.commun%40gmail.com&ctz=Europe%2FParis&showTitle=0&showNav=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0" 
+                            style="border: 0" 
+                            width="100%" 
+                            height="400" 
+                            frameborder="0" 
+                            scrolling="no">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Factures -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-dark text-white">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">📄 Factures</h5>
+                    <div class="spinner-border spinner-border-sm text-primary d-none" id="driveLoading" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="driveFiles" class="drive-files">
+                        <!-- Les fichiers du Drive seront chargés ici -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Style pour la To-Do List -->
+<style>
+.todo-list {
+    list-style: none;
+    padding: 0;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.todo-item.completed {
+    background: rgba(40, 167, 69, 0.2);
+    text-decoration: line-through;
+}
+
+.todo-checkbox {
+    margin-right: 10px;
+}
+
+.todo-text {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.todo-delete {
+    color: #dc3545;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.todo-delete:hover {
+    background: rgba(220, 53, 69, 0.2);
+}
+
+/* Styles pour les fichiers Drive */
+.drive-files {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.file-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.file-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.file-icon {
+    font-size: 1.5rem;
+    color: #007bff;
+}
+
+.file-info {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.file-name {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-date {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.file-item:hover .file-name {
+    color: #007bff;
+}
+</style>
+
+<!-- Script pour la To-Do List -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadTasks();
+});
+
+function addNewTask() {
+    const taskText = prompt("Entrez une nouvelle tâche:");
+    if (taskText && taskText.trim()) {
+        const task = {
+            id: Date.now(),
+            text: taskText.trim(),
+            completed: false
+        };
+        
+        const tasks = getTasks();
+        tasks.push(task);
+        saveTasks(tasks);
+        renderTasks();
+    }
+}
+
+function toggleTask(taskId) {
+    const tasks = getTasks();
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+        task.completed = !task.completed;
+        saveTasks(tasks);
+        renderTasks();
+    }
+}
+
+function deleteTask(taskId) {
+    if (confirm("Voulez-vous vraiment supprimer cette tâche ?")) {
+        const tasks = getTasks();
+        const filteredTasks = tasks.filter(t => t.id !== taskId);
+        saveTasks(filteredTasks);
+        renderTasks();
+    }
+}
+
+function getTasks() {
+    const tasksJson = localStorage.getItem('todo-tasks');
+    return tasksJson ? JSON.parse(tasksJson) : [];
+}
+
+function saveTasks(tasks) {
+    localStorage.setItem('todo-tasks', JSON.stringify(tasks));
+}
+
+function loadTasks() {
+    renderTasks();
+}
+
+function renderTasks() {
+    const todoList = document.getElementById('todoList');
+    const tasks = getTasks();
+    
+    todoList.innerHTML = tasks.map(task => `
+        <li class="todo-item ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+            <input type="checkbox" 
+                   class="todo-checkbox" 
+                   ${task.completed ? 'checked' : ''} 
+                   onchange="toggleTask(${task.id})">
+            <span class="todo-text">${task.text}</span>
+            <span class="todo-delete" onclick="deleteTask(${task.id})">
+                <i class="fas fa-trash"></i>
+            </span>
+        </li>
+    `).join('');
+}
+
+// Initialisation de l'API Google Drive
+function initGoogleDrive() {
+    const driveLoading = document.getElementById('driveLoading');
+    driveLoading.classList.remove('d-none');
+
+    gapi.client.init({
+        apiKey: 'AIzaSyDypf6yeu64eaK5YSlOiYI3udg0nv-3nQA',
+        clientId: '578826390064-f8u5r0jjh6ldru9o4ngrnttr0nchmha4.apps.googleusercontent.com',
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+        scope: 'https://www.googleapis.com/auth/drive.readonly'
+    }).then(function() {
+        loadDriveFiles();
+    }).catch(function(error) {
+        console.error('Error initializing Google Drive API:', error);
+        driveLoading.classList.add('d-none');
+        document.getElementById('driveFiles').innerHTML = `
+            <div class="alert alert-danger">
+                Erreur lors du chargement des fichiers. Veuillez réessayer plus tard.
+            </div>
+        `;
+    });
+}
+
+function loadDriveFiles() {
+    const folderId = '1rZO1g-dvV4O7C2g9pj01LxEcf1csU_qY';
+    const driveLoading = document.getElementById('driveLoading');
+
+    gapi.client.drive.files.list({
+        q: `'${folderId}' in parents`,
+        fields: 'files(id, name, webViewLink, mimeType, modifiedTime)',
+        orderBy: 'modifiedTime desc'
+    }).then(function(response) {
+        const files = response.result.files;
+        const driveFiles = document.getElementById('driveFiles');
+        
+        if (files && files.length > 0) {
+            driveFiles.innerHTML = files.map(file => `
+                <div class="file-item">
+                    <div class="file-icon">
+                        <i class="fas ${getFileIcon(file.mimeType)}"></i>
+                    </div>
+                    <div class="file-info">
+                        <a href="${file.webViewLink}" target="_blank" class="file-name">
+                            ${file.name}
+                        </a>
+                        <div class="file-date">
+                            ${formatDate(file.modifiedTime)}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            driveFiles.innerHTML = `
+                <div class="alert alert-info">
+                    Aucun fichier trouvé dans ce dossier.
+                </div>
+            `;
+        }
+        driveLoading.classList.add('d-none');
+    }).catch(function(error) {
+        console.error('Error loading Drive files:', error);
+        driveLoading.classList.add('d-none');
+        document.getElementById('driveFiles').innerHTML = `
+            <div class="alert alert-danger">
+                Erreur lors du chargement des fichiers. Veuillez réessayer plus tard.
+            </div>
+        `;
+    });
+}
+
+function getFileIcon(mimeType) {
+    switch (mimeType) {
+        case 'application/pdf':
+            return 'fa-file-pdf';
+        case 'application/vnd.google-apps.spreadsheet':
+            return 'fa-file-excel';
+        case 'application/vnd.google-apps.document':
+            return 'fa-file-word';
+        default:
+            return 'fa-file';
+    }
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+</script>
+
+<!-- Script Google API -->
+<script src="https://apis.google.com/js/api.js"></script>
+<script>
+gapi.load('client', initGoogleDrive);
+</script>
+{% endblock %} 

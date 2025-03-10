@@ -8,64 +8,69 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
+        /* Style commun pour le menu */
+        #menu-top {
+            background: #343a40;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        #menu-top a {
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        #menu-top a:hover, #menu-top a.active {
+            color: #007bff;
+        }
+
         /* Style pour le menu mobile */
         @media (max-width: 768px) {
             #menu-top {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
+                padding: 8px 0;
                 background: rgba(52, 58, 64, 0.95);
-                display: flex;
-                justify-content: space-around;
-                padding: 10px 0;
-                z-index: 1000;
-                box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
                 backdrop-filter: blur(10px);
             }
+            
             #menu-top a {
-                color: white;
-                text-decoration: none;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                font-size: 0.8rem;
-                padding: 5px;
-                transition: all 0.3s ease;
+                font-size: 0.7rem;
+                padding: 4px;
             }
+            
             #menu-top a i {
-                font-size: 1.5rem;
-                margin-bottom: 4px;
+                font-size: 1.2rem;
+                margin-bottom: 2px;
             }
-            #menu-top a:hover, #menu-top a.active {
-                color: #007bff;
-                transform: translateY(-2px);
-            }
+
             .container {
-                margin-bottom: 80px;
+                margin-top: 60px;
             }
         }
         
         /* Style pour le menu desktop */
         @media (min-width: 769px) {
             #menu-top {
-                background: #343a40;
                 padding: 15px;
                 margin-bottom: 20px;
-                display: flex;
-                justify-content: space-around;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             }
+            
             #menu-top a {
-                color: white;
-                text-decoration: none;
                 padding: 8px 15px;
                 border-radius: 5px;
-                transition: all 0.3s ease;
             }
+            
             #menu-top a:hover {
                 background: rgba(255,255,255,0.1);
             }
+            
             #menu-top a i {
                 margin-right: 10px;
             }
