@@ -194,8 +194,32 @@
     </div>
 
     <!-- Bouton flottant appareil photo (visible uniquement sur mobile) -->
-    <div class="floating-camera d-md-none">
+    <div class="floating-camera d-md-none" data-bs-toggle="modal" data-bs-target="#scannerModal">
         <i class="fas fa-camera"></i>
+    </div>
+
+    <!-- Modal Scanner -->
+    <div class="modal fade" id="scannerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title">Scanner un code-barres</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="interactive" class="viewport"></div>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i> Placez le code-barres devant la caméra
+                    </div>
+                    <div id="scannerStatus" class="alert alert-warning d-none">
+                        <!-- Status messages will be displayed here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="card shadow-lg p-3 mb-4">
@@ -259,4 +283,176 @@
     });
 </script>
 
+{% endblock %}
+
+{% block scripts %}
+<!-- Scanner Code -->
+<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+<script>
+    let scannerIsRunning = false;
+    const statusDiv = document.getElementById('scannerStatus');
+
+    function showStatus(message, type = 'info') {
+        statusDiv.className = `alert alert-${type}`;
+        statusDiv.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+        statusDiv.classList.remove('d-none');
+    }
+
+    function startScanner() {
+        console.log("Démarrage du scanner...");
+        showStatus("Initialisation de la caméra...");
+        
+        if (scannerIsRunning) {
+            console.log("Scanner déjà en cours d'exécution");
+            return;
+        }
+
+        // Vérifier si la caméra est disponible
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showStatus("Votre navigateur ne supporte pas l'accès à la caméra", "danger");
+            console.error("getUserMedia n'est pas supporté");
+            return;
+        }
+
+        // Demander l'autorisation d'accès à la caméra
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(function(stream) {
+                stream.getTracks().forEach(track => track.stop());
+                showStatus("Accès à la caméra autorisé, initialisation du scanner...");
+                
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: document.querySelector("#interactive"),
+                        constraints: {
+                            facingMode: "environment",
+                            width: { min: 640 },
+                            height: { min: 480 }
+                        },
+                    },
+                    decoder: {
+                        readers: ["ean_reader", "ean_8_reader"]
+                    }
+                }, function(err) {
+                    if (err) {
+                        console.error("Erreur Quagga:", err);
+                        showStatus("Erreur lors de l'initialisation de la caméra: " + err, "danger");
+                        return;
+                    }
+                    console.log("Quagga initialisé avec succès");
+                    showStatus("Scanner prêt ! Placez un code-barres devant la caméra.", "success");
+                    Quagga.start();
+                    scannerIsRunning = true;
+                });
+            })
+            .catch(function(err) {
+                console.error("Erreur d'accès à la caméra:", err);
+                showStatus("Erreur d'accès à la caméra: " + err.message, "danger");
+            });
+
+        Quagga.onDetected(function(result) {
+            console.log("Code-barres détecté:", result.codeResult.code);
+            showStatus("Code-barres détecté: " + result.codeResult.code, "success");
+            
+            // Arrêter le scanner
+            Quagga.stop();
+            scannerIsRunning = false;
+            
+            // Traiter le code-barres
+            processBarcode(result.codeResult.code);
+        });
+    }
+
+    function processBarcode(barcode) {
+        showStatus("Code-barres scanné. Veuillez entrer le prix retail.", "info");
+        
+        // Create a form for price input
+        const priceForm = document.createElement('div');
+        priceForm.innerHTML = `
+            <div class="input-group mt-3">
+                <span class="input-group-text">Prix Retail (€)</span>
+                <input type="number" step="0.01" class="form-control" id="prixRetailInput" required>
+                <button class="btn btn-primary" type="button" id="submitPrixRetail">Valider</button>
+            </div>
+        `;
+        
+        statusDiv.parentNode.insertBefore(priceForm, statusDiv.nextSibling);
+        
+        document.getElementById('submitPrixRetail').addEventListener('click', function() {
+            const prixRetail = document.getElementById('prixRetailInput').value;
+            
+            if (!prixRetail || prixRetail <= 0) {
+                showStatus("Veuillez entrer un prix valide", "danger");
+                return;
+            }
+            
+            showStatus("Traitement du code-barres...", "info");
+            fetch('/products/scan_barcode', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    ean: barcode,
+                    prix_retail: parseFloat(prixRetail)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Réponse du serveur:", data);
+                if (data.success) {
+                    showStatus("Produit ajouté avec succès !", "success");
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showStatus("Erreur : " + data.message, "danger");
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showStatus("Erreur lors du traitement du code-barres", "danger");
+            });
+        });
+    }
+
+    // Gestion des événements de la modal
+    document.addEventListener('DOMContentLoaded', function() {
+        const scannerModal = document.getElementById('scannerModal');
+        if (scannerModal) {
+            scannerModal.addEventListener('shown.bs.modal', function() {
+                console.log("Modal ouverte, démarrage du scanner...");
+                startScanner();
+            });
+
+            scannerModal.addEventListener('hidden.bs.modal', function() {
+                console.log("Modal fermée, arrêt du scanner...");
+                if (scannerIsRunning) {
+                    Quagga.stop();
+                    scannerIsRunning = false;
+                }
+            });
+        } else {
+            console.error("Modal scanner non trouvée");
+        }
+    });
+</script>
+
+<style>
+    #interactive.viewport {
+        position: relative;
+        width: 100%;
+        height: 300px;
+    }
+    #interactive.viewport > canvas, #interactive.viewport > video {
+        max-width: 100%;
+        width: 100%;
+    }
+    canvas.drawing, canvas.drawingBuffer {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+</style>
 {% endblock %}
