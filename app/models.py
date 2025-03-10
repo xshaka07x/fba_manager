@@ -84,3 +84,20 @@ class Magasin(db.Model):
 
     def __repr__(self):
         return f"<Magasin {self.nom}>"
+
+class Scan(db.Model):
+    __tablename__ = 'scan'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(255), nullable=False)
+    ean = db.Column(db.String(13), unique=True, nullable=False)
+    prix_retail = db.Column(db.Float, nullable=False)
+    prix_amazon = db.Column(db.Float)
+    difference = db.Column(db.Float)
+    profit = db.Column(db.Float)
+    url = db.Column(db.String(255))
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    roi = db.Column(db.Float)
+
+    def __repr__(self):
+        return f'<Scan {self.nom}>'
