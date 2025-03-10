@@ -162,6 +162,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     loadTasks();
+    initGoogleAuth();
 });
 
 function addNewTask() {
@@ -230,54 +231,96 @@ function renderTasks() {
     `).join('');
 }
 
-// Initialisation de l'API Google Drive
-function initGoogleDrive() {
-    const driveLoading = document.getElementById('driveLoading');
-    driveLoading.classList.remove('d-none');
-
-    gapi.client.init({
-        apiKey: 'AIzaSyDypf6yeu64eaK5YSlOiYI3udg0nv-3nQA',
-        clientId: '578826390064-f8u5r0jjh6ldru9o4ngrnttr0nchmha4.apps.googleusercontent.com',
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-        scope: 'https://www.googleapis.com/auth/drive.readonly'
-    }).then(function() {
-        loadDriveFiles();
-    }).catch(function(error) {
-        console.error('Error initializing Google Drive API:', error);
-        driveLoading.classList.add('d-none');
-        document.getElementById('driveFiles').innerHTML = `
-            <div class="alert alert-danger">
-                Erreur lors du chargement des fichiers. Veuillez réessayer plus tard.
-            </div>
-        `;
+// Configuration Google OAuth2
+function initGoogleAuth() {
+    gapi.load('client:auth2', function() {
+        gapi.client.init({
+            apiKey: 'AIzaSyDypf6yeu64eaK5YSlOiYI3udg0nv-3nQA',
+            clientId: '578826390064-f8u5r0jjh6ldru9o4ngrnttr0nchmha4.apps.googleusercontent.com',
+            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+            scope: 'https://www.googleapis.com/auth/drive.readonly'
+        }).then(function() {
+            // Vérifier si l'utilisateur est déjà connecté
+            if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
+                // Si non connecté, ajouter un bouton de connexion
+                document.getElementById('driveFiles').innerHTML = `
+                    <div class="text-center">
+                        <button onclick="handleAuthClick()" class="btn btn-primary">
+                            <i class="fab fa-google"></i> Se connecter avec Google
+                        </button>
+                    </div>
+                `;
+            } else {
+                loadDriveFiles();
+            }
+        }).catch(handleError);
     });
 }
 
-function loadDriveFiles() {
-    const folderId = '1rZO1g-dvV4O7C2g9pj01LxEcf1csU_qY';
-    const driveLoading = document.getElementById('driveLoading');
+function handleAuthClick() {
+    gapi.auth2.getAuthInstance().signIn().then(loadDriveFiles).catch(handleError);
+}
 
-    gapi.client.drive.files.list({
-        q: `'${folderId}' in parents`,
-        fields: 'files(id, name, webViewLink, mimeType, modifiedTime)',
-        orderBy: 'modifiedTime desc'
-    }).then(function(response) {
-        const files = response.result.files;
+function handleError(error) {
+    console.error('Error:', error);
+    document.getElementById('driveFiles').innerHTML = `
+        <div class="alert alert-danger">
+            Erreur lors du chargement des fichiers: ${error.message || 'Veuillez réessayer plus tard.'}
+        </div>
+    `;
+    document.getElementById('driveLoading').classList.add('d-none');
+}
+
+function loadDriveFiles() {
+    const driveLoading = document.getElementById('driveLoading');
+    driveLoading.classList.remove('d-none');
+
+    // Liste des dossiers à explorer
+    const folderIds = [
+        '1rZO1g-dvV4O7C2g9pj01LxEcf1csU_qY', // Votre dossier principal
+        // Ajoutez ici les IDs des autres dossiers que vous souhaitez explorer
+    ];
+
+    Promise.all(folderIds.map(folderId => 
+        gapi.client.drive.files.list({
+            q: `'${folderId}' in parents and trashed = false`,
+            fields: 'files(id, name, webViewLink, mimeType, modifiedTime, iconLink, thumbnailLink)',
+            orderBy: 'modifiedTime desc'
+        })
+    ))
+    .then(responses => {
+        const allFiles = responses.flatMap(response => response.result.files);
         const driveFiles = document.getElementById('driveFiles');
         
-        if (files && files.length > 0) {
-            driveFiles.innerHTML = files.map(file => `
-                <div class="file-item">
-                    <div class="file-icon">
-                        <i class="fas ${getFileIcon(file.mimeType)}"></i>
-                    </div>
-                    <div class="file-info">
-                        <a href="${file.webViewLink}" target="_blank" class="file-name">
-                            ${file.name}
-                        </a>
-                        <div class="file-date">
-                            ${formatDate(file.modifiedTime)}
-                        </div>
+        if (allFiles && allFiles.length > 0) {
+            // Grouper les fichiers par type
+            const filesByType = allFiles.reduce((acc, file) => {
+                const type = getFileType(file.mimeType);
+                if (!acc[type]) acc[type] = [];
+                acc[type].push(file);
+                return acc;
+            }, {});
+
+            // Générer le HTML pour chaque groupe
+            driveFiles.innerHTML = Object.entries(filesByType).map(([type, files]) => `
+                <div class="mb-4">
+                    <h5 class="mb-3">${type}</h5>
+                    <div class="drive-files">
+                        ${files.map(file => `
+                            <div class="file-item">
+                                <div class="file-icon">
+                                    <i class="fas ${getFileIcon(file.mimeType)}"></i>
+                                </div>
+                                <div class="file-info">
+                                    <a href="${file.webViewLink}" target="_blank" class="file-name" title="${file.name}">
+                                        ${file.name}
+                                    </a>
+                                    <div class="file-date">
+                                        ${formatDate(file.modifiedTime)}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             `).join('');
@@ -289,15 +332,26 @@ function loadDriveFiles() {
             `;
         }
         driveLoading.classList.add('d-none');
-    }).catch(function(error) {
-        console.error('Error loading Drive files:', error);
-        driveLoading.classList.add('d-none');
-        document.getElementById('driveFiles').innerHTML = `
-            <div class="alert alert-danger">
-                Erreur lors du chargement des fichiers. Veuillez réessayer plus tard.
-            </div>
-        `;
-    });
+    })
+    .catch(handleError);
+}
+
+function getFileType(mimeType) {
+    switch (mimeType) {
+        case 'application/pdf':
+            return 'Documents PDF';
+        case 'application/vnd.google-apps.spreadsheet':
+            return 'Feuilles de calcul';
+        case 'application/vnd.google-apps.document':
+            return 'Documents';
+        case 'application/vnd.google-apps.folder':
+            return 'Dossiers';
+        case 'image/jpeg':
+        case 'image/png':
+            return 'Images';
+        default:
+            return 'Autres fichiers';
+    }
 }
 
 function getFileIcon(mimeType) {
@@ -328,6 +382,6 @@ function formatDate(dateString) {
 <!-- Script Google API -->
 <script src="https://apis.google.com/js/api.js"></script>
 <script>
-gapi.load('client', initGoogleDrive);
+gapi.load('client', initGoogleAuth);
 </script>
 {% endblock %} 
