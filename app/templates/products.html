@@ -16,10 +16,47 @@
     .roi-medium { background-color: rgba(144, 238, 144, 0.2) !important; }
     .roi-high { background-color: rgba(0, 128, 0, 0.2) !important; }
     .roi-excellent { background-color: rgba(128, 0, 128, 0.2) !important; }
+    #interactive.viewport {
+        position: relative;
+        width: 100%;
+        height: 300px;
+    }
+    #interactive.viewport > canvas, #interactive.viewport > video {
+        max-width: 100%;
+        width: 100%;
+    }
+    canvas.drawing, canvas.drawingBuffer {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
 </style>
 
 <div class="container mt-4">
     <h1 class="mb-4">📦 Gestion des Produits</h1>
+    
+    <!-- Bouton Scanner -->
+    <button class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#scannerModal">
+        <i class="fas fa-camera"></i> Scanner un produit
+    </button>
+
+    <!-- Modal Scanner -->
+    <div class="modal fade" id="scannerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Scanner un code-barres</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="interactive" class="viewport"></div>
+                    <div class="alert alert-info mt-3">
+                        Placez le code-barres devant la caméra
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Onglets pour basculer entre les sources -->
     <ul class="nav nav-tabs mb-4">
@@ -122,25 +159,84 @@
     </div>
 </div>
 
-
-
+<!-- Ajout des scripts nécessaires -->
+<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
 <script>
-    function fetchHistorique(produitId) {
-        fetch(`/historique/${produitId}`)
-            .then(response => response.json())
-            .then(data => {
-                let message = "Historique des prix :\n";
-                if (data.length === 0) {
-                    message += "Aucune donnée disponible.";
-                } else {
-                    data.forEach(item => {
-                        message += `📆 ${item.date} : ${item.prix_retail}€ (Amazon: ${item.prix_amazon || 'N/A'}€)\n`;
-                    });
-                }
-                alert(message);
-            })
-            .catch(error => console.error("Erreur récupération historique :", error));
+    let scannerIsRunning = false;
+
+    function startScanner() {
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector("#interactive"),
+                constraints: {
+                    facingMode: "environment"
+                },
+            },
+            decoder: {
+                readers: ["ean_reader", "ean_8_reader"]
+            }
+        }, function(err) {
+            if (err) {
+                console.error(err);
+                return;
+            }
+            Quagga.start();
+            scannerIsRunning = true;
+        });
+
+        Quagga.onDetected(function(result) {
+            if (result.codeResult.code) {
+                // Arrêter le scanner
+                Quagga.stop();
+                scannerIsRunning = false;
+                
+                // Fermer la modal
+                let modal = bootstrap.Modal.getInstance(document.getElementById('scannerModal'));
+                modal.hide();
+
+                // Envoyer le code-barres au serveur
+                processBarcode(result.codeResult.code);
+            }
+        });
     }
+
+    function processBarcode(barcode) {
+        fetch('/products/scan_barcode', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ean: barcode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Recharger la page pour afficher le nouveau produit
+                location.reload();
+            } else {
+                alert("Erreur lors du scan : " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Erreur lors du traitement du code-barres");
+        });
+    }
+
+    // Démarrer le scanner quand la modal s'ouvre
+    document.getElementById('scannerModal').addEventListener('shown.bs.modal', function() {
+        startScanner();
+    });
+
+    // Arrêter le scanner quand la modal se ferme
+    document.getElementById('scannerModal').addEventListener('hidden.bs.modal', function() {
+        if (scannerIsRunning) {
+            Quagga.stop();
+            scannerIsRunning = false;
+        }
+    });
 </script>
 
 {% endblock %}

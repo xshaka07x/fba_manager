@@ -6,6 +6,7 @@ import json
 import os
 from datetime import datetime
 import pytz  # 🕒 Pour la gestion du fuseau horaire
+from app.utils.fetch_keepa import get_keepa_data  # Import de la fonction get_keepa_data
 
 from datetime import timedelta  # ✅ Pour ajouter une heure
 
@@ -25,6 +26,54 @@ def show_products():
     return render_template('products.html', 
                          produits_keepa=produits_keepa,
                          produits_scan=produits_scan)
+
+
+@products_bp.route('/scan_barcode', methods=['POST'])
+def scan_barcode():
+    try:
+        ean = request.json.get('ean')
+        if not ean:
+            return jsonify({'success': False, 'message': 'Code-barres non fourni'}), 400
+
+        # Vérifier si le produit existe déjà dans la table scan
+        existing_product = Scan.query.filter_by(ean=ean).first()
+        if existing_product:
+            return jsonify({'success': False, 'message': 'Ce produit existe déjà dans la base de données'}), 400
+
+        # Récupérer les données Keepa
+        keepa_data = get_keepa_data(ean)
+        if not keepa_data:
+            return jsonify({'success': False, 'message': 'Impossible de récupérer les données Keepa'}), 400
+
+        # Créer une nouvelle entrée dans la table scan
+        new_scan = Scan(
+            nom=keepa_data.get('nom', 'Nom non trouvé'),
+            ean=ean,
+            prix_retail=keepa_data.get('prix_retail', 0),
+            prix_amazon=keepa_data.get('prix_amazon', 0),
+            difference=keepa_data.get('difference', 0),
+            profit=keepa_data.get('profit', 0),
+            url=keepa_data.get('url', ''),
+            roi=keepa_data.get('roi', 0)
+        )
+
+        db.session.add(new_scan)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Produit ajouté avec succès',
+            'data': {
+                'nom': new_scan.nom,
+                'prix_retail': new_scan.prix_retail,
+                'prix_amazon': new_scan.prix_amazon,
+                'roi': new_scan.roi
+            }
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @products_bp.route('/update_price/<int:product_id>', methods=['POST'])
@@ -102,11 +151,11 @@ def historique_prix_view(produit_id):  # <-- Nouveau nom ici
 @products_bp.route('/import_json', methods=['POST'])
 def import_json():
     if 'file' not in request.files:
-        return jsonify({'error': '❌ Aucun fichier trouvé'}), 400
+        return jsonify({'error': 'Aucun fichier trouve'}), 400
 
     file = request.files['file']
     if file.filename == '':
-        return jsonify({'error': '❌ Aucun fichier sélectionné'}), 400
+        return jsonify({'error': 'Aucun fichier selectionne'}), 400
 
     if file and file.filename.endswith('.json'):
         filepath = os.path.join(os.getcwd(), file.filename)
@@ -129,15 +178,14 @@ def import_json():
                         sales_estimation=item.get("Sales_Estimation", 0),
                         alerts=item.get("Alerts", "Aucune alerte")
                     )
-                    # ✅ Correction de l'heure après création du produit
-                    product.updated_at = datetime.now(paris_tz)  # Heure correcte de Paris
+                    product.updated_at = datetime.now(paris_tz)
                     db.session.add(product)
                     inserted_count += 1
 
             db.session.commit()
-            return jsonify({'message': f'✅ {inserted_count} produit(s) importé(s) avec succès !'}), 200
+            return jsonify({'message': f'{inserted_count} produit(s) importe(s) avec succes!'}), 200
 
         except Exception as e:
-            return jsonify({'error': f'🚨 Erreur lors de l'importation : {str(e)}'}), 500
+            return jsonify({'error': f'Erreur lors de l\'importation : {str(e)}'}), 500
     else:
-        return jsonify({'error': '❌ Format de fichier non pris en charge'}), 400
+        return jsonify({'error': 'Format de fichier non pris en charge'}), 400
