@@ -166,7 +166,9 @@
 }
 </style>
 
-<!-- Script pour la To-Do List -->
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     loadTasks();
@@ -242,60 +244,37 @@ function renderTasks() {
 // Configuration Google OAuth2
 function initGoogleAuth() {
     console.log('Initializing Google Auth...');
-    gapi.load('client:auth2', function() {
-        console.log('Google API loaded, initializing client...');
-        gapi.client.init({
-            apiKey: 'AIzaSyDypf6yeu64eaK5YSlOiYI3udg0nv-3nQA',
-            clientId: '578826390064-f8u5r0jjh6ldru9o4ngrnttr0nchmha4.apps.googleusercontent.com',
-            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-            scope: 'https://www.googleapis.com/auth/drive.readonly'
-        }).then(function() {
-            console.log('Google client initialized');
-            const auth2 = gapi.auth2.getAuthInstance();
-            
-            // Écouter les changements d'état de connexion
-            auth2.isSignedIn.listen(updateSigninStatus);
-            
-            // Gérer l'état initial
-            updateSigninStatus(auth2.isSignedIn.get());
-            
-        }).catch(function(error) {
-            console.error('Error initializing Google client:', error);
-            handleError(error);
-        });
+    const client = google.accounts.oauth2.initTokenClient({
+        client_id: '578826390064-f8u5r0jjh6ldru9o4ngrnttr0nchmha4.apps.googleusercontent.com',
+        scope: 'https://www.googleapis.com/auth/drive.readonly',
+        callback: (response) => {
+            if (response.access_token) {
+                console.log('Token received, loading Drive API...');
+                gapi.load('client', async () => {
+                    await gapi.client.init({
+                        apiKey: 'AIzaSyDypf6yeu64eaK5YSlOiYI3udg0nv-3nQA',
+                        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+                    });
+                    gapi.client.setToken({
+                        access_token: response.access_token
+                    });
+                    loadDriveFiles();
+                });
+            }
+        },
     });
-}
 
-function updateSigninStatus(isSignedIn) {
-    console.log('Sign in status changed:', isSignedIn);
-    if (isSignedIn) {
-        console.log('User is signed in, loading files...');
-        loadDriveFiles();
-    } else {
-        console.log('User is not signed in, showing login button');
-        document.getElementById('driveFiles').innerHTML = `
-            <div class="text-center">
-                <p class="mb-3">Connectez-vous pour accéder à vos fichiers Google Drive</p>
-                <button onclick="handleAuthClick()" class="btn btn-primary btn-lg">
-                    <i class="fab fa-google me-2"></i> Se connecter avec Google Drive
-                </button>
-            </div>
-        `;
-    }
+    window.tokenClient = client;
 }
 
 function handleAuthClick() {
     console.log('Auth click handler triggered');
-    const auth2 = gapi.auth2.getAuthInstance();
-    auth2.signIn({
-        prompt: 'select_account'
-    }).then(function() {
-        console.log('Sign-in successful');
-        // Ne pas appeler loadDriveFiles() ici, il sera appelé par updateSigninStatus
-    }).catch(function(error) {
-        console.error('Sign-in error:', error);
-        handleError(error);
-    });
+    if (window.tokenClient) {
+        window.tokenClient.requestAccessToken();
+    } else {
+        console.error('Token client not initialized');
+        handleError({ error: 'Token client not initialized' });
+    }
 }
 
 function handleError(error) {
@@ -434,10 +413,4 @@ function formatDate(dateString) {
 
 <!-- Script Google API -->
 <script src="https://apis.google.com/js/api.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing Google API...');
-    gapi.load('client:auth2', initGoogleAuth);
-});
-</script>
 {% endblock %} 
