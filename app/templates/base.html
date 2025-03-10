@@ -32,26 +32,35 @@
         /* Style pour le menu mobile */
         @media (max-width: 768px) {
             #menu-top {
-                padding: 8px 0;
-                background: rgba(52, 58, 64, 0.95);
+                padding: 8px 4px;
+                background: rgba(52, 58, 64, 0.98);
                 backdrop-filter: blur(10px);
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
             }
             
             #menu-top a {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                font-size: 0.7rem;
-                padding: 4px;
+                justify-content: center;
+                font-size: 0.75rem;
+                padding: 8px 4px;
+                flex: 1;
+                text-align: center;
+                min-width: 60px;
             }
             
             #menu-top a i {
-                font-size: 1.2rem;
-                margin-bottom: 2px;
+                font-size: 1.4rem;
+                margin-bottom: 4px;
             }
 
             .container {
-                margin-top: 60px;
+                margin-top: 70px;
+                padding-left: 8px;
+                padding-right: 8px;
             }
         }
         
@@ -97,7 +106,7 @@
         <i class="fas fa-search"></i>
         <span>Scrap</span>
     </a>
-    <a href="{{ url_for('main.analytics') }}" {% if request.endpoint == 'main.analytics' %}class="active"{% endif %}>
+    <a href="{{ url_for('main.organisation') }}" {% if request.endpoint == 'main.organisation' %}class="active"{% endif %}>
         <i class="fas fa-tasks"></i>
         <span>Organisation</span>
     </a>

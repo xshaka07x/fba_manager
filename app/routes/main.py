@@ -93,12 +93,6 @@ def settings():
     return render_template('settings.html')
 
 
-@main_bp.route('/analytics')
-def analytics():
-    """📈 Route de la page analytique."""
-    return render_template('analytics.html')
-
-
 @main_bp.route('/organisation')
 def organisation():
     """📈 Route de la page d'organisation."""
