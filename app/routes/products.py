@@ -62,6 +62,20 @@ def scan_barcode():
                 'message': f'Impossible de récupérer les données Keepa pour l\'EAN: {ean}. Veuillez vérifier que le code-barres est correct.'
             }), 400
 
+        # Vérifier si le prix Amazon n'est pas anormalement élevé
+        prix_amazon = keepa_data.get('prix_amazon', 0)
+        if prix_amazon > (float(prix_retail) * 40):
+            return jsonify({
+                'success': False,
+                'message': f'Prix Amazon anormalement élevé ({prix_amazon}€) par rapport au prix retail ({prix_retail}€). Possible erreur de données.',
+                'data': {
+                    'prix_retail': prix_retail,
+                    'prix_amazon': prix_amazon,
+                    'ean': ean,
+                    'nom': keepa_data.get('nom', 'Nom non trouvé')
+                }
+            }), 400
+
         # Créer une nouvelle entrée dans la table scan
         new_scan = Scan(
             nom=keepa_data.get('nom', 'Nom non trouvé'),

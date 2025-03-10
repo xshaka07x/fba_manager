@@ -212,12 +212,26 @@
                         constraints: {
                             facingMode: "environment",
                             width: { min: 640 },
-                            height: { min: 480 }
+                            height: { min: 480 },
+                            aspectRatio: { min: 1, max: 2 },
+                            frameRate: { ideal: 30, min: 20 }
                         },
                     },
+                    locator: {
+                        patchSize: "medium",
+                        halfSample: true
+                    },
+                    numOfWorkers: 4,
                     decoder: {
-                        readers: ["ean_reader", "ean_8_reader"]
-                    }
+                        readers: ["ean_reader", "ean_8_reader"],
+                        multiple: false,
+                        debug: {
+                            drawBoundingBox: true,
+                            showPattern: true,
+                            drawScanline: true
+                        }
+                    },
+                    locate: true
                 }, function(err) {
                     if (err) {
                         console.error("Erreur Quagga:", err);
@@ -235,17 +249,90 @@
                 showStatus("Erreur d'accès à la caméra: " + err.message, "danger");
             });
 
+        let lastResult = null;
+        let sameResultCount = 0;
+        const requiredSameCount = 3; // Nombre de lectures identiques requises
+
         Quagga.onDetected(function(result) {
-            console.log("Code-barres détecté:", result.codeResult.code);
-            showStatus("Code-barres détecté: " + result.codeResult.code, "success");
+            let code = result.codeResult.code;
+            console.log("Code détecté:", code);
             
-            // Arrêter le scanner
-            Quagga.stop();
-            scannerIsRunning = false;
-            
-            // Traiter le code-barres
-            processBarcode(result.codeResult.code);
+            // Vérification de la validité du code EAN
+            if (!isValidEAN(code)) {
+                console.log("Code EAN invalide:", code);
+                return;
+            }
+
+            // Vérification de lectures multiples
+            if (code === lastResult) {
+                sameResultCount++;
+                if (sameResultCount >= requiredSameCount) {
+                    console.log("Code validé après", requiredSameCount, "lectures identiques:", code);
+                    showStatus(`Code-barres validé: ${code}`, "success");
+                    
+                    // Arrêter le scanner
+                    Quagga.stop();
+                    scannerIsRunning = false;
+                    
+                    // Traiter le code-barres
+                    processBarcode(code);
+                }
+            } else {
+                sameResultCount = 1;
+                lastResult = code;
+            }
         });
+
+        // Ajouter un retour visuel sur la qualité de lecture
+        Quagga.onProcessed(function(result) {
+            var drawingCtx = Quagga.canvas.ctx.overlay,
+                drawingCanvas = Quagga.canvas.dom.overlay;
+
+            if (result) {
+                if (result.boxes) {
+                    drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+                    result.boxes.filter(function(box) {
+                        return box !== result.box;
+                    }).forEach(function(box) {
+                        Quagga.ImageDebug.drawPath(box, { x: 0, y: 1 }, drawingCtx, { color: "yellow", lineWidth: 2 });
+                    });
+                }
+
+                if (result.box) {
+                    Quagga.ImageDebug.drawPath(result.box, { x: 0, y: 1 }, drawingCtx, { color: "green", lineWidth: 2 });
+                }
+
+                if (result.codeResult && result.codeResult.code) {
+                    Quagga.ImageDebug.drawPath(result.line, { x: 'x', y: 'y' }, drawingCtx, { color: "red", lineWidth: 3 });
+                }
+            }
+        });
+    }
+
+    // Fonction de validation EAN
+    function isValidEAN(code) {
+        if (!code || !/^\d{8}|\d{13}$/.test(code)) {
+            return false;
+        }
+
+        let sum = 0;
+        let length = code.length;
+        let parity = length % 2;
+        
+        for (let i = length - 1; i >= 0; i--) {
+            let digit = parseInt(code.charAt(i));
+            if (i < length - 1) { // Skip check digit
+                if ((i % 2) === parity) {
+                    digit *= 3;
+                }
+                sum += digit;
+            }
+        }
+        
+        let check = (10 - (sum % 10)) % 10;
+        let checkDigit = parseInt(code.charAt(length - 1));
+        
+        return check === checkDigit;
     }
 
     function processBarcode(barcode) {
