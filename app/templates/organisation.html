@@ -248,32 +248,40 @@ function initGoogleAuth() {
             apiKey: 'AIzaSyDypf6yeu64eaK5YSlOiYI3udg0nv-3nQA',
             clientId: '578826390064-f8u5r0jjh6ldru9o4ngrnttr0nchmha4.apps.googleusercontent.com',
             discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-            scope: [
-                'https://www.googleapis.com/auth/drive.readonly',
-                'https://www.googleapis.com/auth/drive.metadata.readonly'
-            ].join(' ')
+            scope: 'https://www.googleapis.com/auth/drive.readonly'
         }).then(function() {
             console.log('Google client initialized');
             const auth2 = gapi.auth2.getAuthInstance();
-            if (!auth2.isSignedIn.get()) {
-                console.log('User not signed in, showing login button');
-                document.getElementById('driveFiles').innerHTML = `
-                    <div class="text-center">
-                        <p class="mb-3">Connectez-vous pour accéder à vos fichiers Google Drive</p>
-                        <button onclick="handleAuthClick()" class="btn btn-primary btn-lg">
-                            <i class="fab fa-google me-2"></i> Se connecter avec Google Drive
-                        </button>
-                    </div>
-                `;
-            } else {
-                console.log('User already signed in, loading files');
-                loadDriveFiles();
-            }
+            
+            // Écouter les changements d'état de connexion
+            auth2.isSignedIn.listen(updateSigninStatus);
+            
+            // Gérer l'état initial
+            updateSigninStatus(auth2.isSignedIn.get());
+            
         }).catch(function(error) {
             console.error('Error initializing Google client:', error);
             handleError(error);
         });
     });
+}
+
+function updateSigninStatus(isSignedIn) {
+    console.log('Sign in status changed:', isSignedIn);
+    if (isSignedIn) {
+        console.log('User is signed in, loading files...');
+        loadDriveFiles();
+    } else {
+        console.log('User is not signed in, showing login button');
+        document.getElementById('driveFiles').innerHTML = `
+            <div class="text-center">
+                <p class="mb-3">Connectez-vous pour accéder à vos fichiers Google Drive</p>
+                <button onclick="handleAuthClick()" class="btn btn-primary btn-lg">
+                    <i class="fab fa-google me-2"></i> Se connecter avec Google Drive
+                </button>
+            </div>
+        `;
+    }
 }
 
 function handleAuthClick() {
@@ -283,7 +291,7 @@ function handleAuthClick() {
         prompt: 'select_account'
     }).then(function() {
         console.log('Sign-in successful');
-        loadDriveFiles();
+        // Ne pas appeler loadDriveFiles() ici, il sera appelé par updateSigninStatus
     }).catch(function(error) {
         console.error('Sign-in error:', error);
         handleError(error);
@@ -292,10 +300,19 @@ function handleAuthClick() {
 
 function handleError(error) {
     console.error('Error details:', error);
+    let errorMessage = 'Une erreur est survenue lors de la connexion à Google Drive.';
+    
+    if (error.error) {
+        errorMessage = `Erreur: ${error.error}`;
+        if (error.details) {
+            errorMessage += `<br>Détails: ${error.details}`;
+        }
+    }
+    
     document.getElementById('driveFiles').innerHTML = `
         <div class="alert alert-danger">
             <h5 class="alert-heading">Erreur de connexion</h5>
-            <p>${error.message || 'Une erreur est survenue lors de la connexion à Google Drive.'}</p>
+            <p>${errorMessage}</p>
             <hr>
             <p class="mb-0">
                 <button onclick="handleAuthClick()" class="btn btn-outline-light">
