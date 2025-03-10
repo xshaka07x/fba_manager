@@ -241,39 +241,67 @@ function renderTasks() {
 
 // Configuration Google OAuth2
 function initGoogleAuth() {
+    console.log('Initializing Google Auth...');
     gapi.load('client:auth2', function() {
+        console.log('Google API loaded, initializing client...');
         gapi.client.init({
             apiKey: 'AIzaSyDypf6yeu64eaK5YSlOiYI3udg0nv-3nQA',
             clientId: '578826390064-f8u5r0jjh6ldru9o4ngrnttr0nchmha4.apps.googleusercontent.com',
             discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-            scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.metadata.readonly'
+            scope: [
+                'https://www.googleapis.com/auth/drive.readonly',
+                'https://www.googleapis.com/auth/drive.metadata.readonly'
+            ].join(' ')
         }).then(function() {
-            // Vérifier si l'utilisateur est déjà connecté
-            if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
-                // Si non connecté, ajouter un bouton de connexion
+            console.log('Google client initialized');
+            const auth2 = gapi.auth2.getAuthInstance();
+            if (!auth2.isSignedIn.get()) {
+                console.log('User not signed in, showing login button');
                 document.getElementById('driveFiles').innerHTML = `
                     <div class="text-center">
+                        <p class="mb-3">Connectez-vous pour accéder à vos fichiers Google Drive</p>
                         <button onclick="handleAuthClick()" class="btn btn-primary btn-lg">
                             <i class="fab fa-google me-2"></i> Se connecter avec Google Drive
                         </button>
                     </div>
                 `;
             } else {
+                console.log('User already signed in, loading files');
                 loadDriveFiles();
             }
-        }).catch(handleError);
+        }).catch(function(error) {
+            console.error('Error initializing Google client:', error);
+            handleError(error);
+        });
     });
 }
 
 function handleAuthClick() {
-    gapi.auth2.getAuthInstance().signIn().then(loadDriveFiles).catch(handleError);
+    console.log('Auth click handler triggered');
+    const auth2 = gapi.auth2.getAuthInstance();
+    auth2.signIn({
+        prompt: 'select_account'
+    }).then(function() {
+        console.log('Sign-in successful');
+        loadDriveFiles();
+    }).catch(function(error) {
+        console.error('Sign-in error:', error);
+        handleError(error);
+    });
 }
 
 function handleError(error) {
-    console.error('Error:', error);
+    console.error('Error details:', error);
     document.getElementById('driveFiles').innerHTML = `
         <div class="alert alert-danger">
-            Erreur lors du chargement des fichiers: ${error.message || 'Veuillez réessayer plus tard.'}
+            <h5 class="alert-heading">Erreur de connexion</h5>
+            <p>${error.message || 'Une erreur est survenue lors de la connexion à Google Drive.'}</p>
+            <hr>
+            <p class="mb-0">
+                <button onclick="handleAuthClick()" class="btn btn-outline-light">
+                    <i class="fas fa-sync-alt me-2"></i> Réessayer
+                </button>
+            </p>
         </div>
     `;
     document.getElementById('driveLoading').classList.add('d-none');
@@ -390,6 +418,9 @@ function formatDate(dateString) {
 <!-- Script Google API -->
 <script src="https://apis.google.com/js/api.js"></script>
 <script>
-gapi.load('client', initGoogleAuth);
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing Google API...');
+    gapi.load('client:auth2', initGoogleAuth);
+});
 </script>
 {% endblock %} 

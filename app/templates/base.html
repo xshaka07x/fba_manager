@@ -39,8 +39,11 @@
                 margin: 0;
                 position: fixed;
                 left: 0;
+                right: 0;
+                top: 0;
                 display: flex;
-                justify-content: space-evenly;
+                justify-content: space-between;
+                box-sizing: border-box;
             }
             
             #menu-top a {
@@ -52,8 +55,8 @@
                 padding: 8px 0;
                 flex: 1;
                 text-align: center;
-                min-width: 20%;
                 margin: 0;
+                white-space: nowrap;
             }
             
             #menu-top a i {
@@ -61,10 +64,20 @@
                 margin-bottom: 4px;
             }
 
+            #menu-top a span {
+                font-size: 0.7rem;
+                width: 100%;
+                text-align: center;
+            }
+
             .container {
                 margin-top: 85px;
                 padding-left: 8px;
                 padding-right: 8px;
+                max-width: 100%;
+                width: 100%;
+                margin-left: 0;
+                margin-right: 0;
             }
         }
         
