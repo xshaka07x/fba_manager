@@ -122,20 +122,7 @@
     </div>
 </div>
 
-<div class="card shadow-lg p-3 mb-4">
-    <div class="card-header bg-dark text-white">
-        <h5 class="text-uppercase fw-bold">📈 Évolution des prix</h5>
-    </div>
-    <div class="card-body">
-        <select id="productSelector" class="form-select mb-3">
-            <option value="">Sélectionner un produit</option>
-            {% for product in produits %}
-            <option value="{{ product.id }}">{{ product.nom }}</option>
-            {% endfor %}
-        </select>
-        <canvas id="priceChart"></canvas>
-    </div>
-</div>
+
 
 <script>
     function fetchHistorique(produitId) {
