@@ -105,7 +105,9 @@ def get_keepa_data(ean, prix_retail):
                 'prix_amazon': current_amazon_price,
                 'difference': difference,
                 'profit': profit,
-                'asin': product.get('asin')
+                'asin': product.get('asin'),
+                'nom': product.get('title', 'Nom non trouvé'),
+                'url': f"https://www.amazon.fr/dp/{product.get('asin')}"
             }
         else:
             print(f"Aucun prix valide trouvé sur Keepa pour EAN {ean}")

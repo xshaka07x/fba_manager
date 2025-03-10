@@ -80,12 +80,12 @@ def scan_barcode():
         new_scan = Scan(
             nom=keepa_data.get('nom', 'Nom non trouvé'),
             ean=ean,
-            prix_retail=keepa_data.get('prix_retail', 0),
+            prix_retail=float(prix_retail),
             prix_amazon=keepa_data.get('prix_amazon', 0),
-            difference=keepa_data.get('difference', 0),
+            difference=keepa_data.get('prix_amazon', 0) - float(prix_retail),
             profit=keepa_data.get('profit', 0),
             url=keepa_data.get('url', ''),
-            roi=keepa_data.get('roi', 0)
+            roi=(keepa_data.get('prix_amazon', 0) - float(prix_retail)) * 100 / float(prix_retail) if float(prix_retail) > 0 else 0
         )
 
         db.session.add(new_scan)
