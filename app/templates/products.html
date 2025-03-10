@@ -12,61 +12,116 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+    .roi-low { background-color: rgba(255, 0, 0, 0.2) !important; }
+    .roi-medium { background-color: rgba(144, 238, 144, 0.2) !important; }
+    .roi-high { background-color: rgba(0, 128, 0, 0.2) !important; }
+    .roi-excellent { background-color: rgba(128, 0, 128, 0.2) !important; }
 </style>
 
 <div class="container mt-4">
     <h1 class="mb-4">📦 Gestion des Produits</h1>
-    <table class="table table-dark table-hover data-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Nom</th>
-                <th>EAN</th>
-                <th>Prix Retail</th>
-                <th>Prix Amazon</th>
-                <th>ROI</th>
-                <th>Profit</th>
-                <th>Ventes Estimées</th>
-                <th>Lien</th>
-                <th>Date</th>
-                <th>Historique</th>
+    
+    <!-- Onglets pour basculer entre les sources -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#keepa">Keepa</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#scan">Scan</a>
+        </li>
+    </ul>
 
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in produits %}
-            <tr class="
-                {% if product.roi < 19 %}
-                    roi-low
-                {% elif product.roi >= 20 and product.roi <= 59 %}
-                    roi-medium
-                {% elif product.roi >= 60 and product.roi <= 80 %}
-                    roi-high
-                {% else %}
-                    roi-excellent
-                {% endif %}
-            ">
-                <th scope="row">{{ loop.index }}</th>
-                <td class="nom-col" title="{{ product.nom }}">{{ product.nom or "Nom introuvable" }}</td>
-                <td>{{ product.ean }}</td>
-                <td>${{ product.prix_retail }}</td>
-                <td>${{ product.prix_amazon }}</td>
-                <td>{{ product.roi }}%</td>
-                <td>${{ product.profit }}</td>
-                <td>{{ product.sales_estimation }}</td>
-                <td><a href="{{ product.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
-                <td>{{ product.updated_at }}</td>
-                <td>
-                    <button class="btn btn-outline-light btn-sm" onclick="fetchHistorique({{ product.id }})">
-                        📉 Voir
-                    </button>
-                </td>
-                
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="tab-content">
+        <!-- Tableau Keepa -->
+        <div class="tab-pane fade show active" id="keepa">
+            <table class="table table-dark table-hover data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nom</th>
+                        <th>EAN</th>
+                        <th>Prix Retail</th>
+                        <th>Prix Amazon</th>
+                        <th>ROI</th>
+                        <th>Profit</th>
+                        <th>Lien</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in produits_keepa %}
+                    <tr class="
+                        {% if product.roi < 19 %}roi-low
+                        {% elif product.roi >= 20 and product.roi <= 59 %}roi-medium
+                        {% elif product.roi >= 60 and product.roi <= 79 %}roi-high
+                        {% else %}roi-excellent{% endif %}">
+                        <th scope="row">{{ loop.index }}</th>
+                        <td class="nom-col" title="{{ product.nom }}">{{ product.nom }}</td>
+                        <td>{{ product.ean }}</td>
+                        <td>{{ "%.2f"|format(product.prix_retail) }}€</td>
+                        <td>{{ "%.2f"|format(product.prix_amazon) }}€</td>
+                        <td>{{ "%.2f"|format(product.roi) }}%</td>
+                        <td>{{ "%.2f"|format(product.profit) }}€</td>
+                        <td><a href="{{ product.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a></td>
+                        <td>{{ product.updated_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tableau Scan -->
+        <div class="tab-pane fade" id="scan">
+            <table class="table table-dark table-hover data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nom</th>
+                        <th>EAN</th>
+                        <th>Prix Retail</th>
+                        <th>Prix Amazon</th>
+                        <th>Différence</th>
+                        <th>ROI</th>
+                        <th>Profit</th>
+                        <th>Lien</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in produits_scan %}
+                    <tr class="
+                        {% if product.roi < 19 %}roi-low
+                        {% elif product.roi >= 20 and product.roi <= 59 %}roi-medium
+                        {% elif product.roi >= 60 and product.roi <= 79 %}roi-high
+                        {% else %}roi-excellent{% endif %}">
+                        <th scope="row">{{ loop.index }}</th>
+                        <td class="nom-col" title="{{ product.nom }}">{{ product.nom }}</td>
+                        <td>{{ product.ean }}</td>
+                        <td class="text-success">{{ "%.2f"|format(product.prix_retail) }}€</td>
+                        <td class="text-info">{{ "%.2f"|format(product.prix_amazon) }}€</td>
+                        <td class="{% if product.difference > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ "%.2f"|format(product.difference) }}€
+                        </td>
+                        <td class="{% if product.roi >= 80 %}text-success{% elif product.roi >= 60 %}text-info{% elif product.roi >= 20 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ "%.2f"|format(product.roi) }}%
+                        </td>
+                        <td class="{% if product.profit > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ "%.2f"|format(product.profit) }}€
+                        </td>
+                        <td>
+                            {% if product.url %}
+                            <a href="{{ product.url }}" target="_blank" class="btn btn-outline-info btn-sm">Lien</a>
+                            {% endif %}
+                        </td>
+                        <td>{{ product.updated_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
 <div class="card shadow-lg p-3 mb-4">
     <div class="card-header bg-dark text-white">
         <h5 class="text-uppercase fw-bold">📈 Évolution des prix</h5>
@@ -100,7 +155,5 @@
             .catch(error => console.error("Erreur récupération historique :", error));
     }
 </script>
-
-
 
 {% endblock %}

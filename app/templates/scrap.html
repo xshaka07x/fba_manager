@@ -24,6 +24,7 @@
                             <th>Prix Retail</th>
                             <th>Prix Amazon</th>
                             <th>Différence</th>
+                            <th>ROI</th>
                             <th>Profit Estimé</th>
                             <th>Dernière MAJ</th>
                             <th>Magasin</th>
@@ -38,6 +39,9 @@
                             <td class="text-info">{{ "%.2f"|format(product.prix_amazon) }}€</td>
                             <td class="{% if product.difference > 0 %}text-success{% else %}text-danger{% endif %}">
                                 {{ "%.2f"|format(product.difference) }}€
+                            </td>
+                            <td class="{% if product.roi >= 80 %}text-success{% elif product.roi >= 60 %}text-info{% elif product.roi >= 20 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ "%.2f"|format(product.roi) }}%
                             </td>
                             <td class="{% if product.profit > 0 %}text-success{% else %}text-danger{% endif %}">
                                 {{ "%.2f"|format(product.profit) }}€
