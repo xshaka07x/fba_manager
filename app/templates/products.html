@@ -249,11 +249,22 @@
     }
 
     function processBarcode(barcode) {
-        showStatus("Code-barres scanné. Veuillez entrer le prix retail.", "info");
+        console.log("Code-barres scanné:", barcode);
+        showStatus(`Code-barres scanné: ${barcode}. Veuillez entrer le prix retail.`, "info");
+        
+        // Supprimer tout formulaire de prix existant
+        const existingForm = document.querySelector('.price-input-form');
+        if (existingForm) {
+            existingForm.remove();
+        }
         
         // Create a form for price input
         const priceForm = document.createElement('div');
+        priceForm.className = 'price-input-form';
         priceForm.innerHTML = `
+            <div class="alert alert-info mt-3">
+                <strong>EAN scanné:</strong> ${barcode}
+            </div>
             <div class="input-group mt-3">
                 <span class="input-group-text">Prix Retail (€)</span>
                 <input type="number" step="0.01" class="form-control" id="prixRetailInput" required>
@@ -262,6 +273,9 @@
         `;
         
         statusDiv.parentNode.insertBefore(priceForm, statusDiv.nextSibling);
+        
+        // Focus sur l'input du prix
+        document.getElementById('prixRetailInput').focus();
         
         document.getElementById('submitPrixRetail').addEventListener('click', function() {
             const prixRetail = document.getElementById('prixRetailInput').value;
@@ -291,13 +305,21 @@
                         location.reload();
                     }, 1500);
                 } else {
-                    showStatus("Erreur : " + data.message, "danger");
+                    showStatus(`Erreur : ${data.message}`, "danger");
+                    console.error("Détails de l'erreur:", data);
                 }
             })
             .catch(error => {
                 console.error('Erreur:', error);
                 showStatus("Erreur lors du traitement du code-barres", "danger");
             });
+        });
+
+        // Ajouter la gestion de la touche Entrée
+        document.getElementById('prixRetailInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('submitPrixRetail').click();
+            }
         });
     }
 

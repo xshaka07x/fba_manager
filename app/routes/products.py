@@ -43,12 +43,24 @@ def scan_barcode():
         # Vérifier si le produit existe déjà dans la table scan
         existing_product = Scan.query.filter_by(ean=ean).first()
         if existing_product:
-            return jsonify({'success': False, 'message': 'Ce produit existe déjà dans la base de données'}), 400
+            return jsonify({
+                'success': False, 
+                'message': f'Ce produit (EAN: {ean}) existe déjà dans la base de données',
+                'data': {
+                    'nom': existing_product.nom,
+                    'prix_retail': existing_product.prix_retail,
+                    'prix_amazon': existing_product.prix_amazon
+                }
+            }), 400
 
         # Récupérer les données Keepa
+        print(f"Tentative de récupération des données Keepa pour l'EAN: {ean}")
         keepa_data = get_keepa_data(ean, prix_retail)
         if not keepa_data:
-            return jsonify({'success': False, 'message': 'Impossible de récupérer les données Keepa'}), 400
+            return jsonify({
+                'success': False, 
+                'message': f'Impossible de récupérer les données Keepa pour l\'EAN: {ean}. Veuillez vérifier que le code-barres est correct.'
+            }), 400
 
         # Créer une nouvelle entrée dans la table scan
         new_scan = Scan(
