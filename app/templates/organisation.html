@@ -245,15 +245,39 @@ function renderTasks() {
 function initGoogleAuth() {
     console.log('Initializing Google Auth...');
     
-    // Afficher le bouton de connexion par défaut
-    document.getElementById('driveFiles').innerHTML = `
-        <div class="text-center">
-            <p class="mb-3">Connectez-vous pour accéder à vos fichiers Google Drive</p>
-            <button onclick="handleAuthClick()" class="btn btn-primary btn-lg">
-                <i class="fab fa-google me-2"></i> Se connecter avec Google Drive
-            </button>
-        </div>
-    `;
+    // Vérifier si un token est déjà stocké
+    const storedToken = localStorage.getItem('google_drive_token');
+    const tokenExpiry = localStorage.getItem('google_drive_token_expiry');
+    
+    if (storedToken && tokenExpiry && new Date().getTime() < parseInt(tokenExpiry)) {
+        // Token valide trouvé, initialiser l'API et charger les fichiers
+        console.log('Using stored token...');
+        gapi.load('client', async () => {
+            try {
+                await gapi.client.init({
+                    apiKey: 'AIzaSyDypf6yeu64eaK5YSlOiYI3udg0nv-3nQA',
+                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+                });
+                gapi.client.setToken({
+                    access_token: storedToken
+                });
+                loadDriveFiles();
+            } catch (error) {
+                console.error('Error initializing GAPI client:', error);
+                handleError(error);
+            }
+        });
+    } else {
+        // Pas de token valide, afficher le bouton de connexion
+        document.getElementById('driveFiles').innerHTML = `
+            <div class="text-center">
+                <p class="mb-3">Connectez-vous pour accéder à vos fichiers Google Drive</p>
+                <button onclick="handleAuthClick()" class="btn btn-primary btn-lg">
+                    <i class="fab fa-google me-2"></i> Se connecter avec Google Drive
+                </button>
+            </div>
+        `;
+    }
 
     const client = google.accounts.oauth2.initTokenClient({
         client_id: '578826390064-f8u5r0jjh6ldru9o4ngrnttr0nchmha4.apps.googleusercontent.com',
@@ -261,6 +285,11 @@ function initGoogleAuth() {
         callback: (tokenResponse) => {
             if (tokenResponse && tokenResponse.access_token) {
                 console.log('Token received, loading Drive API...');
+                // Stocker le token et sa date d'expiration
+                localStorage.setItem('google_drive_token', tokenResponse.access_token);
+                const expiryTime = new Date().getTime() + (tokenResponse.expires_in * 1000);
+                localStorage.setItem('google_drive_token_expiry', expiryTime.toString());
+                
                 gapi.load('client', async () => {
                     try {
                         await gapi.client.init({
@@ -281,6 +310,9 @@ function initGoogleAuth() {
         error_callback: (error) => {
             console.error('Error getting token:', error);
             handleError(error);
+            // En cas d'erreur, supprimer les tokens stockés
+            localStorage.removeItem('google_drive_token');
+            localStorage.removeItem('google_drive_token_expiry');
         }
     });
 
@@ -289,6 +321,10 @@ function initGoogleAuth() {
 
 function handleAuthClick() {
     console.log('Auth click handler triggered');
+    // Supprimer les anciens tokens avant de demander un nouveau
+    localStorage.removeItem('google_drive_token');
+    localStorage.removeItem('google_drive_token_expiry');
+    
     if (window.tokenClient) {
         try {
             window.tokenClient.requestAccessToken({
@@ -314,6 +350,10 @@ function handleError(error) {
             errorMessage += `<br>Détails: ${error.details}`;
         }
     }
+    
+    // Supprimer les tokens en cas d'erreur
+    localStorage.removeItem('google_drive_token');
+    localStorage.removeItem('google_drive_token_expiry');
     
     document.getElementById('driveFiles').innerHTML = `
         <div class="alert alert-danger">

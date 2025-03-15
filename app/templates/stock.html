@@ -38,12 +38,16 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Magasin</label>
-                            <select name="magasin" class="form-select" required>
+                            <select name="magasin" class="form-select magasin-select" required>
                                 <option value="">Sélectionner un magasin</option>
                                 {% for magasin in magasins %}
                                 <option value="{{ magasin.nom }}">{{ magasin.nom }}</option>
                                 {% endfor %}
+                                <option value="Autre">Autre</option>
                             </select>
+                            <div class="mt-2 autre-magasin" style="display: none;">
+                                <input type="text" class="form-control" placeholder="Nom du magasin" name="autre_magasin">
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Prix d'achat unitaire (€)</label>
@@ -159,12 +163,16 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Magasin</label>
-                            <select name="magasin" class="form-select" required>
+                            <select name="magasin" class="form-select magasin-select" required>
                                 <option value="">Sélectionner un magasin</option>
                                 {% for magasin in magasins %}
                                 <option value="{{ magasin.nom }}">{{ magasin.nom }}</option>
                                 {% endfor %}
+                                <option value="Autre">Autre</option>
                             </select>
+                            <div class="mt-2 autre-magasin" style="display: none;">
+                                <input type="text" class="form-control" placeholder="Nom du magasin" name="autre_magasin">
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Prix d'achat unitaire (€)</label>
@@ -511,6 +519,45 @@
                 quantityModal.hide();
             });
         });
+
+        // Gestion des selects de magasin
+        document.querySelectorAll('.magasin-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const autreMagasinDiv = this.parentElement.querySelector('.autre-magasin');
+                const autreMagasinInput = autreMagasinDiv.querySelector('input');
+                
+                if (this.value === 'Autre') {
+                    autreMagasinDiv.style.display = 'block';
+                    autreMagasinInput.required = true;
+                    this.name = '_magasin'; // On change le nom du select pour éviter les conflits
+                    autreMagasinInput.name = 'magasin'; // L'input devient le champ principal
+                } else {
+                    autreMagasinDiv.style.display = 'none';
+                    autreMagasinInput.required = false;
+                    this.name = 'magasin'; // On remet le nom original
+                    autreMagasinInput.name = 'autre_magasin';
+                }
+            });
+        });
+
+        // Validation des formulaires pour gérer "Autre" magasin
+        document.getElementById('addStockForm').addEventListener('submit', function(e) {
+            handleFormSubmit(e, this);
+        });
+
+        document.getElementById('scanStockForm').addEventListener('submit', function(e) {
+            handleFormSubmit(e, this);
+        });
+
+        function handleFormSubmit(e, form) {
+            const magasinSelect = form.querySelector('.magasin-select');
+            const autreMagasinInput = form.querySelector('.autre-magasin input');
+            
+            if (magasinSelect.value === 'Autre' && !autreMagasinInput.value.trim()) {
+                e.preventDefault();
+                alert('Veuillez saisir le nom du magasin');
+            }
+        }
     });
     </script>
 

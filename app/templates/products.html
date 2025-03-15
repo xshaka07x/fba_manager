@@ -213,25 +213,19 @@
                         target: document.querySelector("#interactive"),
                         constraints: {
                             facingMode: "environment",
-                            width: { min: 640 },
-                            height: { min: 480 },
-                            aspectRatio: { min: 1, max: 2 },
-                            frameRate: { ideal: 30, min: 20 }
+                            width: 1280,
+                            height: 720,
+                            aspectRatio: {min: 1, max: 2}
                         },
                     },
                     locator: {
                         patchSize: "medium",
                         halfSample: true
                     },
-                    numOfWorkers: 4,
+                    numOfWorkers: 2,
                     decoder: {
                         readers: ["ean_reader", "ean_8_reader"],
-                        multiple: false,
-                        debug: {
-                            drawBoundingBox: true,
-                            showPattern: true,
-                            drawScanline: true
-                        }
+                        multiple: false
                     },
                     locate: true
                 }, function(err) {
@@ -252,24 +246,21 @@
             });
 
         let lastResult = null;
-        let sameResultCount = 0;
-        const requiredSameCount = 3; // Nombre de lectures identiques requises
+        let countResults = 0;
 
         Quagga.onDetected(function(result) {
             let code = result.codeResult.code;
-            console.log("Code détecté:", code);
             
             // Vérification de la validité du code EAN
             if (!isValidEAN(code)) {
                 console.log("Code EAN invalide:", code);
                 return;
             }
-
-            // Vérification de lectures multiples
+            
             if (code === lastResult) {
-                sameResultCount++;
-                if (sameResultCount >= requiredSameCount) {
-                    console.log("Code validé après", requiredSameCount, "lectures identiques:", code);
+                countResults++;
+                if (countResults >= 3) {  // On attend 3 détections identiques
+                    console.log("Code validé après", countResults, "lectures identiques:", code);
                     showStatus(`Code-barres validé: ${code}`, "success");
                     
                     // Arrêter le scanner
@@ -278,10 +269,13 @@
                     
                     // Traiter le code-barres
                     processBarcode(code);
+                    
+                    lastResult = null;
+                    countResults = 0;
                 }
             } else {
-                sameResultCount = 1;
                 lastResult = code;
+                countResults = 1;
             }
         });
 
@@ -296,12 +290,12 @@
                     result.boxes.filter(function(box) {
                         return box !== result.box;
                     }).forEach(function(box) {
-                        Quagga.ImageDebug.drawPath(box, { x: 0, y: 1 }, drawingCtx, { color: "yellow", lineWidth: 2 });
+                        Quagga.ImageDebug.drawPath(box, { x: 0, y: 1 }, drawingCtx, { color: "green", lineWidth: 2 });
                     });
                 }
 
                 if (result.box) {
-                    Quagga.ImageDebug.drawPath(result.box, { x: 0, y: 1 }, drawingCtx, { color: "green", lineWidth: 2 });
+                    Quagga.ImageDebug.drawPath(result.box, { x: 0, y: 1 }, drawingCtx, { color: "#00F", lineWidth: 2 });
                 }
 
                 if (result.codeResult && result.codeResult.code) {
