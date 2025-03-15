@@ -102,3 +102,26 @@ class Scan(db.Model):
 
     def __repr__(self):
         return f'<Scan {self.nom}>'
+
+class Travel(db.Model):
+    """Modèle pour la gestion des déplacements"""
+    __tablename__ = 'travels'
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+    person = db.Column(db.Enum('Thomas', 'Olivier'), nullable=False)
+    kilometers = db.Column(db.Decimal(10, 1), nullable=True)
+    comment = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'date': self.date.isoformat(),
+            'person': self.person,
+            'kilometers': float(self.kilometers) if self.kilometers else None,
+            'comment': self.comment,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }

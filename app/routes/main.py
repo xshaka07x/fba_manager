@@ -1,6 +1,6 @@
 # app/routes/main.py
 from flask import Blueprint, render_template, redirect, url_for, request, jsonify
-from app.models import Product, Stock, ProductKeepa, Magasin
+from app.models import Product, Stock, ProductKeepa, Magasin, Travel
 from datetime import datetime
 from datetime import timedelta  # ✅ Pour ajouter une heure
 from flask import jsonify
@@ -350,3 +350,61 @@ def add_scanned_stock():
         db.session.rollback()
         print(f"❌ Erreur lors de l'ajout du produit scanné : {e}")
         return f"Erreur lors de l'ajout : {str(e)}", 500
+
+@main_bp.route('/gestion')
+def gestion():
+    return render_template('gestion.html')
+
+@main_bp.route('/api/travels', methods=['GET'])
+def get_travels():
+    travels = Travel.query.order_by(Travel.date.desc()).all()
+    return jsonify([{
+        'id': travel.id,
+        'date': travel.date.strftime('%Y-%m-%d'),
+        'person': travel.person,
+        'kilometers': travel.kilometers,
+        'comment': travel.comment
+    } for travel in travels])
+
+@main_bp.route('/api/travels', methods=['POST'])
+def add_travel():
+    data = request.get_json()
+    try:
+        travel = Travel(
+            date=datetime.strptime(data['date'], '%Y-%m-%d'),
+            person=data['person'],
+            kilometers=data['kilometers'],
+            comment=data['comment']
+        )
+        db.session.add(travel)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Déplacement ajouté avec succès'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@main_bp.route('/api/travels/<int:travel_id>', methods=['PUT'])
+def update_travel(travel_id):
+    travel = Travel.query.get_or_404(travel_id)
+    data = request.get_json()
+    try:
+        travel.date = datetime.strptime(data['date'], '%Y-%m-%d')
+        travel.person = data['person']
+        travel.kilometers = data['kilometers']
+        travel.comment = data['comment']
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Déplacement mis à jour avec succès'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@main_bp.route('/api/travels/<int:travel_id>', methods=['DELETE'])
+def delete_travel(travel_id):
+    travel = Travel.query.get_or_404(travel_id)
+    try:
+        db.session.delete(travel)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Déplacement supprimé avec succès'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400

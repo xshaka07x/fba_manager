@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Déplacements{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Gestion des Déplacements</h1>
+    
+    <!-- Bouton pour ouvrir le modal d'ajout -->
+    <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#addTravelModal">
+        <i class="fas fa-plus"></i> Ajouter un déplacement
+    </button>
+
+    <!-- Tableau des déplacements -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Personne</th>
+                    <th>Kilomètres</th>
+                    <th>Commentaire</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="travelTable">
+                <!-- Les données seront insérées ici dynamiquement -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal d'ajout de déplacement -->
+<div class="modal fade" id="addTravelModal" tabindex="-1" aria-labelledby="addTravelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTravelModalLabel">Ajouter un déplacement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="travelForm">
+                    <div class="mb-3">
+                        <label for="travelDate" class="form-label">Date*</label>
+                        <input type="date" class="form-control" id="travelDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="travelPerson" class="form-label">Personne*</label>
+                        <select class="form-select" id="travelPerson" required>
+                            <option value="">Sélectionner une personne</option>
+                            <option value="Thomas">Thomas</option>
+                            <option value="Olivier">Olivier</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="travelKm" class="form-label">Kilomètres</label>
+                        <input type="number" class="form-control" id="travelKm" min="0" step="0.1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="travelComment" class="form-label">Commentaire</label>
+                        <textarea class="form-control" id="travelComment" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="saveTravelBtn">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Le code JavaScript sera ajouté ici pour gérer les interactions
+    document.addEventListener('DOMContentLoaded', function() {
+        // Chargement initial des déplacements
+        loadTravels();
+
+        // Gestionnaire pour le bouton d'enregistrement
+        document.getElementById('saveTravelBtn').addEventListener('click', function() {
+            const form = document.getElementById('travelForm');
+            const date = document.getElementById('travelDate').value;
+            const person = document.getElementById('travelPerson').value;
+            const km = document.getElementById('travelKm').value;
+            const comment = document.getElementById('travelComment').value;
+
+            if (!date || !person) {
+                alert('La date et la personne sont obligatoires !');
+                return;
+            }
+
+            // Envoi des données au serveur
+            fetch('/api/travels', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    date: date,
+                    person: person,
+                    kilometers: km || null,
+                    comment: comment || null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Recharger les données et fermer le modal
+                    loadTravels();
+                    $('#addTravelModal').modal('hide');
+                    form.reset();
+                } else {
+                    alert('Erreur lors de l\'enregistrement');
+                }
+            });
+        });
+    });
+
+    function loadTravels() {
+        fetch('/api/travels')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('travelTable');
+                tbody.innerHTML = '';
+                
+                data.forEach(travel => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${new Date(travel.date).toLocaleDateString()}</td>
+                        <td>${travel.person}</td>
+                        <td>${travel.kilometers || '-'}</td>
+                        <td>${travel.comment || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editTravel(${travel.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteTravel(${travel.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            });
+    }
+</script>
+{% endblock %} 
