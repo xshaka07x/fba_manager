@@ -13,14 +13,14 @@
 
     <!-- Tableau des déplacements -->
     <div class="table-responsive">
-        <table id="travelDataTable" class="table table-dark w-100">
+        <table class="table table-dark data-table">
             <thead>
                 <tr>
-                    <th style="width: 15%">Date</th>
-                    <th style="width: 15%">Personne</th>
-                    <th style="width: 15%">Kilomètres</th>
-                    <th style="width: 40%">Commentaire</th>
-                    <th style="width: 15%">Actions</th>
+                    <th>Date</th>
+                    <th>Personne</th>
+                    <th>Kilomètres</th>
+                    <th>Commentaire</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -188,42 +188,7 @@
         addModal = new bootstrap.Modal(document.getElementById('addTravelModal'));
         editModal = new bootstrap.Modal(document.getElementById('editTravelModal'));
         
-        // Configuration de DataTables
-        const dataTableConfig = {
-            "paging": true,
-            "searching": true,
-            "ordering": true,
-            "info": true,
-            "autoWidth": false,
-            "responsive": true,
-            "pageLength": 10,
-            "scrollX": false,
-            "language": {
-                "search": "🔍 Rechercher :",
-                "lengthMenu": "Afficher _MENU_ entrées",
-                "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-                "infoEmpty": "Aucune entrée à afficher",
-                "infoFiltered": "(filtré de _MAX_ entrées au total)",
-                "zeroRecords": "Aucun résultat trouvé",
-                "paginate": {
-                    "first": "Premier",
-                    "last": "Dernier",
-                    "next": "Suivant",
-                    "previous": "Précédent"
-                }
-            },
-            "order": [[0, 'desc']], // Tri par date décroissant par défaut
-            "columnDefs": [
-                { "orderable": false, "targets": 4 }, // Désactive le tri sur la colonne des actions
-                { "width": "15%", "targets": [0, 1, 2, 4] },
-                { "width": "40%", "targets": 3 }
-            ]
-        };
-
-        // Initialisation de DataTables avec un ID spécifique
-        travelTable = $('#travelDataTable').DataTable(dataTableConfig);
-        
-        // Initialisation des sélecteurs de mois et d'années
+        // Initialisation des sélecteurs
         initializeSelects();
         
         // Chargement initial des données
@@ -338,6 +303,10 @@
             monthSelect.value = new Date().getMonth() + 1;
             yearSelect.value = currentYear;
         });
+
+        // Mise à jour initiale des statistiques
+        updateStats('thomas');
+        updateStats('olivier');
     }
 
     function updateStats(person) {
@@ -356,7 +325,7 @@
                 });
                 
                 // Calculer les statistiques
-                const totalKm = filteredData.reduce((sum, travel) => sum + (travel.kilometers || 0), 0);
+                const totalKm = filteredData.reduce((sum, travel) => sum + (parseFloat(travel.kilometers) || 0), 0);
                 const count = filteredData.length;
                 
                 // Mettre à jour l'affichage
@@ -382,11 +351,11 @@
                 // Calculer les totaux par personne
                 const thomasTotal = yearData
                     .filter(t => t.person.toLowerCase() === 'thomas')
-                    .reduce((sum, t) => sum + (t.kilometers || 0), 0);
+                    .reduce((sum, t) => sum + (parseFloat(t.kilometers) || 0), 0);
                 
                 const olivierTotal = yearData
                     .filter(t => t.person.toLowerCase() === 'olivier')
-                    .reduce((sum, t) => sum + (t.kilometers || 0), 0);
+                    .reduce((sum, t) => sum + (parseFloat(t.kilometers) || 0), 0);
                 
                 // Mettre à jour l'affichage
                 document.getElementById('thomasAnnualKm').textContent = `${thomasTotal.toFixed(1)} km`;
@@ -399,43 +368,63 @@
         fetch('/api/travels')
             .then(response => response.json())
             .then(data => {
-                // Mettre à jour les données dans la table existante
-                travelTable.clear();
+                if ($.fn.DataTable.isDataTable('.data-table')) {
+                    $('.data-table').DataTable().destroy();
+                }
+                
+                const tbody = $('.data-table tbody');
+                tbody.empty();
                 
                 data.forEach(travel => {
-                    travelTable.row.add([
-                        `<span class="travel-date">${new Date(travel.date).toLocaleDateString()}</span>`,
-                        travel.person,
-                        `<span class="travel-km">${travel.kilometers || '-'}</span>`,
-                        `<span class="travel-comment">${travel.comment || '-'}</span>`,
-                        `<button class="btn btn-action btn-edit" onclick="editTravel(${travel.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-action btn-delete" onclick="deleteTravel(${travel.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>`
-                    ]);
+                    tbody.append(`
+                        <tr>
+                            <td><span class="travel-date">${new Date(travel.date).toLocaleDateString()}</span></td>
+                            <td>${travel.person}</td>
+                            <td><span class="travel-km">${travel.kilometers || '-'}</span></td>
+                            <td><span class="travel-comment">${travel.comment || '-'}</span></td>
+                            <td>
+                                <button class="btn btn-action btn-edit" onclick="editTravel(${travel.id})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-action btn-delete" onclick="deleteTravel(${travel.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `);
                 });
                 
-                travelTable.draw();
+                $('.data-table').DataTable({
+                    "language": {
+                        "search": "🔍 Rechercher :",
+                        "lengthMenu": "Afficher _MENU_ entrées",
+                        "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                        "infoEmpty": "Aucune entrée à afficher",
+                        "infoFiltered": "(filtré de _MAX_ entrées au total)",
+                        "zeroRecords": "Aucun résultat trouvé",
+                        "paginate": {
+                            "first": "Premier",
+                            "last": "Dernier",
+                            "next": "Suivant",
+                            "previous": "Précédent"
+                        }
+                    },
+                    "order": [[0, 'desc']]
+                });
             });
     }
 
     function editTravel(id) {
-        // Récupérer les données du déplacement
-        fetch(`/api/travels`)
+        fetch('/api/travels')
             .then(response => response.json())
             .then(data => {
                 const travel = data.find(t => t.id === id);
                 if (travel) {
-                    // Remplir le formulaire avec les données existantes
                     document.getElementById('editTravelId').value = travel.id;
                     document.getElementById('editTravelDate').value = travel.date.split('T')[0];
                     document.getElementById('editTravelPerson').value = travel.person;
                     document.getElementById('editTravelKm').value = travel.kilometers || '';
                     document.getElementById('editTravelComment').value = travel.comment || '';
-                    
-                    // Ouvrir le modal
                     editModal.show();
                 }
             });
