@@ -3,6 +3,7 @@ import os
 from selenium import webdriver
 import logging
 import sys
+import time
 
 # Suppression des logs Selenium/DevTools
 logging.getLogger('selenium').setLevel(logging.CRITICAL)
@@ -13,185 +14,95 @@ sys.stderr = open(os.devnull, 'w')
 KEEPA_API_KEY = os.getenv("KEEPA_API_KEY", "ftclrhsi754hf3tblbljldbonk7n4cuthggk8gnt88c4k2sjkmre8th8cjf65jnc")
 KEEPA_URL = "https://api.keepa.com/product"
 
-def get_asin_from_ean(ean):
-    """🔍 Recherche un ASIN via un EAN en utilisant Keepa API."""
-    try:
-        params = {
-            "key": KEEPA_API_KEY,
-            "domain": 4,  # Amazon France
-            "code": ean  # Keepa utilise "code" pour les recherches EAN/UPC
-        }
-
-        response = requests.get(KEEPA_URL, params=params, timeout=10)
-        data = response.json()
-
-        if not data or "error" in data:
-            return None
-
-        if "products" in data and len(data["products"]) > 0:
-            asin = data["products"][0].get("asin")
-            if asin:
-                return asin
-
-    except (requests.exceptions.Timeout, requests.exceptions.RequestException):
-        pass
-
-    return None
-
-
 def get_keepa_data(ean, prix_retail):
     """🔍 Récupère les données Keepa pour un produit via EAN."""
-    if not isinstance(ean, str) or len(ean) < 8:
-        return None
-        
     try:
-        # Configuration optimisée pour recherche EAN
         params = {
             'key': KEEPA_API_KEY,
-            'domain': '4',      # Amazon.fr
-            'code': ean,
-            'code_type': 'ean', # Spécifie explicitement la recherche par EAN
-            'stats': '180',     # Statistiques sur 180 jours
-            'buybox': '1',      # Info buybox
-            'update': '1',      # Force la mise à jour
-            'rating': '1',      # Inclut les évaluations
-            'out_of_stock': '1' # Inclut les produits en rupture
+            'domain': 4,        # Amazon.fr
+            'code': ean,        # EAN du produit
+            'offers': 20,       # Nombre minimum d'offres requis
+            'history': 1,       # Historique des prix
+            'stats': 1          # Statistiques de vente
         }
         
         response = requests.get(KEEPA_URL, params=params, timeout=15)
-        
-        if response.status_code != 200:
-            print(f"Erreur API Keepa ({response.status_code}) pour EAN {ean}")
-            return None
-            
         data = response.json()
         
-        # Log pour debug
-        if 'error' in data:
-            print(f"Erreur Keepa pour EAN {ean}: {data.get('error', {}).get('message', 'Erreur inconnue')}")
-            return None
-            
         if not data.get('products'):
-            print(f"Aucun produit trouvé sur Keepa pour EAN {ean}")
+            print(f"❌ {ean}: Aucune donnée Keepa")
             return None
             
         product = data['products'][0]
+        stats = product.get('stats', {})
         
-        # Récupération du prix (d'abord Amazon, puis vendeurs tiers)
-        current_amazon_price = None
-        
-        if 'stats' in product:
-            stats = product['stats']
-            current = stats.get('current', [])
-            
-            # Prix Amazon (index 1)
-            if len(current) > 1 and current[1] is not None and current[1] > 0:
-                current_amazon_price = float(current[1]) / 100.0
-            
-            # Prix vendeur tiers (index 2) si pas de prix Amazon
-            elif len(current) > 2 and current[2] is not None and current[2] > 0:
-                current_amazon_price = float(current[2]) / 100.0
-                
-            # Prix nouveau vendeur tiers (index 3) en dernier recours
-            elif len(current) > 3 and current[3] is not None and current[3] > 0:
-                current_amazon_price = float(current[3]) / 100.0
-        
-        if current_amazon_price:
-            difference = current_amazon_price - prix_retail
-            profit = difference * 0.7
-            
-            # Estimation des ventes basée sur l'historique du rang des ventes sur 30 jours
-            sales_estimation = 0
-            if 'stats' in product:
-                # Récupération de l'historique du rang des ventes
-                sales_rank_history = product.get('stats', {}).get('salesRankDrops30', None)
-                if sales_rank_history is not None:
-                    # Le nombre de drops dans le rang = nombre approximatif de ventes
-                    sales_estimation = sales_rank_history[0] if isinstance(sales_rank_history, list) else sales_rank_history
-                    print(f"Ventes estimées pour {ean}: {sales_estimation} (basé sur les variations de rang sur 30 jours)")
-
-            # Vérification améliorée pour Private Label
-            is_pl = False
-            manufacturer = product.get('manufacturer', '').lower()
-            brand = product.get('brand', '').lower()
-            title = product.get('title', '').lower()
-            
-            # Marques connues qui ne sont PAS des Private Labels
-            known_brands = {
-                'samsung', 'apple', 'sony', 'lg', 'philips', 'nintendo', 'microsoft', 'hp', 
-                'dell', 'asus', 'acer', 'lenovo', 'logitech', 'canon', 'nikon', 'adidas', 
-                'nike', 'puma', 'tefal', 'moulinex', 'seb', 'lego', 'playmobil', 'mattel',
-                'hasbro', 'bandai', 'vtech', 'fisher-price', 'chicco', 'pampers', 'huggies'
-            }
-
-            # Mots-clés indiquant un PL
-            pl_keywords = [
-                'generic', 'générique', 'marque générique', 'sans marque', 'unbranded',
-                'vendeur pro', 'marque distributeur', 'white label', 'own brand',
-                'private label', 'pl ', 'mdp', 'mdd'
-            ]
-
-            # Indicateurs de marque distributeur
-            store_brands = [
-                'amazon basics', 'amazonbasics', 'carrefour', 'auchan', 'leclerc', 'lidl', 
-                'casino', 'monoprix', 'intermarché', 'u ', 'stokomani'
-            ]
-
-            def is_known_brand():
-                return any(brand.startswith(kb) or manufacturer.startswith(kb) for kb in known_brands)
-
-            # 1. Vérification des marques connues (non PL)
-            if is_known_brand():
-                is_pl = False
-                print(f"Marque connue détectée pour {ean}: {brand or manufacturer}")
-            
-            # 2. Vérification des mots-clés PL
-            elif any(keyword in manufacturer for keyword in pl_keywords) or \
-                 any(keyword in brand for keyword in pl_keywords) or \
-                 any(keyword in title.lower() for keyword in pl_keywords):
-                is_pl = True
-                print(f"Mots-clés PL détectés pour {ean}")
-
-            # 3. Vérification des marques distributeur
-            elif any(sb in brand.lower() or sb in manufacturer.lower() for sb in store_brands):
-                is_pl = True
-                print(f"Marque distributeur détectée pour {ean}")
-
-            # 4. Vérification des cas particuliers
-            elif manufacturer == '' or brand == '':
-                is_pl = True
-                print(f"Marque/Fabricant manquant pour {ean}")
-            elif manufacturer == brand and manufacturer != '':
-                is_pl = True
-                print(f"Fabricant = Marque pour {ean}")
-            elif manufacturer.lower() in title.lower() or brand.lower() in title.lower():
-                is_pl = True
-                print(f"Marque dans le titre pour {ean}")
-
-            # Debug info
-            print(f"Analyse PL pour {ean}:")
-            print(f"- Marque: {brand}")
-            print(f"- Fabricant: {manufacturer}")
-            print(f"- Résultat: {'PL' if is_pl else 'Non PL'}")
-
-            return {
-                'status': 'OK',
-                'prix_amazon': current_amazon_price,
-                'difference': difference,
-                'profit': profit,
-                'asin': product.get('asin'),
-                'nom': product.get('title', 'Nom non trouvé'),
-                'url': f"https://www.amazon.fr/dp/{product.get('asin')}",
-                'sales_estimation': sales_estimation,
-                'is_pl': is_pl
-            }
+        # Prix Buy Box courante (index 18 dans le tableau current)
+        current = stats.get('current', [])
+        if len(current) > 18 and current[18] is not None and current[18] > 0:
+            prix_amazon = float(current[18]) / 100.0
         else:
-            print(f"Aucun prix valide trouvé sur Keepa pour EAN {ean}")
+            print(f"❌ {ean}: Pas de Buy Box")
+            return None
+            
+        # Estimation des ventes (30 derniers jours)
+        sales_estimation = stats.get('salesRankDrops30', 0)
         
-        return None
+        # Détection PL (basée sur le nombre de vendeurs)
+        offers = product.get('offers', [])
+        is_pl = len(offers) <= 2  # Si 2 vendeurs ou moins, considéré comme PL
         
+        # Calcul des frais Amazon (selon calculateur Amazon)
+        frais_vente = prix_amazon * 0.13  # 13% du prix de vente
+        frais_digital = 0.25  # Frais des services numériques
+        frais_gestion = frais_vente + frais_digital  # Total frais de gestion
+        frais_expedition = 5.87  # Tarif d'expédition de base
+        frais_stockage = 0.10  # Coût de stockage mensuel par unité
+        
+        # Total des frais et TVA
+        frais_totaux = frais_gestion + frais_expedition + frais_stockage
+        tva_frais = frais_totaux * 0.20
+        
+        # Calcul du profit et ROI
+        profit = prix_amazon - prix_retail - frais_totaux - tva_frais
+        roi = (profit * 100 / prix_retail) if prix_retail > 0 else 0
+        marge_nette = (profit * 100 / prix_amazon) if prix_amazon > 0 else 0
+        
+        # Vérification des critères avec logs détaillés
+        if is_pl:
+            print(f"❌ {ean}: Rejeté - Produit PL ({len(offers)} vendeurs)")
+            return None
+            
+        if sales_estimation <= 1:
+            print(f"❌ {ean}: Rejeté - Pas assez de ventes ({sales_estimation} ventes/30j)")
+            return None
+            
+        if roi <= 20:
+            print(f"❌ {ean}: Rejeté - ROI insuffisant ({roi:.2f}% <= 20%)")
+            return None
+            
+        print(f"✅ Produit trouvé - EAN: {ean}")
+        print(f"   Prix Amazon: {prix_amazon:.2f}€ | Prix achat: {prix_retail:.2f}€ | ROI: {roi:.2f}% | Ventes: {sales_estimation}")
+        
+        return {
+            'status': 'OK',
+            'prix_amazon': prix_amazon,
+            'prix_retail': prix_retail,
+            'profit': profit,
+            'roi': roi,
+            'marge_nette': marge_nette,
+            'sales_estimation': sales_estimation,
+            'is_pl': is_pl,
+            'frais_totaux': frais_totaux,
+            'tva_frais': tva_frais,
+            'frais_gestion': frais_gestion,
+            'frais_expedition': frais_expedition,
+            'frais_stockage': frais_stockage,
+            'frais_vente': frais_vente,
+            'frais_digital': frais_digital
+        }
+            
     except Exception as e:
-        print(f"Erreur technique Keepa pour EAN {ean}: {str(e)}")
+        print(f"❌ {ean}: Erreur - {str(e)}")
         return None
 
 # Configuration Selenium pour supprimer les messages

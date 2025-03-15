@@ -9,7 +9,10 @@
     <h1 class="mb-4">📦 Gestion du Stock</h1>
 
     <!-- ✅ Bouton pour afficher le formulaire d'ajout -->
-    <div class="d-flex justify-content-end mb-3">
+    <div class="d-flex justify-content-end mb-3 gap-2">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#scanModal">
+            <i class="fas fa-barcode"></i> Scanner un produit
+        </button>
         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addStockModal">
             <i class="fas fa-plus"></i> Ajouter un produit
         </button>
@@ -108,6 +111,67 @@
         </div>
     </div>
 
+    <!-- Modal pour le scan -->
+    <div class="modal fade" id="scanModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title">Scanner un produit</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Scanner le code-barre</label>
+                        <input type="text" id="barcodeInput" class="form-control" placeholder="Scanner ou saisir le code-barre" autofocus>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour les informations après scan -->
+    <div class="modal fade" id="scanInfoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title">Informations du produit scanné</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="scanStockForm" method="post" action="/add_scanned_stock">
+                        <div class="mb-3">
+                            <label class="form-label">Nom du produit</label>
+                            <input type="text" id="scanNom" name="nom" class="form-control" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">EAN</label>
+                            <input type="text" id="scanEan" name="ean" class="form-control" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Magasin</label>
+                            <select name="magasin" class="form-select" required>
+                                <option value="">Sélectionner un magasin</option>
+                                {% for magasin in magasins %}
+                                <option value="{{ magasin.nom }}">{{ magasin.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Prix d'achat unitaire (€)</label>
+                            <input type="number" step="0.01" name="prix_achat" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Quantité</label>
+                            <input type="number" name="quantite" class="form-control" required>
+                        </div>
+                        <input type="hidden" name="statut" value="Acheté/en stock">
+                        <button type="submit" class="btn btn-success w-100">✅ Ajouter au stock</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const quantityModal = new bootstrap.Modal(document.getElementById('quantityModal'));
@@ -174,6 +238,48 @@
                 select.value = select.dataset.originalValue;
                 quantityModal.hide();
             });
+        });
+
+        // Gestion du scan
+        const scanModal = new bootstrap.Modal(document.getElementById('scanModal'));
+        const scanInfoModal = new bootstrap.Modal(document.getElementById('scanInfoModal'));
+        const barcodeInput = document.getElementById('barcodeInput');
+
+        barcodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const ean = this.value;
+                
+                // Appel à l'API pour récupérer les infos du produit
+                fetch(`/get_product_info/${ean}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Remplir le formulaire avec les données
+                            document.getElementById('scanNom').value = data.nom;
+                            document.getElementById('scanEan').value = data.ean;
+                            
+                            // Fermer le modal de scan et ouvrir celui des infos
+                            scanModal.hide();
+                            scanInfoModal.show();
+                            
+                            // Réinitialiser le champ de scan
+                            this.value = '';
+                        } else {
+                            alert('Produit non trouvé dans la base de données');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        alert('Erreur lors de la récupération des informations du produit');
+                    });
+            }
+        });
+
+        // Réinitialiser le champ de scan quand le modal est ouvert
+        document.getElementById('scanModal').addEventListener('shown.bs.modal', function () {
+            barcodeInput.value = '';
+            barcodeInput.focus();
         });
     });
     </script>

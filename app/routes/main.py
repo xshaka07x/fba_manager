@@ -271,3 +271,82 @@ def update_stock_quantity():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
+
+@main_bp.route('/get_product_info/<ean>', methods=['GET'])
+def get_product_info(ean):
+    """Récupère les informations d'un produit à partir de son EAN."""
+    try:
+        # Chercher d'abord dans la table ProductKeepa
+        product = db.session.query(ProductKeepa).filter_by(ean=ean).first()
+        
+        if not product:
+            # Si pas trouvé, chercher dans la table Product
+            product = db.session.query(Product).filter_by(ean=ean).first()
+            
+        if not product:
+            # Si toujours pas trouvé, essayer de récupérer via l'API Keepa
+            keepa_data = get_keepa_data(ean, 0)  # prix_retail = 0 car on ne le connaît pas encore
+            if keepa_data and keepa_data.get('status') == 'OK':
+                return jsonify({
+                    'success': True,
+                    'nom': keepa_data.get('nom', ''),
+                    'ean': ean,
+                    'prix_amazon': keepa_data.get('prix_amazon', 0)
+                })
+            return jsonify({'success': False, 'message': 'Produit non trouvé'})
+            
+        return jsonify({
+            'success': True,
+            'nom': product.nom,
+            'ean': product.ean,
+            'prix_amazon': product.prix_amazon
+        })
+        
+    except Exception as e:
+        print(f"Erreur lors de la récupération des informations du produit : {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@main_bp.route('/add_scanned_stock', methods=['POST'])
+def add_scanned_stock():
+    """Ajoute un produit scanné au stock."""
+    try:
+        # Récupération des données du formulaire
+        nom = request.form.get('nom')
+        ean = request.form.get('ean')
+        magasin = request.form.get('magasin')
+        prix_achat = float(request.form.get('prix_achat'))
+        quantite = int(request.form.get('quantite'))
+        
+        # Récupération des données Keepa
+        keepa_data = get_keepa_data(ean, prix_achat)
+        if not keepa_data:
+            return "Erreur : Impossible de récupérer les données Keepa.", 500
+            
+        prix_amazon = keepa_data.get('prix_amazon', 0)
+        profit = keepa_data.get('profit', 0)
+        roi = (profit * 100 / prix_achat) if prix_achat > 0 else 0
+        
+        # Création de l'entrée dans le stock
+        new_stock = Stock(
+            group_id=str(uuid.uuid4()),
+            ean=ean,
+            nom=nom,
+            magasin=magasin,
+            prix_achat=prix_achat,
+            prix_amazon=prix_amazon,
+            roi=roi,
+            profit=profit,
+            date_achat=datetime.now(),
+            quantite=quantite,
+            statut="Acheté/en stock"
+        )
+
+        db.session.add(new_stock)
+        db.session.commit()
+
+        return redirect(url_for('main.stock'))
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Erreur lors de l'ajout du produit scanné : {e}")
+        return f"Erreur lors de l'ajout : {str(e)}", 500
