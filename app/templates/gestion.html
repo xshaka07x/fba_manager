@@ -13,7 +13,7 @@
 
     <!-- Tableau des déplacements -->
     <div class="table-responsive">
-        <table class="table travel-table">
+        <table class="table table-dark data-table">
             <thead>
                 <tr>
                     <th>Date</th>
@@ -116,11 +116,41 @@
 <script>
     // Initialisation des modals Bootstrap
     let addModal, editModal;
+    let travelTable;
     
     document.addEventListener('DOMContentLoaded', function() {
         // Initialisation des modals
         addModal = new bootstrap.Modal(document.getElementById('addTravelModal'));
         editModal = new bootstrap.Modal(document.getElementById('editTravelModal'));
+        
+        // Initialisation de DataTables
+        travelTable = $('.data-table').DataTable({
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            "pageLength": 10,
+            "language": {
+                "search": "🔍 Rechercher :",
+                "lengthMenu": "Afficher _MENU_ entrées",
+                "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                "infoEmpty": "Aucune entrée à afficher",
+                "infoFiltered": "(filtré de _MAX_ entrées au total)",
+                "zeroRecords": "Aucun résultat trouvé",
+                "paginate": {
+                    "first": "Premier",
+                    "last": "Dernier",
+                    "next": "Suivant",
+                    "previous": "Précédent"
+                }
+            },
+            "order": [[0, 'desc']], // Tri par date décroissant par défaut
+            "columnDefs": [
+                { "orderable": false, "targets": 4 } // Désactive le tri sur la colonne des actions
+            ]
+        });
         
         loadTravels();
 
@@ -202,6 +232,11 @@
         fetch('/api/travels')
             .then(response => response.json())
             .then(data => {
+                // Vider et détruire l'instance DataTable existante
+                if (travelTable) {
+                    travelTable.clear().destroy();
+                }
+                
                 const tbody = document.getElementById('travelTable');
                 tbody.innerHTML = '';
                 
@@ -222,6 +257,35 @@
                         </td>
                     `;
                     tbody.appendChild(row);
+                });
+
+                // Réinitialiser DataTable
+                travelTable = $('.data-table').DataTable({
+                    "paging": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": true,
+                    "autoWidth": false,
+                    "responsive": true,
+                    "pageLength": 10,
+                    "language": {
+                        "search": "🔍 Rechercher :",
+                        "lengthMenu": "Afficher _MENU_ entrées",
+                        "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                        "infoEmpty": "Aucune entrée à afficher",
+                        "infoFiltered": "(filtré de _MAX_ entrées au total)",
+                        "zeroRecords": "Aucun résultat trouvé",
+                        "paginate": {
+                            "first": "Premier",
+                            "last": "Dernier",
+                            "next": "Suivant",
+                            "previous": "Précédent"
+                        }
+                    },
+                    "order": [[0, 'desc']], // Tri par date décroissant par défaut
+                    "columnDefs": [
+                        { "orderable": false, "targets": 4 } // Désactive le tri sur la colonne des actions
+                    ]
                 });
             });
     }
