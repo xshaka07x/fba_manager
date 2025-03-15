@@ -13,7 +13,7 @@
 
     <!-- Tableau des déplacements -->
     <div class="table-responsive">
-        <table class="table table-striped">
+        <table class="table travel-table">
             <thead>
                 <tr>
                     <th>Date</th>
@@ -36,7 +36,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addTravelModalLabel">Ajouter un déplacement</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="travelForm">
@@ -46,7 +46,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="travelPerson" class="form-label">Personne*</label>
-                        <select class="form-select" id="travelPerson" required>
+                        <select class="form-select form-control" id="travelPerson" required>
                             <option value="">Sélectionner une personne</option>
                             <option value="Thomas">Thomas</option>
                             <option value="Olivier">Olivier</option>
@@ -70,16 +70,61 @@
     </div>
 </div>
 
+<!-- Modal de modification de déplacement -->
+<div class="modal fade" id="editTravelModal" tabindex="-1" aria-labelledby="editTravelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTravelModalLabel">Modifier un déplacement</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTravelForm">
+                    <input type="hidden" id="editTravelId">
+                    <div class="mb-3">
+                        <label for="editTravelDate" class="form-label">Date*</label>
+                        <input type="date" class="form-control" id="editTravelDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTravelPerson" class="form-label">Personne*</label>
+                        <select class="form-select form-control" id="editTravelPerson" required>
+                            <option value="">Sélectionner une personne</option>
+                            <option value="Thomas">Thomas</option>
+                            <option value="Olivier">Olivier</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTravelKm" class="form-label">Kilomètres</label>
+                        <input type="number" class="form-control" id="editTravelKm" min="0" step="0.1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTravelComment" class="form-label">Commentaire</label>
+                        <textarea class="form-control" id="editTravelComment" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="updateTravelBtn">Mettre à jour</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Le code JavaScript sera ajouté ici pour gérer les interactions
+    // Initialisation des modals Bootstrap
+    let addModal, editModal;
+    
     document.addEventListener('DOMContentLoaded', function() {
-        // Chargement initial des déplacements
+        // Initialisation des modals
+        addModal = new bootstrap.Modal(document.getElementById('addTravelModal'));
+        editModal = new bootstrap.Modal(document.getElementById('editTravelModal'));
+        
         loadTravels();
 
-        // Gestionnaire pour le bouton d'enregistrement
+        // Gestionnaire pour l'ajout
         document.getElementById('saveTravelBtn').addEventListener('click', function() {
             const form = document.getElementById('travelForm');
             const date = document.getElementById('travelDate').value;
@@ -92,7 +137,6 @@
                 return;
             }
 
-            // Envoi des données au serveur
             fetch('/api/travels', {
                 method: 'POST',
                 headers: {
@@ -108,12 +152,47 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Recharger les données et fermer le modal
                     loadTravels();
-                    $('#addTravelModal').modal('hide');
+                    addModal.hide();
                     form.reset();
                 } else {
                     alert('Erreur lors de l\'enregistrement');
+                }
+            });
+        });
+
+        // Gestionnaire pour la modification
+        document.getElementById('updateTravelBtn').addEventListener('click', function() {
+            const id = document.getElementById('editTravelId').value;
+            const date = document.getElementById('editTravelDate').value;
+            const person = document.getElementById('editTravelPerson').value;
+            const km = document.getElementById('editTravelKm').value;
+            const comment = document.getElementById('editTravelComment').value;
+
+            if (!date || !person) {
+                alert('La date et la personne sont obligatoires !');
+                return;
+            }
+
+            fetch(`/api/travels/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    date: date,
+                    person: person,
+                    kilometers: km || null,
+                    comment: comment || null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadTravels();
+                    editModal.hide();
+                } else {
+                    alert('Erreur lors de la modification');
                 }
             });
         });
@@ -129,15 +208,15 @@
                 data.forEach(travel => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${new Date(travel.date).toLocaleDateString()}</td>
+                        <td class="travel-date">${new Date(travel.date).toLocaleDateString()}</td>
                         <td>${travel.person}</td>
-                        <td>${travel.kilometers || '-'}</td>
-                        <td>${travel.comment || '-'}</td>
+                        <td class="travel-km">${travel.kilometers || '-'}</td>
+                        <td class="travel-comment">${travel.comment || '-'}</td>
                         <td>
-                            <button class="btn btn-sm btn-warning" onclick="editTravel(${travel.id})">
+                            <button class="btn btn-action btn-edit" onclick="editTravel(${travel.id})">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteTravel(${travel.id})">
+                            <button class="btn btn-action btn-delete" onclick="deleteTravel(${travel.id})">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
@@ -145,6 +224,46 @@
                     tbody.appendChild(row);
                 });
             });
+    }
+
+    function editTravel(id) {
+        // Récupérer les données du déplacement
+        fetch(`/api/travels`)
+            .then(response => response.json())
+            .then(data => {
+                const travel = data.find(t => t.id === id);
+                if (travel) {
+                    // Remplir le formulaire avec les données existantes
+                    document.getElementById('editTravelId').value = travel.id;
+                    document.getElementById('editTravelDate').value = travel.date.split('T')[0];
+                    document.getElementById('editTravelPerson').value = travel.person;
+                    document.getElementById('editTravelKm').value = travel.kilometers || '';
+                    document.getElementById('editTravelComment').value = travel.comment || '';
+                    
+                    // Ouvrir le modal
+                    editModal.show();
+                }
+            });
+    }
+
+    function deleteTravel(id) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer ce déplacement ?')) {
+            fetch(`/api/travels/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadTravels();
+                } else {
+                    alert('Erreur lors de la suppression');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la suppression');
+            });
+        }
     }
 </script>
 {% endblock %} 

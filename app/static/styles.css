@@ -322,6 +322,182 @@ input:focus, select:focus {
     background: #008ba3;
 }
 
+/* 🚗 Styles pour la page de gestion des déplacements */
+.travel-table {
+    background-color: #202020;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.travel-table thead th {
+    background-color: #2c2c2c;
+    color: #ffffff;
+    border-bottom: 2px solid #444;
+    padding: 15px;
+    font-weight: 600;
+}
+
+.travel-table tbody td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #333;
+    color: #e0e0e0;
+}
+
+.travel-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Modal de déplacement */
+.modal-content {
+    background-color: #202020;
+    border: 1px solid #444;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    border-bottom: 1px solid #444;
+    padding: 20px;
+    background-color: #2c2c2c;
+}
+
+.modal-title {
+    color: #ffffff;
+    font-size: 1.5rem;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    border-top: 1px solid #444;
+    padding: 20px;
+    background-color: #2c2c2c;
+}
+
+/* Formulaire dans le modal */
+.form-label {
+    color: #ffffff;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    background-color: #333;
+    border: 1px solid #444;
+    color: #ffffff;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.form-control:focus {
+    background-color: #3a3a3a;
+    border-color: #00bcd4;
+    box-shadow: 0 0 0 0.2rem rgba(0, 188, 212, 0.25);
+    color: #ffffff;
+}
+
+/* Boutons du modal */
+.modal .btn-secondary {
+    background-color: #444;
+    border-color: #555;
+    color: #ffffff;
+}
+
+.modal .btn-secondary:hover {
+    background-color: #555;
+    border-color: #666;
+}
+
+.modal .btn-primary {
+    background-color: #00bcd4;
+    border-color: #00bcd4;
+    color: #ffffff;
+}
+
+.modal .btn-primary:hover {
+    background-color: #008ba3;
+    border-color: #008ba3;
+}
+
+/* Actions dans le tableau */
+.btn-action {
+    padding: 6px 12px;
+    margin: 0 3px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-edit {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000000;
+}
+
+.btn-edit:hover {
+    background-color: #e0a800;
+    border-color: #e0a800;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #ffffff;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+    border-color: #c82333;
+}
+
+/* Style pour la date et les kilomètres */
+.travel-date, .travel-km {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9rem;
+}
+
+/* Style pour les commentaires */
+.travel-comment {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.travel-comment:hover {
+    white-space: normal;
+    overflow: visible;
+    background-color: #2c2c2c;
+    position: absolute;
+    z-index: 1000;
+    padding: 8px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive design pour le tableau */
+@media (max-width: 768px) {
+    .travel-table {
+        font-size: 0.9rem;
+    }
+    
+    .travel-table td, .travel-table th {
+        padding: 8px;
+    }
+    
+    .btn-action {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+    
+    .travel-comment {
+        max-width: 150px;
+    }
+}
+
 
 
 
