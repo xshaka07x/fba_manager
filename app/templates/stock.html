@@ -121,8 +121,21 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Scanner le code-barre</label>
-                        <input type="text" id="barcodeInput" class="form-control" placeholder="Scanner ou saisir le code-barre" autofocus>
+                        <div id="interactive" class="viewport">
+                            <video autoplay="true" preload="auto" src="" muted="true" playsinline="true"></video>
+                            <canvas class="drawingBuffer"></canvas>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button id="startButton" class="btn btn-primary">
+                                <i class="fas fa-camera"></i> Démarrer la caméra
+                            </button>
+                            <button id="stopButton" class="btn btn-danger" style="display: none;">
+                                <i class="fas fa-stop"></i> Arrêter
+                            </button>
+                        </div>
+                        <hr>
+                        <label class="form-label">Ou saisir le code-barre manuellement :</label>
+                        <input type="text" id="barcodeInput" class="form-control" placeholder="Scanner ou saisir le code-barre">
                     </div>
                 </div>
             </div>
@@ -172,12 +185,133 @@
         </div>
     </div>
 
+    <style>
+    #interactive.viewport {
+        position: relative;
+        width: 100%;
+        height: 300px;
+    }
+    #interactive.viewport > canvas, #interactive.viewport > video {
+        max-width: 100%;
+        width: 100%;
+    }
+    canvas.drawing, canvas.drawingBuffer {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+    .modal-body .mb-3 {
+        margin-bottom: 1rem !important;
+    }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const quantityModal = new bootstrap.Modal(document.getElementById('quantityModal'));
         const quantityForm = document.getElementById('quantityForm');
         const partialQuantityInput = document.getElementById('partialQuantityInput');
-        
+        const scanModal = new bootstrap.Modal(document.getElementById('scanModal'));
+        const scanInfoModal = new bootstrap.Modal(document.getElementById('scanInfoModal'));
+        const barcodeInput = document.getElementById('barcodeInput');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        let Quagga = window.Quagga;
+        let scanning = false;
+
+        // Fonction pour initialiser Quagga
+        function initQuagga() {
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector("#interactive"),
+                    constraints: {
+                        facingMode: "environment"
+                    },
+                },
+                decoder: {
+                    readers: ["ean_reader", "ean_8_reader"]
+                }
+            }, function(err) {
+                if (err) {
+                    console.error(err);
+                    alert("Erreur d'accès à la caméra");
+                    return;
+                }
+                scanning = true;
+                startButton.style.display = 'none';
+                stopButton.style.display = 'inline-block';
+                Quagga.start();
+            });
+
+            Quagga.onDetected(function(result) {
+                let code = result.codeResult.code;
+                if (code) {
+                    stopScanning();
+                    processBarcode(code);
+                }
+            });
+        }
+
+        // Fonction pour arrêter le scan
+        function stopScanning() {
+            if (scanning) {
+                Quagga.stop();
+                scanning = false;
+                startButton.style.display = 'inline-block';
+                stopButton.style.display = 'none';
+            }
+        }
+
+        // Fonction pour traiter le code-barre
+        function processBarcode(code) {
+            fetch(`/get_product_info/${code}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('scanNom').value = data.nom;
+                        document.getElementById('scanEan').value = data.ean;
+                        
+                        scanModal.hide();
+                        scanInfoModal.show();
+                        
+                        barcodeInput.value = '';
+                        stopScanning();
+                    } else {
+                        alert('Produit non trouvé dans la base de données');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la récupération des informations du produit');
+                });
+        }
+
+        // Event listeners
+        startButton.addEventListener('click', initQuagga);
+        stopButton.addEventListener('click', stopScanning);
+
+        // Gestion de la saisie manuelle
+        barcodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                processBarcode(this.value);
+            }
+        });
+
+        // Arrêter le scan quand on ferme le modal
+        document.getElementById('scanModal').addEventListener('hidden.bs.modal', function () {
+            stopScanning();
+            barcodeInput.value = '';
+        });
+
+        // Réinitialiser quand on ouvre le modal
+        document.getElementById('scanModal').addEventListener('shown.bs.modal', function () {
+            barcodeInput.value = '';
+            barcodeInput.focus();
+        });
+
         // Gestion de l'affichage du champ de quantité
         document.querySelectorAll('input[name="quantityType"]').forEach(radio => {
             radio.addEventListener('change', function() {
@@ -238,48 +372,6 @@
                 select.value = select.dataset.originalValue;
                 quantityModal.hide();
             });
-        });
-
-        // Gestion du scan
-        const scanModal = new bootstrap.Modal(document.getElementById('scanModal'));
-        const scanInfoModal = new bootstrap.Modal(document.getElementById('scanInfoModal'));
-        const barcodeInput = document.getElementById('barcodeInput');
-
-        barcodeInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const ean = this.value;
-                
-                // Appel à l'API pour récupérer les infos du produit
-                fetch(`/get_product_info/${ean}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Remplir le formulaire avec les données
-                            document.getElementById('scanNom').value = data.nom;
-                            document.getElementById('scanEan').value = data.ean;
-                            
-                            // Fermer le modal de scan et ouvrir celui des infos
-                            scanModal.hide();
-                            scanInfoModal.show();
-                            
-                            // Réinitialiser le champ de scan
-                            this.value = '';
-                        } else {
-                            alert('Produit non trouvé dans la base de données');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erreur:', error);
-                        alert('Erreur lors de la récupération des informations du produit');
-                    });
-            }
-        });
-
-        // Réinitialiser le champ de scan quand le modal est ouvert
-        document.getElementById('scanModal').addEventListener('shown.bs.modal', function () {
-            barcodeInput.value = '';
-            barcodeInput.focus();
         });
     });
     </script>
