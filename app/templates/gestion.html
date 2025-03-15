@@ -13,7 +13,7 @@
 
     <!-- Tableau des déplacements -->
     <div class="table-responsive">
-        <table class="table table-dark data-table w-100">
+        <table id="travelDataTable" class="table table-dark w-100">
             <thead>
                 <tr>
                     <th style="width: 15%">Date</th>
@@ -23,10 +23,76 @@
                     <th style="width: 15%">Actions</th>
                 </tr>
             </thead>
-            <tbody id="travelTable">
+            <tbody>
                 <!-- Les données seront insérées ici dynamiquement -->
             </tbody>
         </table>
+    </div>
+
+    <!-- Cartes de résumé par personne -->
+    <div class="row row-cols-1 row-cols-md-2 g-4 mt-4">
+        <!-- Carte Thomas -->
+        <div class="col">
+            <div class="card bg-dark text-white shadow h-100">
+                <div class="card-body text-center d-flex flex-column">
+                    <h5 class="text-uppercase fw-bold">Résumé - Thomas</h5>
+                    <div class="mb-3">
+                        <select class="form-select bg-dark text-white" id="thomasMonthSelect">
+                            <option value="">Sélectionner un mois</option>
+                        </select>
+                        <select class="form-select bg-dark text-white mt-2" id="thomasYearSelect">
+                            <option value="">Sélectionner une année</option>
+                        </select>
+                    </div>
+                    <h3 class="fw-bold text-info" id="thomasKm">0 km</h3>
+                    <p class="text-muted" id="thomasCount">0 déplacements</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Olivier -->
+        <div class="col">
+            <div class="card bg-dark text-white shadow h-100">
+                <div class="card-body text-center d-flex flex-column">
+                    <h5 class="text-uppercase fw-bold">Résumé - Olivier</h5>
+                    <div class="mb-3">
+                        <select class="form-select bg-dark text-white" id="olivierMonthSelect">
+                            <option value="">Sélectionner un mois</option>
+                        </select>
+                        <select class="form-select bg-dark text-white mt-2" id="olivierYearSelect">
+                            <option value="">Sélectionner une année</option>
+                        </select>
+                    </div>
+                    <h3 class="fw-bold text-info" id="olivierKm">0 km</h3>
+                    <p class="text-muted" id="olivierCount">0 déplacements</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carte de résumé global -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-dark text-white shadow">
+                <div class="card-body text-center">
+                    <h5 class="text-uppercase fw-bold mb-4">Résumé Annuel {{ new Date().getFullYear() }}</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Thomas</h6>
+                            <h3 class="fw-bold text-success" id="thomasAnnualKm">0 km</h3>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Olivier</h6>
+                            <h3 class="fw-bold text-warning" id="olivierAnnualKm">0 km</h3>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Total</h6>
+                            <h3 class="fw-bold text-info" id="totalAnnualKm">0 km</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -114,7 +180,6 @@
 
 {% block scripts %}
 <script>
-    // Initialisation des modals Bootstrap
     let addModal, editModal;
     let travelTable;
     
@@ -155,10 +220,20 @@
             ]
         };
 
-        // Initialisation initiale de DataTables
-        travelTable = $('.data-table').DataTable(dataTableConfig);
+        // Initialisation de DataTables avec un ID spécifique
+        travelTable = $('#travelDataTable').DataTable(dataTableConfig);
         
+        // Initialisation des sélecteurs de mois et d'années
+        initializeSelects();
+        
+        // Chargement initial des données
         loadTravels();
+        
+        // Event listeners pour les sélecteurs
+        ['thomas', 'olivier'].forEach(person => {
+            document.getElementById(`${person}MonthSelect`).addEventListener('change', () => updateStats(person));
+            document.getElementById(`${person}YearSelect`).addEventListener('change', () => updateStats(person));
+        });
 
         // Gestionnaire pour l'ajout
         document.getElementById('saveTravelBtn').addEventListener('click', function() {
@@ -233,6 +308,92 @@
             });
         });
     });
+
+    function initializeSelects() {
+        const months = [
+            "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+            "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+        ];
+        
+        const currentYear = new Date().getFullYear();
+        const years = Array.from({length: 5}, (_, i) => currentYear - i);
+        
+        ['thomas', 'olivier'].forEach(person => {
+            const monthSelect = document.getElementById(`${person}MonthSelect`);
+            const yearSelect = document.getElementById(`${person}YearSelect`);
+            
+            // Remplir les mois
+            months.forEach((month, index) => {
+                const option = new Option(month, index + 1);
+                monthSelect.add(option);
+            });
+            
+            // Remplir les années
+            years.forEach(year => {
+                const option = new Option(year, year);
+                yearSelect.add(option);
+            });
+            
+            // Sélectionner le mois et l'année en cours
+            monthSelect.value = new Date().getMonth() + 1;
+            yearSelect.value = currentYear;
+        });
+    }
+
+    function updateStats(person) {
+        const month = document.getElementById(`${person}MonthSelect`).value;
+        const year = document.getElementById(`${person}YearSelect`).value;
+        
+        fetch('/api/travels')
+            .then(response => response.json())
+            .then(data => {
+                // Filtrer les déplacements pour la personne et la période sélectionnée
+                const filteredData = data.filter(travel => {
+                    const travelDate = new Date(travel.date);
+                    return travel.person.toLowerCase() === person.toLowerCase() &&
+                           travelDate.getMonth() + 1 === parseInt(month) &&
+                           travelDate.getFullYear() === parseInt(year);
+                });
+                
+                // Calculer les statistiques
+                const totalKm = filteredData.reduce((sum, travel) => sum + (travel.kilometers || 0), 0);
+                const count = filteredData.length;
+                
+                // Mettre à jour l'affichage
+                document.getElementById(`${person}Km`).textContent = `${totalKm.toFixed(1)} km`;
+                document.getElementById(`${person}Count`).textContent = `${count} déplacement${count > 1 ? 's' : ''}`;
+            });
+            
+        // Mettre à jour les statistiques annuelles
+        updateAnnualStats();
+    }
+
+    function updateAnnualStats() {
+        const currentYear = new Date().getFullYear();
+        
+        fetch('/api/travels')
+            .then(response => response.json())
+            .then(data => {
+                // Filtrer les déplacements pour l'année en cours
+                const yearData = data.filter(travel => 
+                    new Date(travel.date).getFullYear() === currentYear
+                );
+                
+                // Calculer les totaux par personne
+                const thomasTotal = yearData
+                    .filter(t => t.person.toLowerCase() === 'thomas')
+                    .reduce((sum, t) => sum + (t.kilometers || 0), 0);
+                
+                const olivierTotal = yearData
+                    .filter(t => t.person.toLowerCase() === 'olivier')
+                    .reduce((sum, t) => sum + (t.kilometers || 0), 0);
+                
+                // Mettre à jour l'affichage
+                document.getElementById('thomasAnnualKm').textContent = `${thomasTotal.toFixed(1)} km`;
+                document.getElementById('olivierAnnualKm').textContent = `${olivierTotal.toFixed(1)} km`;
+                document.getElementById('totalAnnualKm').textContent = `${(thomasTotal + olivierTotal).toFixed(1)} km`;
+            });
+    }
 
     function loadTravels() {
         fetch('/api/travels')
