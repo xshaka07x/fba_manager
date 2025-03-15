@@ -183,22 +183,50 @@
     let addModal, editModal;
     let travelTable;
     
+    // Fonction de debug
+    function debug(message, data = null) {
+        const timestamp = new Date().toISOString();
+        if (data) {
+            console.log(`[${timestamp}] DEBUG:`, message, data);
+        } else {
+            console.log(`[${timestamp}] DEBUG:`, message);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialisation des modals
-        addModal = new bootstrap.Modal(document.getElementById('addTravelModal'));
-        editModal = new bootstrap.Modal(document.getElementById('editTravelModal'));
+        debug('DOMContentLoaded event triggered');
         
-        // Initialisation des sélecteurs
-        initializeSelects();
-        
-        // Initialisation de DataTables
-        initializeDataTable();
-        
-        // Event listeners pour les sélecteurs
-        ['thomas', 'olivier'].forEach(person => {
-            document.getElementById(`${person}MonthSelect`).addEventListener('change', () => updateStats(person));
-            document.getElementById(`${person}YearSelect`).addEventListener('change', () => updateStats(person));
-        });
+        try {
+            // Vérification de DataTables
+            debug('Checking DataTables availability', {
+                DataTable: typeof DataTable,
+                jQuery: typeof jQuery,
+                $: typeof $
+            });
+
+            // Initialisation des modals
+            addModal = new bootstrap.Modal(document.getElementById('addTravelModal'));
+            editModal = new bootstrap.Modal(document.getElementById('editTravelModal'));
+            debug('Modals initialized');
+            
+            // Initialisation des sélecteurs
+            initializeSelects();
+            debug('Selects initialized');
+            
+            // Chargement initial des données
+            refreshTravelData();
+            debug('Initial data refresh triggered');
+            
+            // Event listeners pour les sélecteurs
+            ['thomas', 'olivier'].forEach(person => {
+                document.getElementById(`${person}MonthSelect`).addEventListener('change', () => updateStats(person));
+                document.getElementById(`${person}YearSelect`).addEventListener('change', () => updateStats(person));
+            });
+            debug('Event listeners attached');
+
+        } catch (error) {
+            console.error('Error during initialization:', error);
+        }
 
         // Gestionnaire pour l'ajout
         document.getElementById('saveTravelBtn').addEventListener('click', function() {
@@ -365,63 +393,101 @@
     }
 
     function initializeDataTable() {
-        const table = document.querySelector('.data-table');
-        if (!table) return;
+        debug('Initializing DataTable');
+        try {
+            const table = document.querySelector('.data-table');
+            if (!table) {
+                debug('Table element not found');
+                return;
+            }
 
-        if (travelTable) {
-            travelTable.destroy();
-        }
+            debug('Table element found', table);
 
-        travelTable = new DataTable(table, {
-            language: {
-                search: "🔍 Rechercher :",
-                lengthMenu: "Afficher _MENU_ entrées",
-                info: "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-                infoEmpty: "Aucune entrée à afficher",
-                infoFiltered: "(filtré de _MAX_ entrées au total)",
-                zeroRecords: "Aucun résultat trouvé",
-                paginate: {
-                    first: "Premier",
-                    last: "Dernier",
-                    next: "Suivant",
-                    previous: "Précédent"
+            if (travelTable) {
+                debug('Destroying existing DataTable instance');
+                try {
+                    travelTable.destroy();
+                    debug('Existing DataTable destroyed successfully');
+                } catch (error) {
+                    console.error('Error destroying DataTable:', error);
                 }
-            },
-            order: [[0, 'desc']],
-            pageLength: 10,
-            responsive: true
-        });
+            }
+
+            debug('Creating new DataTable instance');
+            travelTable = new DataTable(table, {
+                language: {
+                    search: "🔍 Rechercher :",
+                    lengthMenu: "Afficher _MENU_ entrées",
+                    info: "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                    infoEmpty: "Aucune entrée à afficher",
+                    infoFiltered: "(filtré de _MAX_ entrées au total)",
+                    zeroRecords: "Aucun résultat trouvé",
+                    paginate: {
+                        first: "Premier",
+                        last: "Dernier",
+                        next: "Suivant",
+                        previous: "Précédent"
+                    }
+                },
+                order: [[0, 'desc']],
+                pageLength: 10,
+                responsive: true
+            });
+            debug('DataTable initialized successfully');
+
+        } catch (error) {
+            console.error('Error in initializeDataTable:', error);
+        }
     }
 
     function refreshTravelData() {
+        debug('Refreshing travel data');
         fetch('/api/travels')
             .then(response => response.json())
             .then(data => {
-                const tbody = document.querySelector('.data-table tbody');
-                tbody.innerHTML = '';
+                debug('Travel data received', { count: data.length });
                 
-                data.forEach(travel => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><span class="travel-date">${new Date(travel.date).toLocaleDateString()}</span></td>
-                        <td>${travel.person}</td>
-                        <td><span class="travel-km">${travel.kilometers || '-'}</span></td>
-                        <td><span class="travel-comment">${travel.comment || '-'}</span></td>
-                        <td>
-                            <button class="btn btn-action btn-edit" onclick="editTravel(${travel.id})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-action btn-delete" onclick="deleteTravel(${travel.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-                
-                initializeDataTable();
-                updateStats('thomas');
-                updateStats('olivier');
+                try {
+                    const tbody = document.querySelector('.data-table tbody');
+                    if (!tbody) {
+                        debug('Table body not found');
+                        return;
+                    }
+                    
+                    tbody.innerHTML = '';
+                    debug('Table body cleared');
+                    
+                    data.forEach((travel, index) => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><span class="travel-date">${new Date(travel.date).toLocaleDateString()}</span></td>
+                            <td>${travel.person}</td>
+                            <td><span class="travel-km">${travel.kilometers || '-'}</span></td>
+                            <td><span class="travel-comment">${travel.comment || '-'}</span></td>
+                            <td>
+                                <button class="btn btn-action btn-edit" onclick="editTravel(${travel.id})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-action btn-delete" onclick="deleteTravel(${travel.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                    debug('Table rows added', { rowCount: data.length });
+                    
+                    initializeDataTable();
+                    updateStats('thomas');
+                    updateStats('olivier');
+                    debug('Data refresh completed');
+                    
+                } catch (error) {
+                    console.error('Error refreshing table:', error);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching travel data:', error);
             });
     }
 
