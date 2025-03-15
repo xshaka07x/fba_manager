@@ -1,7 +1,7 @@
 # app/models.py
+from app import db  # ✅ Après correction app.py, cette ligne fonctionnera
 from datetime import datetime
-from app import db
-from sqlalchemy import DECIMAL
+from sqlalchemy import DECIMAL  # Ajout de l'import DECIMAL
 
 class Product(db.Model):
     __tablename__ = "products"  # ✅ Vérifie bien que c'est "products"

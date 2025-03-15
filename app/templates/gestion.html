@@ -12,83 +12,145 @@
     </button>
 
     <!-- Tableau des déplacements -->
-    <div class="table-responsive">
-        <table class="table table-dark data-table">
+    <div class="table-responsive mb-4">
+        <table class="table table-dark data-table w-100">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Personne</th>
-                    <th>Kilomètres</th>
-                    <th>Commentaire</th>
-                    <th>Actions</th>
+                    <th style="width: 15%">Date</th>
+                    <th style="width: 15%">Personne</th>
+                    <th style="width: 15%">Kilomètres</th>
+                    <th style="width: 40%">Commentaire</th>
+                    <th style="width: 15%">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="travelTable">
                 <!-- Les données seront insérées ici dynamiquement -->
             </tbody>
         </table>
     </div>
 
-    <!-- Cartes de résumé par personne -->
-    <div class="row row-cols-1 row-cols-md-2 g-4 mt-4">
-        <!-- Carte Thomas -->
-        <div class="col">
-            <div class="card bg-dark text-white shadow h-100">
-                <div class="card-body text-center d-flex flex-column">
-                    <h5 class="text-uppercase fw-bold">Résumé - Thomas</h5>
-                    <div class="mb-3">
-                        <select class="form-select bg-dark text-white" id="thomasMonthSelect">
-                            <option value="">Sélectionner un mois</option>
-                        </select>
-                        <select class="form-select bg-dark text-white mt-2" id="thomasYearSelect">
-                            <option value="">Sélectionner une année</option>
-                        </select>
+    <!-- Statistiques mensuelles par personne -->
+    <div class="row g-4 mb-4">
+        <!-- Statistiques Thomas -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user"></i> Thomas - Statistiques
+                    </h5>
+                    <select class="form-select form-select-sm" style="width: auto;" id="thomasMonth">
+                        <option value="1">Janvier</option>
+                        <option value="2">Février</option>
+                        <option value="3">Mars</option>
+                        <option value="4">Avril</option>
+                        <option value="5">Mai</option>
+                        <option value="6">Juin</option>
+                        <option value="7">Juillet</option>
+                        <option value="8">Août</option>
+                        <option value="9">Septembre</option>
+                        <option value="10">Octobre</option>
+                        <option value="11">Novembre</option>
+                        <option value="12">Décembre</option>
+                    </select>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6>Déplacements</h6>
+                                <h4 class="text-info" id="thomasTrips">0</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6>Kilomètres</h6>
+                                <h4 class="text-warning" id="thomasKm">0 km</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6>Coût</h6>
+                                <h4 class="text-success" id="thomasCost">0 €</h4>
+                            </div>
+                        </div>
                     </div>
-                    <h3 class="fw-bold text-info" id="thomasKm">0 km</h3>
-                    <p class="text-muted" id="thomasCount">0 déplacements</p>
                 </div>
             </div>
         </div>
 
-        <!-- Carte Olivier -->
-        <div class="col">
-            <div class="card bg-dark text-white shadow h-100">
-                <div class="card-body text-center d-flex flex-column">
-                    <h5 class="text-uppercase fw-bold">Résumé - Olivier</h5>
-                    <div class="mb-3">
-                        <select class="form-select bg-dark text-white" id="olivierMonthSelect">
-                            <option value="">Sélectionner un mois</option>
-                        </select>
-                        <select class="form-select bg-dark text-white mt-2" id="olivierYearSelect">
-                            <option value="">Sélectionner une année</option>
-                        </select>
+        <!-- Statistiques Olivier -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user"></i> Olivier - Statistiques
+                    </h5>
+                    <select class="form-select form-select-sm" style="width: auto;" id="olivierMonth">
+                        <option value="1">Janvier</option>
+                        <option value="2">Février</option>
+                        <option value="3">Mars</option>
+                        <option value="4">Avril</option>
+                        <option value="5">Mai</option>
+                        <option value="6">Juin</option>
+                        <option value="7">Juillet</option>
+                        <option value="8">Août</option>
+                        <option value="9">Septembre</option>
+                        <option value="10">Octobre</option>
+                        <option value="11">Novembre</option>
+                        <option value="12">Décembre</option>
+                    </select>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6>Déplacements</h6>
+                                <h4 class="text-info" id="olivierTrips">0</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6>Kilomètres</h6>
+                                <h4 class="text-warning" id="olivierKm">0 km</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6>Coût</h6>
+                                <h4 class="text-success" id="olivierCost">0 €</h4>
+                            </div>
+                        </div>
                     </div>
-                    <h3 class="fw-bold text-info" id="olivierKm">0 km</h3>
-                    <p class="text-muted" id="olivierCount">0 déplacements</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Carte de résumé global -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card bg-dark text-white shadow">
-                <div class="card-body text-center">
-                    <h5 class="text-uppercase fw-bold mb-4">Résumé Annuel {{ new Date().getFullYear() }}</h5>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <h6 class="text-muted">Thomas</h6>
-                            <h3 class="fw-bold text-success" id="thomasAnnualKm">0 km</h3>
-                        </div>
-                        <div class="col-md-4">
-                            <h6 class="text-muted">Olivier</h6>
-                            <h3 class="fw-bold text-warning" id="olivierAnnualKm">0 km</h3>
-                        </div>
-                        <div class="col-md-4">
-                            <h6 class="text-muted">Total</h6>
-                            <h3 class="fw-bold text-info" id="totalAnnualKm">0 km</h3>
-                        </div>
+    <!-- Résumé annuel -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-chart-bar"></i> Résumé Annuel {{ current_year }}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <h6>Total Déplacements</h6>
+                        <h3 class="text-info" id="totalTrips">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <h6>Total Kilomètres</h6>
+                        <h3 class="text-warning" id="totalKm">0 km</h3>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <h6>Coût Total</h6>
+                        <h3 class="text-success" id="totalCost">0 €</h3>
                     </div>
                 </div>
             </div>
@@ -180,53 +242,51 @@
 
 {% block scripts %}
 <script>
+    // Initialisation des modals Bootstrap
     let addModal, editModal;
     let travelTable;
     
-    // Fonction de debug
-    function debug(message, data = null) {
-        const timestamp = new Date().toISOString();
-        if (data) {
-            console.log(`[${timestamp}] DEBUG:`, message, data);
-        } else {
-            console.log(`[${timestamp}] DEBUG:`, message);
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
-        debug('DOMContentLoaded event triggered');
+        // Initialisation des modals
+        addModal = new bootstrap.Modal(document.getElementById('addTravelModal'));
+        editModal = new bootstrap.Modal(document.getElementById('editTravelModal'));
         
-        try {
-            // Vérification de DataTables
-            debug('Checking DataTables availability', {
-                DataTable: typeof DataTable,
-                jQuery: typeof jQuery,
-                $: typeof $
-            });
+        // Configuration de DataTables
+        const dataTableConfig = {
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            "pageLength": 10,
+            "scrollX": false,
+            "language": {
+                "search": "🔍 Rechercher :",
+                "lengthMenu": "Afficher _MENU_ entrées",
+                "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                "infoEmpty": "Aucune entrée à afficher",
+                "infoFiltered": "(filtré de _MAX_ entrées au total)",
+                "zeroRecords": "Aucun résultat trouvé",
+                "paginate": {
+                    "first": "Premier",
+                    "last": "Dernier",
+                    "next": "Suivant",
+                    "previous": "Précédent"
+                }
+            },
+            "order": [[0, 'desc']], // Tri par date décroissant par défaut
+            "columnDefs": [
+                { "orderable": false, "targets": 4 }, // Désactive le tri sur la colonne des actions
+                { "width": "15%", "targets": [0, 1, 2, 4] },
+                { "width": "40%", "targets": 3 }
+            ]
+        };
 
-            // Initialisation des modals
-            addModal = new bootstrap.Modal(document.getElementById('addTravelModal'));
-            editModal = new bootstrap.Modal(document.getElementById('editTravelModal'));
-            debug('Modals initialized');
-            
-            // Initialisation des sélecteurs
-            initializeSelects();
-            debug('Selects initialized');
-            
-            // Chargement initial des données
-            refreshTravelData();
-            debug('Initial data refresh triggered');
-            
-            // Event listeners pour les sélecteurs
-            ['thomas', 'olivier'].forEach(person => {
-                document.getElementById(`${person}MonthSelect`).addEventListener('change', () => updateStats(person));
-                document.getElementById(`${person}YearSelect`).addEventListener('change', () => updateStats(person));
-            });
-            debug('Event listeners attached');
-
-        } catch (error) {
-            console.error('Error during initialization:', error);
-        }
+        // Initialisation initiale de DataTables
+        travelTable = $('.data-table').DataTable(dataTableConfig);
+        
+        loadTravels();
 
         // Gestionnaire pour l'ajout
         document.getElementById('saveTravelBtn').addEventListener('click', function() {
@@ -256,7 +316,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    refreshTravelData();
+                    loadTravels();
                     addModal.hide();
                     form.reset();
                 } else {
@@ -293,215 +353,126 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    refreshTravelData();
+                    loadTravels();
                     editModal.hide();
                 } else {
                     alert('Erreur lors de la modification');
                 }
             });
         });
+
+        // Définir le mois actuel dans les sélecteurs
+        const currentMonth = new Date().getMonth() + 1;
+        document.getElementById('thomasMonth').value = currentMonth;
+        document.getElementById('olivierMonth').value = currentMonth;
+
+        // Gestionnaires d'événements pour les sélecteurs de mois
+        document.getElementById('thomasMonth').addEventListener('change', updateStats);
+        document.getElementById('olivierMonth').addEventListener('change', updateStats);
+
+        // Fonction pour mettre à jour les statistiques
+        function updateStats() {
+            const thomasMonth = document.getElementById('thomasMonth').value;
+            const olivierMonth = document.getElementById('olivierMonth').value;
+            const currentYear = new Date().getFullYear();
+
+            fetch('/api/travels')
+                .then(response => response.json())
+                .then(data => {
+                    // Filtrer les données pour Thomas
+                    const thomasData = data.filter(travel => {
+                        const travelDate = new Date(travel.date);
+                        return travel.person === 'Thomas' && 
+                               travelDate.getMonth() + 1 === parseInt(thomasMonth) &&
+                               travelDate.getFullYear() === currentYear;
+                    });
+
+                    // Filtrer les données pour Olivier
+                    const olivierData = data.filter(travel => {
+                        const travelDate = new Date(travel.date);
+                        return travel.person === 'Olivier' && 
+                               travelDate.getMonth() + 1 === parseInt(olivierMonth) &&
+                               travelDate.getFullYear() === currentYear;
+                    });
+
+                    // Filtrer les données pour l'année en cours
+                    const yearData = data.filter(travel => {
+                        const travelDate = new Date(travel.date);
+                        return travelDate.getFullYear() === currentYear;
+                    });
+
+                    // Mettre à jour les statistiques de Thomas
+                    const thomasKm = thomasData.reduce((sum, travel) => sum + (travel.kilometers || 0), 0);
+                    document.getElementById('thomasTrips').textContent = thomasData.length;
+                    document.getElementById('thomasKm').textContent = `${thomasKm.toFixed(1)} km`;
+                    document.getElementById('thomasCost').textContent = `${(thomasKm * 0.603).toFixed(2)} €`;
+
+                    // Mettre à jour les statistiques d'Olivier
+                    const olivierKm = olivierData.reduce((sum, travel) => sum + (travel.kilometers || 0), 0);
+                    document.getElementById('olivierTrips').textContent = olivierData.length;
+                    document.getElementById('olivierKm').textContent = `${olivierKm.toFixed(1)} km`;
+                    document.getElementById('olivierCost').textContent = `${(olivierKm * 0.603).toFixed(2)} €`;
+
+                    // Mettre à jour le résumé annuel
+                    const totalKm = yearData.reduce((sum, travel) => sum + (travel.kilometers || 0), 0);
+                    document.getElementById('totalTrips').textContent = yearData.length;
+                    document.getElementById('totalKm').textContent = `${totalKm.toFixed(1)} km`;
+                    document.getElementById('totalCost').textContent = `${(totalKm * 0.603).toFixed(2)} €`;
+                });
+        }
+
+        // Appeler updateStats au chargement
+        updateStats();
+
+        // Mettre à jour les stats après chaque modification
+        const originalLoadTravels = loadTravels;
+        loadTravels = function() {
+            originalLoadTravels();
+            updateStats();
+        };
     });
 
-    function initializeSelects() {
-        const months = [
-            "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-            "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
-        ];
-        
-        const currentYear = new Date().getFullYear();
-        const years = Array.from({length: 5}, (_, i) => currentYear - i);
-        
-        ['thomas', 'olivier'].forEach(person => {
-            const monthSelect = document.getElementById(`${person}MonthSelect`);
-            const yearSelect = document.getElementById(`${person}YearSelect`);
-            
-            // Remplir les mois
-            months.forEach((month, index) => {
-                const option = new Option(month, index + 1);
-                monthSelect.add(option);
-            });
-            
-            // Remplir les années
-            years.forEach(year => {
-                const option = new Option(year, year);
-                yearSelect.add(option);
-            });
-            
-            // Sélectionner le mois et l'année en cours
-            monthSelect.value = new Date().getMonth() + 1;
-            yearSelect.value = currentYear;
-        });
-
-        // Mise à jour initiale des statistiques
-        updateStats('thomas');
-        updateStats('olivier');
-    }
-
-    function updateStats(person) {
-        const month = document.getElementById(`${person}MonthSelect`).value;
-        const year = document.getElementById(`${person}YearSelect`).value;
-        
+    function loadTravels() {
         fetch('/api/travels')
             .then(response => response.json())
             .then(data => {
-                // Filtrer les déplacements pour la personne et la période sélectionnée
-                const filteredData = data.filter(travel => {
-                    const travelDate = new Date(travel.date);
-                    return travel.person.toLowerCase() === person.toLowerCase() &&
-                           travelDate.getMonth() + 1 === parseInt(month) &&
-                           travelDate.getFullYear() === parseInt(year);
+                // Mettre à jour les données dans la table existante
+                travelTable.clear();
+                
+                data.forEach(travel => {
+                    travelTable.row.add([
+                        `<span class="travel-date">${new Date(travel.date).toLocaleDateString()}</span>`,
+                        travel.person,
+                        `<span class="travel-km">${travel.kilometers || '-'}</span>`,
+                        `<span class="travel-comment">${travel.comment || '-'}</span>`,
+                        `<button class="btn btn-action btn-edit" onclick="editTravel(${travel.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-action btn-delete" onclick="deleteTravel(${travel.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>`
+                    ]);
                 });
                 
-                // Calculer les statistiques
-                const totalKm = filteredData.reduce((sum, travel) => sum + (parseFloat(travel.kilometers) || 0), 0);
-                const count = filteredData.length;
-                
-                // Mettre à jour l'affichage
-                document.getElementById(`${person}Km`).textContent = `${totalKm.toFixed(1)} km`;
-                document.getElementById(`${person}Count`).textContent = `${count} déplacement${count > 1 ? 's' : ''}`;
-            });
-            
-        // Mettre à jour les statistiques annuelles
-        updateAnnualStats();
-    }
-
-    function updateAnnualStats() {
-        const currentYear = new Date().getFullYear();
-        
-        fetch('/api/travels')
-            .then(response => response.json())
-            .then(data => {
-                // Filtrer les déplacements pour l'année en cours
-                const yearData = data.filter(travel => 
-                    new Date(travel.date).getFullYear() === currentYear
-                );
-                
-                // Calculer les totaux par personne
-                const thomasTotal = yearData
-                    .filter(t => t.person.toLowerCase() === 'thomas')
-                    .reduce((sum, t) => sum + (parseFloat(t.kilometers) || 0), 0);
-                
-                const olivierTotal = yearData
-                    .filter(t => t.person.toLowerCase() === 'olivier')
-                    .reduce((sum, t) => sum + (parseFloat(t.kilometers) || 0), 0);
-                
-                // Mettre à jour l'affichage
-                document.getElementById('thomasAnnualKm').textContent = `${thomasTotal.toFixed(1)} km`;
-                document.getElementById('olivierAnnualKm').textContent = `${olivierTotal.toFixed(1)} km`;
-                document.getElementById('totalAnnualKm').textContent = `${(thomasTotal + olivierTotal).toFixed(1)} km`;
-            });
-    }
-
-    function initializeDataTable() {
-        debug('Initializing DataTable');
-        try {
-            const table = document.querySelector('.data-table');
-            if (!table) {
-                debug('Table element not found');
-                return;
-            }
-
-            debug('Table element found', table);
-
-            if (travelTable) {
-                debug('Destroying existing DataTable instance');
-                try {
-                    travelTable.destroy();
-                    debug('Existing DataTable destroyed successfully');
-                } catch (error) {
-                    console.error('Error destroying DataTable:', error);
-                }
-            }
-
-            debug('Creating new DataTable instance');
-            travelTable = new DataTable(table, {
-                language: {
-                    search: "🔍 Rechercher :",
-                    lengthMenu: "Afficher _MENU_ entrées",
-                    info: "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-                    infoEmpty: "Aucune entrée à afficher",
-                    infoFiltered: "(filtré de _MAX_ entrées au total)",
-                    zeroRecords: "Aucun résultat trouvé",
-                    paginate: {
-                        first: "Premier",
-                        last: "Dernier",
-                        next: "Suivant",
-                        previous: "Précédent"
-                    }
-                },
-                order: [[0, 'desc']],
-                pageLength: 10,
-                responsive: true
-            });
-            debug('DataTable initialized successfully');
-
-        } catch (error) {
-            console.error('Error in initializeDataTable:', error);
-        }
-    }
-
-    function refreshTravelData() {
-        debug('Refreshing travel data');
-        fetch('/api/travels')
-            .then(response => response.json())
-            .then(data => {
-                debug('Travel data received', { count: data.length });
-                
-                try {
-                    const tbody = document.querySelector('.data-table tbody');
-                    if (!tbody) {
-                        debug('Table body not found');
-                        return;
-                    }
-                    
-                    tbody.innerHTML = '';
-                    debug('Table body cleared');
-                    
-                    data.forEach((travel, index) => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><span class="travel-date">${new Date(travel.date).toLocaleDateString()}</span></td>
-                            <td>${travel.person}</td>
-                            <td><span class="travel-km">${travel.kilometers || '-'}</span></td>
-                            <td><span class="travel-comment">${travel.comment || '-'}</span></td>
-                            <td>
-                                <button class="btn btn-action btn-edit" onclick="editTravel(${travel.id})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-action btn-delete" onclick="deleteTravel(${travel.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                    debug('Table rows added', { rowCount: data.length });
-                    
-                    initializeDataTable();
-                    updateStats('thomas');
-                    updateStats('olivier');
-                    debug('Data refresh completed');
-                    
-                } catch (error) {
-                    console.error('Error refreshing table:', error);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching travel data:', error);
+                travelTable.draw();
             });
     }
 
     function editTravel(id) {
-        fetch('/api/travels')
+        // Récupérer les données du déplacement
+        fetch(`/api/travels`)
             .then(response => response.json())
             .then(data => {
                 const travel = data.find(t => t.id === id);
                 if (travel) {
+                    // Remplir le formulaire avec les données existantes
                     document.getElementById('editTravelId').value = travel.id;
                     document.getElementById('editTravelDate').value = travel.date.split('T')[0];
                     document.getElementById('editTravelPerson').value = travel.person;
                     document.getElementById('editTravelKm').value = travel.kilometers || '';
                     document.getElementById('editTravelComment').value = travel.comment || '';
+                    
+                    // Ouvrir le modal
                     editModal.show();
                 }
             });
@@ -515,7 +486,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    refreshTravelData();
+                    loadTravels();
                 } else {
                     alert('Erreur lors de la suppression');
                 }
