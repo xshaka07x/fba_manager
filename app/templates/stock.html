@@ -227,12 +227,22 @@
                     type: "LiveStream",
                     target: document.querySelector("#interactive"),
                     constraints: {
-                        facingMode: "environment"
+                        facingMode: "environment",
+                        width: 1280,
+                        height: 720,
+                        aspectRatio: {min: 1, max: 2}
                     },
                 },
+                locator: {
+                    patchSize: "medium",
+                    halfSample: true
+                },
+                numOfWorkers: 2,
                 decoder: {
-                    readers: ["ean_reader", "ean_8_reader"]
-                }
+                    readers: ["ean_reader", "ean_8_reader"],
+                    multiple: false
+                },
+                locate: true
             }, function(err) {
                 if (err) {
                     console.error(err);
@@ -245,11 +255,48 @@
                 Quagga.start();
             });
 
+            let lastResult = null;
+            let countResults = 0;
+
             Quagga.onDetected(function(result) {
                 let code = result.codeResult.code;
-                if (code) {
-                    stopScanning();
-                    processBarcode(code);
+                
+                if (code === lastResult) {
+                    countResults++;
+                    if (countResults >= 3) {  // On attend 3 détections identiques
+                        stopScanning();
+                        processBarcode(code);
+                        lastResult = null;
+                        countResults = 0;
+                    }
+                } else {
+                    lastResult = code;
+                    countResults = 1;
+                }
+            });
+
+            // Ajout du rectangle de détection
+            Quagga.onProcessed(function(result) {
+                var drawingCtx = Quagga.canvas.ctx.overlay,
+                    drawingCanvas = Quagga.canvas.dom.overlay;
+
+                if (result) {
+                    if (result.boxes) {
+                        drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+                        result.boxes.filter(function (box) {
+                            return box !== result.box;
+                        }).forEach(function (box) {
+                            Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
+                        });
+                    }
+
+                    if (result.box) {
+                        Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2});
+                    }
+
+                    if (result.codeResult && result.codeResult.code) {
+                        Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, {color: 'red', lineWidth: 3});
+                    }
                 }
             });
         }
@@ -266,25 +313,34 @@
 
         // Fonction pour traiter le code-barre
         function processBarcode(code) {
-            fetch(`/get_product_info/${code}`)
+            // Appel à l'API EAN Catch pour obtenir les informations du produit
+            fetch(`https://fr.openfoodfacts.org/api/v0/product/${code}.json`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        document.getElementById('scanNom').value = data.nom;
-                        document.getElementById('scanEan').value = data.ean;
+                    if (data.status === 1) {
+                        let productName = data.product.product_name_fr || data.product.product_name || code;
+                        document.getElementById('scanNom').value = productName;
+                        document.getElementById('scanEan').value = code;
                         
                         scanModal.hide();
                         scanInfoModal.show();
-                        
-                        barcodeInput.value = '';
-                        stopScanning();
                     } else {
-                        alert('Produit non trouvé dans la base de données');
+                        // Si le produit n'est pas trouvé dans OpenFoodFacts, on utilise juste le code EAN
+                        document.getElementById('scanNom').value = "Produit " + code;
+                        document.getElementById('scanEan').value = code;
+                        
+                        scanModal.hide();
+                        scanInfoModal.show();
                     }
                 })
                 .catch(error => {
                     console.error('Erreur:', error);
-                    alert('Erreur lors de la récupération des informations du produit');
+                    // En cas d'erreur, on utilise juste le code EAN
+                    document.getElementById('scanNom').value = "Produit " + code;
+                    document.getElementById('scanEan').value = code;
+                    
+                    scanModal.hide();
+                    scanInfoModal.show();
                 });
         }
 
