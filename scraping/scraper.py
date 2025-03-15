@@ -125,22 +125,22 @@ def scrap_produits_sur_page(driver, nb_max_produits, urls_traitees):
                 print(f"\n📊 Progression: {produits_scannes} produits scannés sur cette page\n")
             
             if produits_ajoutes >= nb_max_produits:
-            break
+                break
 
-        try:
+            try:
                 lien_produit = element.find_element(By.CSS_SELECTOR, 'a.format-img-zento').get_attribute('href')
                 if lien_produit in urls_traitees:
-                continue
+                    continue
 
                 urls_traitees.add(lien_produit)
                 produit = extraire_details_produit(driver, lien_produit)
                 
                 if not produit:
-                continue
+                    continue
 
                 if ean_existe_deja(produit['ean']):
                     print(f"Produit déjà en base: {produit['nom']}")
-                continue
+                    continue
 
                 keepa_data = get_keepa_data(produit['ean'], produit['prix_retail'])
                 
@@ -159,7 +159,7 @@ def scrap_produits_sur_page(driver, nb_max_produits, urls_traitees):
         print(f"- Produits ajoutés: {produits_ajoutes}")
         return produits_ajoutes, urls_traitees, produits_scannes, is_last_page
 
-        except Exception as e:
+    except Exception as e:
         print(f"Erreur page: {str(e)}")
         return 0, urls_traitees, produits_scannes, False
 
@@ -208,7 +208,7 @@ def lancer_scraping(url, nb_produits, page_depart=1):
         print(f"Erreur scraping: {str(e)}")
     finally:
         if driver:
-        driver.quit()
+            driver.quit()
 
 if __name__ == "__main__":
     try:
@@ -218,8 +218,8 @@ if __name__ == "__main__":
                 print("Usage: python scraper.py <url> <nombre_produits> [page_depart]")
                 sys.exit(1)
                 
-    url = sys.argv[1]
-    nb_scrap = int(sys.argv[2])
+            url = sys.argv[1]
+            nb_scrap = int(sys.argv[2])
             page_depart = int(sys.argv[3]) if len(sys.argv) == 4 else 1
             
             print(f"Démarrage du scraping à partir de la page {page_depart}")
