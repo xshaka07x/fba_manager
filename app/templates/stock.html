@@ -126,10 +126,7 @@
                             <canvas class="drawingBuffer"></canvas>
                         </div>
                         <div class="text-center mt-3">
-                            <button id="startButton" class="btn btn-primary">
-                                <i class="fas fa-camera"></i> Démarrer la caméra
-                            </button>
-                            <button id="stopButton" class="btn btn-danger" style="display: none;">
+                            <button id="stopButton" class="btn btn-danger">
                                 <i class="fas fa-stop"></i> Arrêter
                             </button>
                         </div>
@@ -288,13 +285,21 @@
         const scanModal = new bootstrap.Modal(document.getElementById('scanModal'));
         const scanInfoModal = new bootstrap.Modal(document.getElementById('scanInfoModal'));
         const barcodeInput = document.getElementById('barcodeInput');
-        const startButton = document.getElementById('startButton');
         const stopButton = document.getElementById('stopButton');
         let Quagga = window.Quagga;
         let scanning = false;
 
+        // Démarrer le scan quand on ouvre le modal
+        document.getElementById('scanModal').addEventListener('shown.bs.modal', function () {
+            barcodeInput.value = '';
+            barcodeInput.focus();
+            initQuagga();  // Démarrage automatique de la caméra
+        });
+
         // Fonction pour initialiser Quagga
         function initQuagga() {
+            if (scanning) return;  // Éviter les initialisations multiples
+            
             Quagga.init({
                 inputStream: {
                     name: "Live",
@@ -324,7 +329,6 @@
                     return;
                 }
                 scanning = true;
-                startButton.style.display = 'none';
                 stopButton.style.display = 'inline-block';
                 Quagga.start();
             });
@@ -380,7 +384,6 @@
             if (scanning) {
                 Quagga.stop();
                 scanning = false;
-                startButton.style.display = 'inline-block';
                 stopButton.style.display = 'none';
             }
         }
@@ -419,7 +422,6 @@
         }
 
         // Event listeners
-        startButton.addEventListener('click', initQuagga);
         stopButton.addEventListener('click', stopScanning);
 
         // Gestion de la saisie manuelle
@@ -434,12 +436,6 @@
         document.getElementById('scanModal').addEventListener('hidden.bs.modal', function () {
             stopScanning();
             barcodeInput.value = '';
-        });
-
-        // Réinitialiser quand on ouvre le modal
-        document.getElementById('scanModal').addEventListener('shown.bs.modal', function () {
-            barcodeInput.value = '';
-            barcodeInput.focus();
         });
 
         // Gestion de l'affichage du champ de quantité
