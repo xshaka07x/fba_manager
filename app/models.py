@@ -1,6 +1,7 @@
 # app/models.py
 from app import db  # ✅ Après correction app.py, cette ligne fonctionnera
 from datetime import datetime
+from sqlalchemy import DECIMAL  # Ajout de l'import DECIMAL
 
 class Product(db.Model):
     __tablename__ = "products"  # ✅ Vérifie bien que c'est "products"
@@ -108,9 +109,9 @@ class Travel(db.Model):
     __tablename__ = 'travels'
 
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, nullable=False)
-    person = db.Column(db.Enum('Thomas', 'Olivier'), nullable=False)
-    kilometers = db.Column(db.Decimal(10, 1), nullable=True)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    person = db.Column(db.String(50), nullable=False)
+    kilometers = db.Column(DECIMAL(10, 1), nullable=True)
     comment = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -125,3 +126,6 @@ class Travel(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+
+    def __repr__(self):
+        return f'<Travel {self.date} - {self.person}>'
