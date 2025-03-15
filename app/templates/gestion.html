@@ -191,8 +191,8 @@
         // Initialisation des sélecteurs
         initializeSelects();
         
-        // Chargement initial des données
-        loadTravels();
+        // Initialisation de DataTables
+        initializeDataTable();
         
         // Event listeners pour les sélecteurs
         ['thomas', 'olivier'].forEach(person => {
@@ -228,7 +228,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    loadTravels();
+                    refreshTravelData();
                     addModal.hide();
                     form.reset();
                 } else {
@@ -265,7 +265,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    loadTravels();
+                    refreshTravelData();
                     editModal.hide();
                 } else {
                     alert('Erreur lors de la modification');
@@ -364,53 +364,64 @@
             });
     }
 
-    function loadTravels() {
+    function initializeDataTable() {
+        const table = document.querySelector('.data-table');
+        if (!table) return;
+
+        if (travelTable) {
+            travelTable.destroy();
+        }
+
+        travelTable = new DataTable(table, {
+            language: {
+                search: "🔍 Rechercher :",
+                lengthMenu: "Afficher _MENU_ entrées",
+                info: "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                infoEmpty: "Aucune entrée à afficher",
+                infoFiltered: "(filtré de _MAX_ entrées au total)",
+                zeroRecords: "Aucun résultat trouvé",
+                paginate: {
+                    first: "Premier",
+                    last: "Dernier",
+                    next: "Suivant",
+                    previous: "Précédent"
+                }
+            },
+            order: [[0, 'desc']],
+            pageLength: 10,
+            responsive: true
+        });
+    }
+
+    function refreshTravelData() {
         fetch('/api/travels')
             .then(response => response.json())
             .then(data => {
-                if ($.fn.DataTable.isDataTable('.data-table')) {
-                    $('.data-table').DataTable().destroy();
-                }
-                
-                const tbody = $('.data-table tbody');
-                tbody.empty();
+                const tbody = document.querySelector('.data-table tbody');
+                tbody.innerHTML = '';
                 
                 data.forEach(travel => {
-                    tbody.append(`
-                        <tr>
-                            <td><span class="travel-date">${new Date(travel.date).toLocaleDateString()}</span></td>
-                            <td>${travel.person}</td>
-                            <td><span class="travel-km">${travel.kilometers || '-'}</span></td>
-                            <td><span class="travel-comment">${travel.comment || '-'}</span></td>
-                            <td>
-                                <button class="btn btn-action btn-edit" onclick="editTravel(${travel.id})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-action btn-delete" onclick="deleteTravel(${travel.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="travel-date">${new Date(travel.date).toLocaleDateString()}</span></td>
+                        <td>${travel.person}</td>
+                        <td><span class="travel-km">${travel.kilometers || '-'}</span></td>
+                        <td><span class="travel-comment">${travel.comment || '-'}</span></td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="editTravel(${travel.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="deleteTravel(${travel.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
                 });
                 
-                $('.data-table').DataTable({
-                    "language": {
-                        "search": "🔍 Rechercher :",
-                        "lengthMenu": "Afficher _MENU_ entrées",
-                        "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-                        "infoEmpty": "Aucune entrée à afficher",
-                        "infoFiltered": "(filtré de _MAX_ entrées au total)",
-                        "zeroRecords": "Aucun résultat trouvé",
-                        "paginate": {
-                            "first": "Premier",
-                            "last": "Dernier",
-                            "next": "Suivant",
-                            "previous": "Précédent"
-                        }
-                    },
-                    "order": [[0, 'desc']]
-                });
+                initializeDataTable();
+                updateStats('thomas');
+                updateStats('olivier');
             });
     }
 
@@ -438,7 +449,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    loadTravels();
+                    refreshTravelData();
                 } else {
                     alert('Erreur lors de la suppression');
                 }
