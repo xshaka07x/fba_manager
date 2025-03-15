@@ -13,14 +13,14 @@
 
     <!-- Tableau des déplacements -->
     <div class="table-responsive">
-        <table class="table table-dark data-table">
+        <table class="table table-dark data-table w-100">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Personne</th>
-                    <th>Kilomètres</th>
-                    <th>Commentaire</th>
-                    <th>Actions</th>
+                    <th style="width: 15%">Date</th>
+                    <th style="width: 15%">Personne</th>
+                    <th style="width: 15%">Kilomètres</th>
+                    <th style="width: 40%">Commentaire</th>
+                    <th style="width: 15%">Actions</th>
                 </tr>
             </thead>
             <tbody id="travelTable">
@@ -123,8 +123,8 @@
         addModal = new bootstrap.Modal(document.getElementById('addTravelModal'));
         editModal = new bootstrap.Modal(document.getElementById('editTravelModal'));
         
-        // Initialisation de DataTables
-        travelTable = $('.data-table').DataTable({
+        // Configuration de DataTables
+        const dataTableConfig = {
             "paging": true,
             "searching": true,
             "ordering": true,
@@ -132,6 +132,7 @@
             "autoWidth": false,
             "responsive": true,
             "pageLength": 10,
+            "scrollX": false,
             "language": {
                 "search": "🔍 Rechercher :",
                 "lengthMenu": "Afficher _MENU_ entrées",
@@ -148,9 +149,14 @@
             },
             "order": [[0, 'desc']], // Tri par date décroissant par défaut
             "columnDefs": [
-                { "orderable": false, "targets": 4 } // Désactive le tri sur la colonne des actions
+                { "orderable": false, "targets": 4 }, // Désactive le tri sur la colonne des actions
+                { "width": "15%", "targets": [0, 1, 2, 4] },
+                { "width": "40%", "targets": 3 }
             ]
-        });
+        };
+
+        // Initialisation initiale de DataTables
+        travelTable = $('.data-table').DataTable(dataTableConfig);
         
         loadTravels();
 
@@ -232,61 +238,25 @@
         fetch('/api/travels')
             .then(response => response.json())
             .then(data => {
-                // Vider et détruire l'instance DataTable existante
-                if (travelTable) {
-                    travelTable.clear().destroy();
-                }
-                
-                const tbody = document.getElementById('travelTable');
-                tbody.innerHTML = '';
+                // Mettre à jour les données dans la table existante
+                travelTable.clear();
                 
                 data.forEach(travel => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="travel-date">${new Date(travel.date).toLocaleDateString()}</td>
-                        <td>${travel.person}</td>
-                        <td class="travel-km">${travel.kilometers || '-'}</td>
-                        <td class="travel-comment">${travel.comment || '-'}</td>
-                        <td>
-                            <button class="btn btn-action btn-edit" onclick="editTravel(${travel.id})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-action btn-delete" onclick="deleteTravel(${travel.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
+                    travelTable.row.add([
+                        `<span class="travel-date">${new Date(travel.date).toLocaleDateString()}</span>`,
+                        travel.person,
+                        `<span class="travel-km">${travel.kilometers || '-'}</span>`,
+                        `<span class="travel-comment">${travel.comment || '-'}</span>`,
+                        `<button class="btn btn-action btn-edit" onclick="editTravel(${travel.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-action btn-delete" onclick="deleteTravel(${travel.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>`
+                    ]);
                 });
-
-                // Réinitialiser DataTable
-                travelTable = $('.data-table').DataTable({
-                    "paging": true,
-                    "searching": true,
-                    "ordering": true,
-                    "info": true,
-                    "autoWidth": false,
-                    "responsive": true,
-                    "pageLength": 10,
-                    "language": {
-                        "search": "🔍 Rechercher :",
-                        "lengthMenu": "Afficher _MENU_ entrées",
-                        "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-                        "infoEmpty": "Aucune entrée à afficher",
-                        "infoFiltered": "(filtré de _MAX_ entrées au total)",
-                        "zeroRecords": "Aucun résultat trouvé",
-                        "paginate": {
-                            "first": "Premier",
-                            "last": "Dernier",
-                            "next": "Suivant",
-                            "previous": "Précédent"
-                        }
-                    },
-                    "order": [[0, 'desc']], // Tri par date décroissant par défaut
-                    "columnDefs": [
-                        { "orderable": false, "targets": 4 } // Désactive le tri sur la colonne des actions
-                    ]
-                });
+                
+                travelTable.draw();
             });
     }
 

@@ -122,10 +122,6 @@
         <i class="fas fa-warehouse"></i>
         <span>Stock</span>
     </a>
-    <a href="{{ url_for('main.scrap') }}" {% if request.endpoint == 'main.scrap' %}class="active"{% endif %}>
-        <i class="fas fa-search"></i>
-        <span>Scrap</span>
-    </a>
     <a href="{{ url_for('main.organisation') }}" {% if request.endpoint == 'main.organisation' %}class="active"{% endif %}>
         <i class="fas fa-tasks"></i>
         <span>Organisation</span>
