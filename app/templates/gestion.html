@@ -479,8 +479,8 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             if (confirm('Êtes-vous sûr de vouloir supprimer ce déplacement ?')) {
                 const id = this.dataset.id;
-                fetch(`/gestion/delete/${id}`, {
-                    method: 'POST'
+                fetch(`/api/travels/${id}`, {
+                    method: 'DELETE'
                 })
                 .then(response => response.json())
                 .then(data => {

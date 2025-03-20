@@ -118,9 +118,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Gestion des checkboxes
     document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
+        // Ajouter la classe completed aux tâches déjà cochées
+        if (checkbox.checked) {
+            checkbox.closest('tr').classList.add('completed');
+        }
+
         checkbox.addEventListener('change', function() {
             const id = this.dataset.id;
             const status = this.checked ? 1 : 0;
+            const row = this.closest('tr');
 
             fetch(`/api/todos/${id}/toggle`, {
                 method: 'POST',
@@ -131,7 +137,13 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
-                if (!data.success) {
+                if (data.success) {
+                    if (this.checked) {
+                        row.classList.add('completed');
+                    } else {
+                        row.classList.remove('completed');
+                    }
+                } else {
                     alert('Erreur lors de la mise à jour du statut');
                     this.checked = !this.checked;
                 }

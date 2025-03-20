@@ -586,6 +586,16 @@ input:focus, select:focus {
     background-color: #2c2c2c;
 }
 
+/* Style pour les tâches cochées */
+#todosTable tbody tr.completed td {
+    background-color: #1a1a1a;
+    color: #666;
+}
+
+#todosTable tbody tr.completed td:first-child {
+    color: #4CAF50;
+}
+
 .todo-checkbox {
     width: 18px;
     height: 18px;
