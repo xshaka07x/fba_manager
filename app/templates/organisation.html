@@ -23,77 +23,14 @@
             </div>
         </div>
 
-        <!-- Objectifs du mois -->
-        <div class="col-xl-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Objectifs du mois</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Objectif de vente</label>
-                                <input type="number" class="form-control" id="salesGoal" placeholder="€">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Objectif de scan/achat</label>
-                                <input type="number" class="form-control" id="scanGoal" placeholder="articles">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="progress mt-3">
-                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Notes rapides -->
-        <div class="col-xl-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Notes rapides</h5>
-                </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <textarea class="form-control" id="quickNote" rows="3" placeholder="Ajouter une note..."></textarea>
-                    </div>
-                    <button class="btn btn-primary" onclick="addQuickNote()">Ajouter</button>
-                    <div id="notesList" class="mt-3"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Rappels importants -->
-        <div class="col-xl-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Rappels importants</h5>
-                </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <input type="text" class="form-control" id="reminderText" placeholder="Texte du rappel">
-                    </div>
-                    <div class="form-group">
-                        <input type="datetime-local" class="form-control" id="reminderDate">
-                    </div>
-                    <button class="btn btn-primary" onclick="addReminder()">Ajouter</button>
-                    <div id="remindersList" class="mt-3"></div>
-                </div>
-            </div>
-        </div>
-
         <!-- Liste des tâches -->
-        <div class="col-12">
+        <div class="col-xl-6 mb-4">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Liste des tâches</h5>
                 </div>
                 <div class="card-body">
-                    <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#addTodoModal">
+                    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addTodoModal">
                         Nouvelle tâche
                     </button>
                     <div class="table-responsive">
@@ -134,14 +71,12 @@
 </div>
 
 <!-- Modal Ajout de tâche -->
-<div class="modal fade" id="addTodoModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="addTodoModal" tabindex="-1">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Nouvelle tâche</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -150,7 +85,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                 <button type="button" class="btn btn-primary" onclick="addTodo()">Ajouter</button>
             </div>
         </div>
@@ -189,153 +124,9 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         "order": [[2, "desc"]],
         "pageLength": 25,
-        "responsive": true,
-        "dom": 'Bfrtip',
-        "buttons": [
-            'copy', 'csv', 'excel', 'pdf', 'print'
-        ]
+        "responsive": true
     });
 
-    // Chargement des objectifs
-    loadGoals();
-
-    // Chargement des notes
-    loadNotes();
-
-    // Chargement des rappels
-    loadReminders();
-});
-
-// Fonctions pour les objectifs
-function loadGoals() {
-    const goals = JSON.parse(localStorage.getItem('monthlyGoals') || '{}');
-    document.getElementById('salesGoal').value = goals.sales || '';
-    document.getElementById('scanGoal').value = goals.scan || '';
-    updateProgress();
-}
-
-function saveGoals() {
-    const goals = {
-        sales: document.getElementById('salesGoal').value,
-        scan: document.getElementById('scanGoal').value
-    };
-    localStorage.setItem('monthlyGoals', JSON.stringify(goals));
-    updateProgress();
-}
-
-function updateProgress() {
-    const goals = JSON.parse(localStorage.getItem('monthlyGoals') || '{}');
-    const progress = calculateProgress(goals);
-    document.querySelector('.progress-bar').style.width = progress + '%';
-}
-
-function calculateProgress(goals) {
-    // À implémenter selon vos besoins
-    return 0;
-}
-
-// Fonctions pour les notes
-function addQuickNote() {
-    const text = document.getElementById('quickNote').value;
-    if (!text) return;
-
-    const notes = JSON.parse(localStorage.getItem('quickNotes') || '[]');
-    notes.push({
-        text: text,
-        date: new Date().toISOString()
-    });
-    localStorage.setItem('quickNotes', JSON.stringify(notes));
-
-    document.getElementById('quickNote').value = '';
-    loadNotes();
-}
-
-function loadNotes() {
-    const notes = JSON.parse(localStorage.getItem('quickNotes') || '[]');
-    const container = document.getElementById('notesList');
-    container.innerHTML = '';
-
-    notes.forEach(note => {
-        const div = document.createElement('div');
-        div.className = 'note-item';
-        div.innerHTML = `
-            <p>${note.text}</p>
-            <small>${new Date(note.date).toLocaleString()}</small>
-        `;
-        container.appendChild(div);
-    });
-}
-
-// Fonctions pour les rappels
-function addReminder() {
-    const text = document.getElementById('reminderText').value;
-    const date = document.getElementById('reminderDate').value;
-    if (!text || !date) return;
-
-    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-    reminders.push({
-        text: text,
-        date: date
-    });
-    localStorage.setItem('reminders', JSON.stringify(reminders));
-
-    document.getElementById('reminderText').value = '';
-    document.getElementById('reminderDate').value = '';
-    loadReminders();
-}
-
-function loadReminders() {
-    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-    const container = document.getElementById('remindersList');
-    container.innerHTML = '';
-
-    reminders.forEach(reminder => {
-        const div = document.createElement('div');
-        div.className = 'reminder-item';
-        
-        const reminderDate = new Date(reminder.date);
-        const now = new Date();
-        const diff = reminderDate - now;
-        const hoursLeft = diff / (1000 * 60 * 60);
-
-        if (hoursLeft < 24) {
-            div.classList.add('urgent');
-        } else if (hoursLeft < 72) {
-            div.classList.add('warning');
-        }
-
-        div.innerHTML = `
-            <p>${reminder.text}</p>
-            <small>${reminderDate.toLocaleString()}</small>
-        `;
-        container.appendChild(div);
-    });
-}
-
-// Fonctions pour les tâches
-function addTodo() {
-    const text = document.getElementById('newTodoText').value;
-    if (!text) return;
-
-    fetch('/api/todos', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `texte=${encodeURIComponent(text)}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Erreur lors de l\'ajout de la tâche');
-        }
-    });
-}
-
-// Gestion des événements pour les tâches
-document.addEventListener('DOMContentLoaded', function() {
     // Gestion des checkboxes
     document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
@@ -371,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        location.reload();
+                        window.location.reload();
                     } else {
                         alert('Erreur lors de la suppression de la tâche');
                     }
@@ -380,6 +171,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Fonction pour ajouter une tâche
+function addTodo() {
+    const text = document.getElementById('newTodoText').value;
+    if (!text) return;
+
+    fetch('/api/todos', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `texte=${encodeURIComponent(text)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert('Erreur lors de l\'ajout de la tâche');
+        }
+    });
+}
 </script>
 {% endblock %}
 
@@ -415,12 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
     background-color: #2e59d9;
     border-color: #2653d4;
 }
-.progress {
-    background-color: #2c2c2c;
-}
-.progress-bar {
-    background-color: #4e73df;
-}
 #calendar {
     background-color: #202020;
     padding: 1rem;
@@ -438,24 +245,5 @@ document.addEventListener('DOMContentLoaded', function() {
 .fc-event {
     background-color: #4e73df;
     border-color: #4e73df;
-}
-.note-item {
-    background-color: #2c2c2c;
-    padding: 1rem;
-    margin-bottom: 0.5rem;
-    border-radius: 0.35rem;
-}
-.reminder-item {
-    background-color: #2c2c2c;
-    padding: 1rem;
-    margin-bottom: 0.5rem;
-    border-radius: 0.35rem;
-    border-left: 4px solid #4e73df;
-}
-.reminder-item.urgent {
-    border-left-color: #e74a3b;
-}
-.reminder-item.warning {
-    border-left-color: #f6c23e;
 }
 </style> 
