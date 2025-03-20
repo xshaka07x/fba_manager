@@ -406,10 +406,19 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('saveTravel').addEventListener('click', function() {
         const form = document.getElementById('addTravelForm');
         const formData = new FormData(form);
+        const data = {
+            date: formData.get('date'),
+            person: formData.get('person'),
+            kilometers: parseFloat(formData.get('kilometers')),
+            comment: formData.get('comment')
+        };
 
-        fetch('/gestion/add', {
+        fetch('/api/travels', {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
         })
         .then(response => response.json())
         .then(data => {
@@ -418,6 +427,10 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 alert('Erreur lors de l\'ajout du déplacement');
             }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors de l\'ajout du déplacement');
         });
     });
 

@@ -1,232 +1,463 @@
 {% extends "base.html" %}
 
-{% block title %}Organisation - FBA Manager{% endblock %}
+{% block title %}Organisation{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h2>📋 Organisation</h2>
+            <h1 class="h3 mb-0 text-gray-800">Organisation</h1>
         </div>
     </div>
 
-    <!-- Section Calendrier et Factures -->
-    <div class="row mb-4">
-        <div class="col-md-8">
+    <div class="row">
+        <!-- Calendrier des événements -->
+        <div class="col-xl-6 mb-4">
             <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">📅 Calendrier Google</h5>
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Calendrier des événements</h5>
                 </div>
                 <div class="card-body">
-                    <iframe src="https://calendar.google.com/calendar/embed?src=YOUR_CALENDAR_ID&ctz=Europe%2FParis" 
-                            style="border: 0" 
-                            width="100%" 
-                            height="600" 
-                            frameborder="0" 
-                            scrolling="no">
-                    </iframe>
+                    <div id="calendar"></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+
+        <!-- Objectifs du mois -->
+        <div class="col-xl-6 mb-4">
             <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">📄 Factures</h5>
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Objectifs du mois</h5>
                 </div>
                 <div class="card-body">
-                    <div class="list-group">
-                        <a href="https://drive.google.com/drive/folders/YOUR_FOLDER_ID" 
-                           class="list-group-item list-group-item-action bg-dark text-white" 
-                           target="_blank">
-                            <i class="fas fa-folder-open"></i> Accéder aux factures
-                        </a>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Objectif de vente</label>
+                                <input type="number" class="form-control" id="salesGoal" placeholder="€">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Objectif de scan/achat</label>
+                                <input type="number" class="form-control" id="scanGoal" placeholder="articles">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress mt-3">
+                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes rapides -->
+        <div class="col-xl-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Notes rapides</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <textarea class="form-control" id="quickNote" rows="3" placeholder="Ajouter une note..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addQuickNote()">Ajouter</button>
+                    <div id="notesList" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rappels importants -->
+        <div class="col-xl-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Rappels importants</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="reminderText" placeholder="Texte du rappel">
+                    </div>
+                    <div class="form-group">
+                        <input type="datetime-local" class="form-control" id="reminderDate">
+                    </div>
+                    <button class="btn btn-primary" onclick="addReminder()">Ajouter</button>
+                    <div id="remindersList" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des tâches -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Liste des tâches</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#addTodoModal">
+                        Nouvelle tâche
+                    </button>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="todosTable">
+                            <thead>
+                                <tr>
+                                    <th>Statut</th>
+                                    <th>Tâche</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for todo in todos %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="todo-checkbox" 
+                                               data-id="{{ todo.id }}" 
+                                               {% if todo.status == 1 %}checked{% endif %}>
+                                    </td>
+                                    <td>{{ todo.texte }}</td>
+                                    <td>{{ todo.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger delete-todo" 
+                                                data-id="{{ todo.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Section Todo List -->
-    <div class="card mb-4">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">📋 Liste des tâches</h5>
-            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTodoModal">
-                <i class="fas fa-plus"></i> Nouvelle tâche
-            </button>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-dark table-hover data-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Tâche</th>
-                            <th>Date de création</th>
-                            <th>Statut</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for todo in todos %}
-                        <tr>
-                            <td>{{ loop.index }}</td>
-                            <td class="{% if todo.status == 1 %}text-decoration-line-through text-muted{% endif %}">
-                                {{ todo.texte }}
-                            </td>
-                            <td>{{ todo.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                            <td>
-                                <span class="badge {% if todo.status == 1 %}bg-success{% else %}bg-warning{% endif %}">
-                                    {{ 'Validé' if todo.status == 1 else 'En attente' }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-success toggle-status" data-id="{{ todo.id }}" data-status="{{ todo.status }}">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <button class="btn btn-danger delete-todo" data-id="{{ todo.id }}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
 </div>
 
-<!-- Modal pour ajouter une tâche -->
-<div class="modal fade" id="addTodoModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark text-white">
+<!-- Modal Ajout de tâche -->
+<div class="modal fade" id="addTodoModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Nouvelle tâche</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
             </div>
             <div class="modal-body">
-                <form id="addTodoForm">
-                    <div class="mb-3">
-                        <label class="form-label">Description de la tâche</label>
-                        <textarea class="form-control" name="texte" rows="3" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Ajouter</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                </form>
+                <div class="form-group">
+                    <label>Description de la tâche</label>
+                    <input type="text" class="form-control" id="newTodoText">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="addTodo()">Ajouter</button>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-.card {
-    background: #202020;
-    border: 1px solid #333;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
-    border-bottom: 1px solid #333;
-}
-
-.form-control {
-    background-color: #333;
-    border-color: #444;
-    color: #fff;
-}
-
-.form-control:focus {
-    background-color: #444;
-    border-color: #555;
-    color: #fff;
-}
-
-.list-group-item {
-    background-color: #333;
-    border-color: #444;
-}
-
-.list-group-item:hover {
-    background-color: #444;
-}
-</style>
 
 {% endblock %}
 
-{% block scripts %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+<style>
+    .card {
+        background-color: #202020;
+        border: 1px solid #333;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    }
+    .card-header {
+        background-color: #2c2c2c;
+        border-bottom: 1px solid #333;
+    }
+    .card-title {
+        color: #fff;
+        margin: 0;
+    }
+    .form-control {
+        background-color: #2c2c2c;
+        border-color: #333;
+        color: #fff;
+    }
+    .form-control:focus {
+        background-color: #2c2c2c;
+        border-color: #666;
+        color: #fff;
+    }
+    .btn-primary {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+    .btn-primary:hover {
+        background-color: #2e59d9;
+        border-color: #2653d4;
+    }
+    .progress {
+        background-color: #2c2c2c;
+    }
+    .progress-bar {
+        background-color: #4e73df;
+    }
+    #calendar {
+        background-color: #202020;
+        padding: 1rem;
+        border-radius: 0.35rem;
+    }
+    .fc-theme-standard td, .fc-theme-standard th {
+        border-color: #333;
+    }
+    .fc-theme-standard .fc-scrollgrid {
+        border-color: #333;
+    }
+    .fc-day-today {
+        background-color: #2c2c2c !important;
+    }
+    .fc-event {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+    .note-item {
+        background-color: #2c2c2c;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.35rem;
+    }
+    .reminder-item {
+        background-color: #2c2c2c;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.35rem;
+        border-left: 4px solid #4e73df;
+    }
+    .reminder-item.urgent {
+        border-left-color: #e74a3b;
+    }
+    .reminder-item.warning {
+        border-left-color: #f6c23e;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialisation de DataTables
-    const todoTable = $('.data-table').DataTable({
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json'
+    // Initialisation du calendrier
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        order: [[2, 'desc']], // Tri par date de création décroissant
-        pageLength: 10,
-        responsive: true
+        events: [],
+        eventClick: function(info) {
+            alert('Event: ' + info.event.title);
+        }
+    });
+    calendar.render();
+
+    // Initialisation de DataTables
+    if ($.fn.DataTable.isDataTable('#todosTable')) {
+        $('#todosTable').DataTable().destroy();
+    }
+    $('#todosTable').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
+        },
+        "order": [[2, "desc"]],
+        "pageLength": 25,
+        "responsive": true,
+        "dom": 'Bfrtip',
+        "buttons": [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+        ]
     });
 
-    // Gestion de l'ajout d'une tâche
-    $('#addTodoForm').on('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
+    // Chargement des objectifs
+    loadGoals();
+
+    // Chargement des notes
+    loadNotes();
+
+    // Chargement des rappels
+    loadReminders();
+});
+
+// Fonctions pour les objectifs
+function loadGoals() {
+    const goals = JSON.parse(localStorage.getItem('monthlyGoals') || '{}');
+    document.getElementById('salesGoal').value = goals.sales || '';
+    document.getElementById('scanGoal').value = goals.scan || '';
+    updateProgress();
+}
+
+function saveGoals() {
+    const goals = {
+        sales: document.getElementById('salesGoal').value,
+        scan: document.getElementById('scanGoal').value
+    };
+    localStorage.setItem('monthlyGoals', JSON.stringify(goals));
+    updateProgress();
+}
+
+function updateProgress() {
+    const goals = JSON.parse(localStorage.getItem('monthlyGoals') || '{}');
+    const progress = calculateProgress(goals);
+    document.querySelector('.progress-bar').style.width = progress + '%';
+}
+
+function calculateProgress(goals) {
+    // À implémenter selon vos besoins
+    return 0;
+}
+
+// Fonctions pour les notes
+function addQuickNote() {
+    const text = document.getElementById('quickNote').value;
+    if (!text) return;
+
+    const notes = JSON.parse(localStorage.getItem('quickNotes') || '[]');
+    notes.push({
+        text: text,
+        date: new Date().toISOString()
+    });
+    localStorage.setItem('quickNotes', JSON.stringify(notes));
+
+    document.getElementById('quickNote').value = '';
+    loadNotes();
+}
+
+function loadNotes() {
+    const notes = JSON.parse(localStorage.getItem('quickNotes') || '[]');
+    const container = document.getElementById('notesList');
+    container.innerHTML = '';
+
+    notes.forEach(note => {
+        const div = document.createElement('div');
+        div.className = 'note-item';
+        div.innerHTML = `
+            <p>${note.text}</p>
+            <small>${new Date(note.date).toLocaleString()}</small>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// Fonctions pour les rappels
+function addReminder() {
+    const text = document.getElementById('reminderText').value;
+    const date = document.getElementById('reminderDate').value;
+    if (!text || !date) return;
+
+    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+    reminders.push({
+        text: text,
+        date: date
+    });
+    localStorage.setItem('reminders', JSON.stringify(reminders));
+
+    document.getElementById('reminderText').value = '';
+    document.getElementById('reminderDate').value = '';
+    loadReminders();
+}
+
+function loadReminders() {
+    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+    const container = document.getElementById('remindersList');
+    container.innerHTML = '';
+
+    reminders.forEach(reminder => {
+        const div = document.createElement('div');
+        div.className = 'reminder-item';
         
-        fetch('/api/todos', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Erreur lors de l\'ajout de la tâche');
-            }
-        });
-    });
+        const reminderDate = new Date(reminder.date);
+        const now = new Date();
+        const diff = reminderDate - now;
+        const hoursLeft = diff / (1000 * 60 * 60);
 
-    // Gestion du changement de statut
-    $('.toggle-status').on('click', function() {
-        const todoId = $(this).data('id');
-        const currentStatus = $(this).data('status');
-        const newStatus = currentStatus === 0 ? 1 : 0;
-        
-        fetch(`/api/todos/${todoId}/toggle`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ status: newStatus })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Erreur lors de la mise à jour du statut');
-            }
-        });
-    });
+        if (hoursLeft < 24) {
+            div.classList.add('urgent');
+        } else if (hoursLeft < 72) {
+            div.classList.add('warning');
+        }
 
-    // Gestion de la suppression
-    $('.delete-todo').on('click', function() {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
-            const todoId = $(this).data('id');
-            
-            fetch(`/api/todos/${todoId}`, {
-                method: 'DELETE'
+        div.innerHTML = `
+            <p>${reminder.text}</p>
+            <small>${reminderDate.toLocaleString()}</small>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// Fonctions pour les tâches
+function addTodo() {
+    const text = document.getElementById('newTodoText').value;
+    if (!text) return;
+
+    fetch('/api/todos', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `texte=${encodeURIComponent(text)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erreur lors de l\'ajout de la tâche');
+        }
+    });
+}
+
+// Gestion des événements pour les tâches
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion des checkboxes
+    document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const id = this.dataset.id;
+            const status = this.checked ? 1 : 0;
+
+            fetch(`/api/todos/${id}/toggle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: status })
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert('Erreur lors de la suppression de la tâche');
+                if (!data.success) {
+                    alert('Erreur lors de la mise à jour du statut');
+                    this.checked = !this.checked;
                 }
             });
-        }
+        });
+    });
+
+    // Gestion des boutons de suppression
+    document.querySelectorAll('.delete-todo').forEach(button => {
+        button.addEventListener('click', function() {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+                const id = this.dataset.id;
+
+                fetch(`/api/todos/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Erreur lors de la suppression de la tâche');
+                    }
+                });
+            }
+        });
     });
 });
 </script>
