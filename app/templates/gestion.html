@@ -426,6 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                addModal.hide();
                 window.location.reload();
             } else {
                 alert('Erreur lors de l\'ajout du déplacement');
@@ -441,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.edit-travel').forEach(button => {
         button.addEventListener('click', function() {
             const id = this.dataset.id;
-            fetch(`/gestion/get/${id}`)
+            fetch(`/api/travels/${id}`)
                 .then(response => response.json())
                 .then(data => {
                     const form = document.getElementById('editTravelForm');
@@ -459,18 +460,33 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('updateTravel').addEventListener('click', function() {
         const form = document.getElementById('editTravelForm');
         const formData = new FormData(form);
+        const data = {
+            id: formData.get('id'),
+            date: formData.get('date'),
+            person: formData.get('person'),
+            kilometers: parseFloat(formData.get('kilometers')),
+            comment: formData.get('comment')
+        };
 
-        fetch('/gestion/update', {
-            method: 'POST',
-            body: formData
+        fetch(`/api/travels/${data.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                editModal.hide();
                 window.location.reload();
             } else {
                 alert('Erreur lors de la mise à jour du déplacement');
             }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors de la mise à jour du déplacement');
         });
     });
 

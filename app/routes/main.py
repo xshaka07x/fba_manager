@@ -497,6 +497,17 @@ def delete_travel(travel_id):
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 400
 
+@main_bp.route('/api/travels/<int:travel_id>', methods=['GET'])
+def get_travel(travel_id):
+    travel = Travel.query.get_or_404(travel_id)
+    return jsonify({
+        'id': travel.id,
+        'date': travel.date.strftime('%Y-%m-%d'),
+        'person': travel.person,
+        'kilometers': float(travel.kilometers) if travel.kilometers else None,
+        'comment': travel.comment
+    })
+
 @main_bp.route('/api/todos', methods=['GET'])
 def get_todos():
     """Récupère toutes les tâches."""
