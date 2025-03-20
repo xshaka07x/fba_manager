@@ -3,13 +3,101 @@
 {% block title %}Organisation - FBA Manager{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">📋 Organisation</h1>
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>📋 Organisation</h2>
+        </div>
+    </div>
+
+    <!-- Section Calendrier -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📅 Calendrier des événements</h5>
+                </div>
+                <div class="card-body">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">🎯 Objectifs du mois</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Objectif de ventes</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="salesGoal" placeholder="€">
+                            <span class="input-group-text">€</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de produits à scanner</label>
+                        <input type="number" class="form-control" id="scanGoal" placeholder="Nombre">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de produits à acheter</label>
+                        <input type="number" class="form-control" id="purchaseGoal" placeholder="Nombre">
+                    </div>
+                    <button class="btn btn-success w-100" id="saveGoals">
+                        <i class="fas fa-save"></i> Enregistrer les objectifs
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Notes et Rappels -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📝 Notes rapides</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <textarea class="form-control" id="quickNotes" rows="4" placeholder="Ajouter une note..."></textarea>
+                    </div>
+                    <button class="btn btn-info text-white" id="saveNote">
+                        <i class="fas fa-plus"></i> Ajouter la note
+                    </button>
+                    <div id="notesList" class="mt-3">
+                        <!-- Les notes seront ajoutées ici dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">⏰ Rappels importants</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="reminderText" placeholder="Nouveau rappel...">
+                    </div>
+                    <div class="mb-3">
+                        <input type="datetime-local" class="form-control" id="reminderDate">
+                    </div>
+                    <button class="btn btn-warning" id="addReminder">
+                        <i class="fas fa-plus"></i> Ajouter un rappel
+                    </button>
+                    <div id="remindersList" class="mt-3">
+                        <!-- Les rappels seront ajoutés ici dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Section Todo List -->
     <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">📝 Liste des tâches</h5>
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">📋 Liste des tâches</h5>
             <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTodoModal">
                 <i class="fas fa-plus"></i> Nouvelle tâche
             </button>
@@ -56,30 +144,92 @@
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Modal pour ajouter une tâche -->
-    <div class="modal fade" id="addTodoModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header">
-                    <h5 class="modal-title">Nouvelle tâche</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addTodoForm">
-                        <div class="mb-3">
-                            <label class="form-label">Description de la tâche</label>
-                            <textarea class="form-control" name="texte" rows="3" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Ajouter</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    </form>
-                </div>
+<!-- Modal pour ajouter une tâche -->
+<div class="modal fade" id="addTodoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title">Nouvelle tâche</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTodoForm">
+                    <div class="mb-3">
+                        <label class="form-label">Description de la tâche</label>
+                        <textarea class="form-control" name="texte" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+.card {
+    background: #202020;
+    border: 1px solid #333;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-bottom: 1px solid #333;
+}
+
+.form-control {
+    background-color: #333;
+    border-color: #444;
+    color: #fff;
+}
+
+.form-control:focus {
+    background-color: #444;
+    border-color: #555;
+    color: #fff;
+}
+
+#calendar {
+    background: #333;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.note-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.reminder-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.reminder-item.urgent {
+    border-left: 4px solid #dc3545;
+}
+
+.reminder-item.warning {
+    border-left: 4px solid #ffc107;
+}
+
+.reminder-item.info {
+    border-left: 4px solid #17a2b8;
+}
+</style>
+
+{% endblock %}
+
+{% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialisation de DataTables
@@ -152,6 +302,111 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+
+    // Gestion des objectifs
+    $('#saveGoals').on('click', function() {
+        const goals = {
+            sales: $('#salesGoal').val(),
+            scan: $('#scanGoal').val(),
+            purchase: $('#purchaseGoal').val()
+        };
+
+        localStorage.setItem('monthlyGoals', JSON.stringify(goals));
+        alert('Objectifs enregistrés avec succès !');
+    });
+
+    // Chargement des objectifs
+    const savedGoals = localStorage.getItem('monthlyGoals');
+    if (savedGoals) {
+        const goals = JSON.parse(savedGoals);
+        $('#salesGoal').val(goals.sales);
+        $('#scanGoal').val(goals.scan);
+        $('#purchaseGoal').val(goals.purchase);
+    }
+
+    // Gestion des notes
+    $('#saveNote').on('click', function() {
+        const note = $('#quickNotes').val();
+        if (note.trim()) {
+            const notes = JSON.parse(localStorage.getItem('quickNotes') || '[]');
+            notes.push({
+                text: note,
+                date: new Date().toISOString()
+            });
+            localStorage.setItem('quickNotes', JSON.stringify(notes));
+            $('#quickNotes').val('');
+            displayNotes();
+        }
+    });
+
+    function displayNotes() {
+        const notes = JSON.parse(localStorage.getItem('quickNotes') || '[]');
+        const notesList = $('#notesList');
+        notesList.empty();
+        
+        notes.forEach(note => {
+            const date = new Date(note.date).toLocaleString();
+            notesList.append(`
+                <div class="note-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <p class="mb-0">${note.text}</p>
+                        <small class="text-muted">${date}</small>
+                    </div>
+                </div>
+            `);
+        });
+    }
+
+    // Gestion des rappels
+    $('#addReminder').on('click', function() {
+        const text = $('#reminderText').val();
+        const date = $('#reminderDate').val();
+        
+        if (text.trim() && date) {
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            reminders.push({
+                text: text,
+                date: date
+            });
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+            $('#reminderText').val('');
+            $('#reminderDate').val('');
+            displayReminders();
+        }
+    });
+
+    function displayReminders() {
+        const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+        const remindersList = $('#remindersList');
+        remindersList.empty();
+        
+        reminders.forEach(reminder => {
+            const reminderDate = new Date(reminder.date);
+            const now = new Date();
+            const diff = reminderDate - now;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            
+            let urgencyClass = 'info';
+            if (hours < 24) urgencyClass = 'urgent';
+            else if (hours < 72) urgencyClass = 'warning';
+            
+            remindersList.append(`
+                <div class="reminder-item ${urgencyClass}">
+                    <div>
+                        <p class="mb-0">${reminder.text}</p>
+                        <small class="text-muted">${reminderDate.toLocaleString()}</small>
+                    </div>
+                    <button class="btn btn-sm btn-danger delete-reminder">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `);
+        });
+    }
+
+    // Initialisation
+    displayNotes();
+    displayReminders();
 });
 </script>
 {% endblock %} 

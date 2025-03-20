@@ -351,7 +351,91 @@ def add_scanned_stock():
 
 @main_bp.route('/gestion')
 def gestion():
-    return render_template('gestion.html')
+    # Récupération des paramètres de filtrage
+    current_month = request.args.get('month', type=int, default=datetime.now().month)
+    current_year = request.args.get('year', type=int, default=datetime.now().year)
+
+    # Liste des mois pour les sélecteurs
+    months = [
+        {'value': i, 'label': datetime(2000, i, 1).strftime('%B')} 
+        for i in range(1, 13)
+    ]
+
+    # Liste des années disponibles (de 2023 à l'année en cours)
+    years = list(range(2023, datetime.now().year + 1))
+
+    # Récupération des déplacements
+    travels = Travel.query.filter(
+        extract('year', Travel.date) == current_year
+    ).order_by(Travel.date.desc()).all()
+
+    # Calcul des statistiques mensuelles pour Thomas
+    thomas_monthly_travels = Travel.query.filter(
+        extract('year', Travel.date) == current_year,
+        extract('month', Travel.date) == current_month,
+        Travel.person == 'Thomas'
+    ).count()
+
+    thomas_monthly_km = db.session.query(
+        db.func.sum(Travel.kilometers)
+    ).filter(
+        extract('year', Travel.date) == current_year,
+        extract('month', Travel.date) == current_month,
+        Travel.person == 'Thomas'
+    ).scalar() or 0
+
+    # Calcul des statistiques mensuelles pour Olivier
+    olivier_monthly_travels = Travel.query.filter(
+        extract('year', Travel.date) == current_year,
+        extract('month', Travel.date) == current_month,
+        Travel.person == 'Olivier'
+    ).count()
+
+    olivier_monthly_km = db.session.query(
+        db.func.sum(Travel.kilometers)
+    ).filter(
+        extract('year', Travel.date) == current_year,
+        extract('month', Travel.date) == current_month,
+        Travel.person == 'Olivier'
+    ).scalar() or 0
+
+    # Calcul des statistiques annuelles
+    yearly_travels = Travel.query.filter(
+        extract('year', Travel.date) == current_year
+    ).count()
+
+    yearly_km = db.session.query(
+        db.func.sum(Travel.kilometers)
+    ).filter(
+        extract('year', Travel.date) == current_year
+    ).scalar() or 0
+
+    # Calcul des indemnités selon la formule officielle
+    def calculate_compensation(km):
+        if km <= 5000:
+            return km * 0.603
+        else:
+            return (5000 * 0.603) + ((km - 5000) * 0.340)
+
+    thomas_monthly_compensation = calculate_compensation(thomas_monthly_km)
+    olivier_monthly_compensation = calculate_compensation(olivier_monthly_km)
+    yearly_compensation = calculate_compensation(yearly_km)
+
+    return render_template('gestion.html',
+                         travels=travels,
+                         months=months,
+                         years=years,
+                         current_month=current_month,
+                         current_year=current_year,
+                         thomas_monthly_travels=thomas_monthly_travels,
+                         thomas_monthly_km=thomas_monthly_km,
+                         thomas_monthly_compensation=thomas_monthly_compensation,
+                         olivier_monthly_travels=olivier_monthly_travels,
+                         olivier_monthly_km=olivier_monthly_km,
+                         olivier_monthly_compensation=olivier_monthly_compensation,
+                         yearly_travels=yearly_travels,
+                         yearly_km=yearly_km,
+                         yearly_compensation=yearly_compensation)
 
 @main_bp.route('/api/travels', methods=['GET'])
 def get_travels():
