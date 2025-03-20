@@ -414,6 +414,7 @@ def gestion():
 
         # Calcul des indemnités selon la formule officielle
         def calculate_compensation(km):
+            km = float(km)  # Conversion en float
             if km <= 5000:
                 return km * 0.603
             else:
