@@ -159,87 +159,7 @@
 
 {% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
-<style>
-    .card {
-        background-color: #202020;
-        border: 1px solid #333;
-        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-    }
-    .card-header {
-        background-color: #2c2c2c;
-        border-bottom: 1px solid #333;
-    }
-    .card-title {
-        color: #fff;
-        margin: 0;
-    }
-    .form-control {
-        background-color: #2c2c2c;
-        border-color: #333;
-        color: #fff;
-    }
-    .form-control:focus {
-        background-color: #2c2c2c;
-        border-color: #666;
-        color: #fff;
-    }
-    .btn-primary {
-        background-color: #4e73df;
-        border-color: #4e73df;
-    }
-    .btn-primary:hover {
-        background-color: #2e59d9;
-        border-color: #2653d4;
-    }
-    .progress {
-        background-color: #2c2c2c;
-    }
-    .progress-bar {
-        background-color: #4e73df;
-    }
-    #calendar {
-        background-color: #202020;
-        padding: 1rem;
-        border-radius: 0.35rem;
-    }
-    .fc-theme-standard td, .fc-theme-standard th {
-        border-color: #333;
-    }
-    .fc-theme-standard .fc-scrollgrid {
-        border-color: #333;
-    }
-    .fc-day-today {
-        background-color: #2c2c2c !important;
-    }
-    .fc-event {
-        background-color: #4e73df;
-        border-color: #4e73df;
-    }
-    .note-item {
-        background-color: #2c2c2c;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-        border-radius: 0.35rem;
-    }
-    .reminder-item {
-        background-color: #2c2c2c;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-        border-radius: 0.35rem;
-        border-left: 4px solid #4e73df;
-    }
-    .reminder-item.urgent {
-        border-left-color: #e74a3b;
-    }
-    .reminder-item.warning {
-        border-left-color: #f6c23e;
-    }
-</style>
-{% endblock %}
-
-{% block extra_js %}
+{% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -461,4 +381,81 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-{% endblock %} 
+{% endblock %}
+
+<style>
+.card {
+    background-color: #202020;
+    border: 1px solid #333;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+.card-header {
+    background-color: #2c2c2c;
+    border-bottom: 1px solid #333;
+}
+.card-title {
+    color: #fff;
+    margin: 0;
+}
+.form-control {
+    background-color: #2c2c2c;
+    border-color: #333;
+    color: #fff;
+}
+.form-control:focus {
+    background-color: #2c2c2c;
+    border-color: #666;
+    color: #fff;
+}
+.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+.btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2653d4;
+}
+.progress {
+    background-color: #2c2c2c;
+}
+.progress-bar {
+    background-color: #4e73df;
+}
+#calendar {
+    background-color: #202020;
+    padding: 1rem;
+    border-radius: 0.35rem;
+}
+.fc-theme-standard td, .fc-theme-standard th {
+    border-color: #333;
+}
+.fc-theme-standard .fc-scrollgrid {
+    border-color: #333;
+}
+.fc-day-today {
+    background-color: #2c2c2c !important;
+}
+.fc-event {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+.note-item {
+    background-color: #2c2c2c;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.35rem;
+}
+.reminder-item {
+    background-color: #2c2c2c;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.35rem;
+    border-left: 4px solid #4e73df;
+}
+.reminder-item.urgent {
+    border-left-color: #e74a3b;
+}
+.reminder-item.warning {
+    border-left-color: #f6c23e;
+}
+</style> 

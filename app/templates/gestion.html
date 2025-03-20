@@ -387,6 +387,9 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Initialisation de DataTables
+    if ($.fn.DataTable.isDataTable('#travelTable')) {
+        $('#travelTable').DataTable().destroy();
+    }
     const travelTable = $('#travelTable').DataTable(dataTableConfig);
 
     // Gestion des changements de mois
