@@ -155,7 +155,7 @@
                     <form id="scanStockForm" method="post" action="/add_scanned_stock">
                         <div class="mb-3">
                             <label class="form-label">Nom du produit</label>
-                            <input type="text" id="scanNom" name="nom" class="form-control" readonly>
+                            <input type="text" id="scanNom" name="nom" class="form-control">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">EAN</label>
@@ -175,15 +175,26 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Prix d'achat unitaire (€)</label>
-                            <input type="number" step="0.01" name="prix_achat" class="form-control" required>
+                            <label class="form-label">Quantité</label>
+                            <input type="number" name="quantite" class="form-control" required min="1">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Quantité</label>
-                            <input type="number" name="quantite" class="form-control" required>
+                            <label class="form-label">Prix d'achat</label>
+                            <input type="number" name="prix_achat" class="form-control" required min="0" step="0.01">
                         </div>
-                        <input type="hidden" name="statut" value="Acheté/en stock">
-                        <button type="submit" class="btn btn-success w-100">✅ Ajouter au stock</button>
+                        <div class="mb-3">
+                            <label class="form-label">Prix Amazon estimé</label>
+                            <input type="number" name="prix_amazon" class="form-control" required min="0" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">URL Amazon (optionnel)</label>
+                            <input type="url" name="url" class="form-control">
+                        </div>
+                        <div class="alert alert-info" id="keepaInfo" style="display: none;">
+                            <i class="fas fa-info-circle"></i> Les informations ci-dessus ont été récupérées depuis Keepa.
+                        </div>
+                        <button type="submit" class="btn btn-primary">Ajouter au stock</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     </form>
                 </div>
             </div>
@@ -416,8 +427,7 @@
                         
                         document.getElementById('scanNom').value = productName;
                         document.getElementById('scanEan').value = code;
-                        
-                        // Si vous me donnez la documentation pour les photos, j'ajouterai ici le code pour afficher l'image
+                        document.getElementById('keepaInfo').style.display = 'block';
                         
                         scanModal.hide();
                         scanInfoModal.show();
@@ -425,6 +435,13 @@
                         // Si le produit n'est pas trouvé dans Keepa
                         document.getElementById('scanNom').value = "Produit " + code;
                         document.getElementById('scanEan').value = code;
+                        document.getElementById('keepaInfo').style.display = 'none';
+                        
+                        // Afficher un message d'information
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-warning';
+                        alertDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Produit non trouvé sur Keepa. Veuillez saisir les informations manuellement.';
+                        document.getElementById('scanStockForm').insertBefore(alertDiv, document.getElementById('scanStockForm').firstChild);
                         
                         scanModal.hide();
                         scanInfoModal.show();
@@ -435,6 +452,13 @@
                     // En cas d'erreur
                     document.getElementById('scanNom').value = "Produit " + code;
                     document.getElementById('scanEan').value = code;
+                    document.getElementById('keepaInfo').style.display = 'none';
+                    
+                    // Afficher un message d'erreur
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-danger';
+                    alertDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erreur lors de la recherche sur Keepa. Veuillez saisir les informations manuellement.';
+                    document.getElementById('scanStockForm').insertBefore(alertDiv, document.getElementById('scanStockForm').firstChild);
                     
                     scanModal.hide();
                     scanInfoModal.show();

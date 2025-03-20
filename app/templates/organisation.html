@@ -3,481 +3,155 @@
 {% block title %}Organisation - FBA Manager{% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- Section To-Do List et Calendrier -->
-    <div class="row mb-4">
-        <!-- To-Do List Card -->
-        <div class="col-md-6">
-            <div class="card bg-dark text-white h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">📝 To-Do List</h5>
-                    <button class="btn btn-primary btn-sm" onclick="addNewTask()">
-                        <i class="fas fa-plus"></i> Ajouter
-                    </button>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group todo-list" id="todoList">
-                        <!-- Les tâches seront ajoutées ici dynamiquement -->
-                    </ul>
-                </div>
-            </div>
-        </div>
+<div class="container mt-4">
+    <h1 class="mb-4">📋 Organisation</h1>
 
-        <!-- Google Calendar Card -->
-        <div class="col-md-6">
-            <div class="card bg-dark text-white h-100">
-                <div class="card-header">
-                    <h5 class="mb-0">📅 Calendrier</h5>
-                </div>
-                <div class="card-body">
-                    <iframe src="https://calendar.google.com/calendar/embed?src=bento.commun%40gmail.com&ctz=Europe%2FParis&showTitle=0&showNav=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0" 
-                            style="border: 0" 
-                            width="100%" 
-                            height="400" 
-                            frameborder="0" 
-                            scrolling="no">
-                    </iframe>
-                </div>
+    <!-- Section Todo List -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">📝 Liste des tâches</h5>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTodoModal">
+                <i class="fas fa-plus"></i> Nouvelle tâche
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tâche</th>
+                            <th>Date de création</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for todo in todos %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td class="{% if todo.status == 1 %}text-decoration-line-through text-muted{% endif %}">
+                                {{ todo.texte }}
+                            </td>
+                            <td>{{ todo.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td>
+                                <span class="badge {% if todo.status == 1 %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ 'Validé' if todo.status == 1 else 'En attente' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-success toggle-status" data-id="{{ todo.id }}" data-status="{{ todo.status }}">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-danger delete-todo" data-id="{{ todo.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Section Factures -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card bg-dark text-white">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">📄 Factures</h5>
-                    <div class="spinner-border spinner-border-sm text-primary d-none" id="driveLoading" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
+    <!-- Modal pour ajouter une tâche -->
+    <div class="modal fade" id="addTodoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nouvelle tâche</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="card-body">
-                    <div id="driveFiles" class="drive-files">
-                        <!-- Les fichiers du Drive seront chargés ici -->
-                    </div>
+                <div class="modal-body">
+                    <form id="addTodoForm">
+                        <div class="mb-3">
+                            <label class="form-label">Description de la tâche</label>
+                            <textarea class="form-control" name="texte" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Ajouter</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Style pour la To-Do List -->
-<style>
-.todo-list {
-    list-style: none;
-    padding: 0;
-    width: 100%;
-}
-
-.todo-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    margin-bottom: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 5px;
-    transition: all 0.3s ease;
-    width: 100%;
-}
-
-.todo-item.completed {
-    background: rgba(40, 167, 69, 0.2);
-    text-decoration: line-through;
-    opacity: 0.8;
-}
-
-.todo-checkbox {
-    margin-right: 15px;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-}
-
-.todo-text {
-    flex-grow: 1;
-    margin-right: 15px;
-    word-break: break-word;
-}
-
-.todo-delete {
-    color: #dc3545;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    flex-shrink: 0;
-}
-
-.todo-delete:hover {
-    background: rgba(220, 53, 69, 0.2);
-}
-
-/* Styles pour les fichiers Drive */
-.drive-files {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
-}
-
-.file-item {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 1rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.file-item:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
-}
-
-.file-icon {
-    font-size: 1.5rem;
-    color: #007bff;
-}
-
-.file-info {
-    flex-grow: 1;
-    overflow: hidden;
-}
-
-.file-name {
-    color: white;
-    text-decoration: none;
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.file-date {
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.file-item:hover .file-name {
-    color: #007bff;
-}
-</style>
-
-<!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://accounts.google.com/gsi/client"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    loadTasks();
-    initGoogleAuth();
-});
+    // Initialisation de DataTables
+    const todoTable = $('.data-table').DataTable({
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json'
+        },
+        order: [[2, 'desc']], // Tri par date de création décroissant
+        pageLength: 10,
+        responsive: true
+    });
 
-function addNewTask() {
-    const taskText = prompt("Entrez une nouvelle tâche:");
-    if (taskText && taskText.trim()) {
-        const task = {
-            id: Date.now(),
-            text: taskText.trim(),
-            completed: false
-        };
+    // Gestion de l'ajout d'une tâche
+    $('#addTodoForm').on('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
         
-        const tasks = getTasks();
-        tasks.push(task);
-        saveTasks(tasks);
-        renderTasks();
-    }
-}
-
-function toggleTask(taskId) {
-    const tasks = getTasks();
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-        task.completed = !task.completed;
-        saveTasks(tasks);
-        renderTasks();
-    }
-}
-
-function deleteTask(taskId) {
-    if (confirm("Voulez-vous vraiment supprimer cette tâche ?")) {
-        const tasks = getTasks();
-        const filteredTasks = tasks.filter(t => t.id !== taskId);
-        saveTasks(filteredTasks);
-        renderTasks();
-    }
-}
-
-function getTasks() {
-    const tasksJson = localStorage.getItem('todo-tasks');
-    return tasksJson ? JSON.parse(tasksJson) : [];
-}
-
-function saveTasks(tasks) {
-    localStorage.setItem('todo-tasks', JSON.stringify(tasks));
-}
-
-function loadTasks() {
-    renderTasks();
-}
-
-function renderTasks() {
-    const todoList = document.getElementById('todoList');
-    const tasks = getTasks();
-    
-    todoList.innerHTML = tasks.map(task => `
-        <li class="todo-item ${task.completed ? 'completed' : ''}" data-id="${task.id}">
-            <input type="checkbox" 
-                   class="todo-checkbox" 
-                   ${task.completed ? 'checked' : ''} 
-                   onchange="toggleTask(${task.id})">
-            <span class="todo-text">${task.text}</span>
-            <span class="todo-delete" onclick="deleteTask(${task.id})">
-                <i class="fas fa-trash"></i>
-            </span>
-        </li>
-    `).join('');
-}
-
-// Configuration Google OAuth2
-function initGoogleAuth() {
-    console.log('Initializing Google Auth...');
-    
-    // Vérifier si un token est déjà stocké
-    const storedToken = localStorage.getItem('google_drive_token');
-    const tokenExpiry = localStorage.getItem('google_drive_token_expiry');
-    
-    if (storedToken && tokenExpiry && new Date().getTime() < parseInt(tokenExpiry)) {
-        // Token valide trouvé, initialiser l'API et charger les fichiers
-        console.log('Using stored token...');
-        gapi.load('client', async () => {
-            try {
-                await gapi.client.init({
-                    apiKey: 'AIzaSyDypf6yeu64eaK5YSlOiYI3udg0nv-3nQA',
-                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-                });
-                gapi.client.setToken({
-                    access_token: storedToken
-                });
-                loadDriveFiles();
-            } catch (error) {
-                console.error('Error initializing GAPI client:', error);
-                handleError(error);
+        fetch('/api/todos', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur lors de l\'ajout de la tâche');
             }
         });
-    } else {
-        // Pas de token valide, afficher le bouton de connexion
-        document.getElementById('driveFiles').innerHTML = `
-            <div class="text-center">
-                <p class="mb-3">Connectez-vous pour accéder à vos fichiers Google Drive</p>
-                <button onclick="handleAuthClick()" class="btn btn-primary btn-lg">
-                    <i class="fab fa-google me-2"></i> Se connecter avec Google Drive
-                </button>
-            </div>
-        `;
-    }
-
-    const client = google.accounts.oauth2.initTokenClient({
-        client_id: '578826390064-f8u5r0jjh6ldru9o4ngrnttr0nchmha4.apps.googleusercontent.com',
-        scope: 'https://www.googleapis.com/auth/drive.readonly',
-        callback: (tokenResponse) => {
-            if (tokenResponse && tokenResponse.access_token) {
-                console.log('Token received, loading Drive API...');
-                // Stocker le token et sa date d'expiration
-                localStorage.setItem('google_drive_token', tokenResponse.access_token);
-                const expiryTime = new Date().getTime() + (tokenResponse.expires_in * 1000);
-                localStorage.setItem('google_drive_token_expiry', expiryTime.toString());
-                
-                gapi.load('client', async () => {
-                    try {
-                        await gapi.client.init({
-                            apiKey: 'AIzaSyDypf6yeu64eaK5YSlOiYI3udg0nv-3nQA',
-                            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-                        });
-                        gapi.client.setToken({
-                            access_token: tokenResponse.access_token
-                        });
-                        loadDriveFiles();
-                    } catch (error) {
-                        console.error('Error initializing GAPI client:', error);
-                        handleError(error);
-                    }
-                });
-            }
-        },
-        error_callback: (error) => {
-            console.error('Error getting token:', error);
-            handleError(error);
-            // En cas d'erreur, supprimer les tokens stockés
-            localStorage.removeItem('google_drive_token');
-            localStorage.removeItem('google_drive_token_expiry');
-        }
     });
 
-    window.tokenClient = client;
-}
-
-function handleAuthClick() {
-    console.log('Auth click handler triggered');
-    // Supprimer les anciens tokens avant de demander un nouveau
-    localStorage.removeItem('google_drive_token');
-    localStorage.removeItem('google_drive_token_expiry');
-    
-    if (window.tokenClient) {
-        try {
-            window.tokenClient.requestAccessToken({
-                prompt: 'consent'
-            });
-        } catch (error) {
-            console.error('Error requesting token:', error);
-            handleError(error);
-        }
-    } else {
-        console.error('Token client not initialized');
-        handleError({ error: 'Token client not initialized' });
-    }
-}
-
-function handleError(error) {
-    console.error('Error details:', error);
-    let errorMessage = 'Une erreur est survenue lors de la connexion à Google Drive.';
-    
-    if (error.error) {
-        errorMessage = `Erreur: ${error.error}`;
-        if (error.details) {
-            errorMessage += `<br>Détails: ${error.details}`;
-        }
-    }
-    
-    // Supprimer les tokens en cas d'erreur
-    localStorage.removeItem('google_drive_token');
-    localStorage.removeItem('google_drive_token_expiry');
-    
-    document.getElementById('driveFiles').innerHTML = `
-        <div class="alert alert-danger">
-            <h5 class="alert-heading">Erreur de connexion</h5>
-            <p>${errorMessage}</p>
-            <hr>
-            <p class="mb-0">
-                <button onclick="handleAuthClick()" class="btn btn-outline-light">
-                    <i class="fas fa-sync-alt me-2"></i> Réessayer
-                </button>
-            </p>
-        </div>
-    `;
-    document.getElementById('driveLoading').classList.add('d-none');
-}
-
-function loadDriveFiles() {
-    const driveLoading = document.getElementById('driveLoading');
-    driveLoading.classList.remove('d-none');
-
-    // Liste des dossiers à explorer
-    const folderIds = [
-        '1rZO1g-dvV4O7C2g9pj01LxEcf1csU_qY', // Votre dossier principal
-        // Ajoutez ici les IDs des autres dossiers que vous souhaitez explorer
-    ];
-
-    Promise.all(folderIds.map(folderId => 
-        gapi.client.drive.files.list({
-            q: `'${folderId}' in parents and trashed = false`,
-            fields: 'files(id, name, webViewLink, mimeType, modifiedTime, iconLink, thumbnailLink)',
-            orderBy: 'modifiedTime desc'
-        })
-    ))
-    .then(responses => {
-        const allFiles = responses.flatMap(response => response.result.files);
-        const driveFiles = document.getElementById('driveFiles');
+    // Gestion du changement de statut
+    $('.toggle-status').on('click', function() {
+        const todoId = $(this).data('id');
+        const currentStatus = $(this).data('status');
+        const newStatus = currentStatus === 0 ? 1 : 0;
         
-        if (allFiles && allFiles.length > 0) {
-            // Grouper les fichiers par type
-            const filesByType = allFiles.reduce((acc, file) => {
-                const type = getFileType(file.mimeType);
-                if (!acc[type]) acc[type] = [];
-                acc[type].push(file);
-                return acc;
-            }, {});
-
-            // Générer le HTML pour chaque groupe
-            driveFiles.innerHTML = Object.entries(filesByType).map(([type, files]) => `
-                <div class="mb-4">
-                    <h5 class="mb-3">${type}</h5>
-                    <div class="drive-files">
-                        ${files.map(file => `
-                            <div class="file-item">
-                                <div class="file-icon">
-                                    <i class="fas ${getFileIcon(file.mimeType)}"></i>
-                                </div>
-                                <div class="file-info">
-                                    <a href="${file.webViewLink}" target="_blank" class="file-name" title="${file.name}">
-                                        ${file.name}
-                                    </a>
-                                    <div class="file-date">
-                                        ${formatDate(file.modifiedTime)}
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
-        } else {
-            driveFiles.innerHTML = `
-                <div class="alert alert-info">
-                    Aucun fichier trouvé dans ce dossier.
-                </div>
-            `;
-        }
-        driveLoading.classList.add('d-none');
-    })
-    .catch(handleError);
-}
-
-function getFileType(mimeType) {
-    switch (mimeType) {
-        case 'application/pdf':
-            return 'Documents PDF';
-        case 'application/vnd.google-apps.spreadsheet':
-            return 'Feuilles de calcul';
-        case 'application/vnd.google-apps.document':
-            return 'Documents';
-        case 'application/vnd.google-apps.folder':
-            return 'Dossiers';
-        case 'image/jpeg':
-        case 'image/png':
-            return 'Images';
-        default:
-            return 'Autres fichiers';
-    }
-}
-
-function getFileIcon(mimeType) {
-    switch (mimeType) {
-        case 'application/pdf':
-            return 'fa-file-pdf';
-        case 'application/vnd.google-apps.spreadsheet':
-            return 'fa-file-excel';
-        case 'application/vnd.google-apps.document':
-            return 'fa-file-word';
-        default:
-            return 'fa-file';
-    }
-}
-
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        fetch(`/api/todos/${todoId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur lors de la mise à jour du statut');
+            }
+        });
     });
-}
-</script>
 
-<!-- Script Google API -->
-<script src="https://apis.google.com/js/api.js"></script>
+    // Gestion de la suppression
+    $('.delete-todo').on('click', function() {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+            const todoId = $(this).data('id');
+            
+            fetch(`/api/todos/${todoId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erreur lors de la suppression de la tâche');
+                }
+            });
+        }
+    });
+});
+</script>
 {% endblock %} 

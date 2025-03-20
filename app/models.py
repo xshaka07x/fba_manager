@@ -129,3 +129,15 @@ class Travel(db.Model):
 
     def __repr__(self):
         return f'<Travel {self.date} - {self.person}>'
+
+class Todo(db.Model):
+    """Modèle pour la gestion des tâches."""
+    __tablename__ = 'todo'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    texte = db.Column(db.Text, nullable=False)
+    status = db.Column(db.Integer, default=0)  # 0: en attente, 1: validé
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Todo {self.id}: {self.texte[:20]}...>'

@@ -1,6 +1,6 @@
 # app/routes/main.py
 from flask import Blueprint, render_template, redirect, url_for, request, jsonify
-from app.models import Product, Stock, ProductKeepa, Magasin, Travel
+from app.models import Product, Stock, ProductKeepa, Magasin, Travel, Todo
 from datetime import datetime
 from datetime import timedelta  # ✅ Pour ajouter une heure
 from flask import jsonify
@@ -96,7 +96,8 @@ def settings():
 @main_bp.route('/organisation')
 def organisation():
     """📈 Route de la page d'organisation."""
-    return render_template('organisation.html')
+    todos = Todo.query.order_by(Todo.created_at.desc()).all()
+    return render_template('organisation.html', todos=todos)
 
 
 @main_bp.route('/stock')
@@ -316,14 +317,11 @@ def add_scanned_stock():
         magasin = request.form.get('magasin')
         prix_achat = float(request.form.get('prix_achat'))
         quantite = int(request.form.get('quantite'))
+        prix_amazon = float(request.form.get('prix_amazon', 0))
+        url = request.form.get('url', '')
         
-        # Récupération des données Keepa
-        keepa_data = get_keepa_data(ean, prix_achat)
-        if not keepa_data:
-            return "Erreur : Impossible de récupérer les données Keepa.", 500
-            
-        prix_amazon = keepa_data.get('prix_amazon', 0)
-        profit = keepa_data.get('profit', 0)
+        # Calcul du profit et du ROI
+        profit = prix_amazon - prix_achat if prix_amazon > 0 else 0
         roi = (profit * 100 / prix_achat) if prix_achat > 0 else 0
         
         # Création de l'entrée dans le stock
@@ -408,3 +406,70 @@ def delete_travel(travel_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 400
+
+@main_bp.route('/api/todos', methods=['GET'])
+def get_todos():
+    """Récupère toutes les tâches."""
+    todos = Todo.query.order_by(Todo.created_at.desc()).all()
+    return jsonify([{
+        'id': todo.id,
+        'texte': todo.texte,
+        'status': todo.status,
+        'created_at': todo.created_at.strftime('%Y-%m-%d %H:%M:%S')
+    } for todo in todos])
+
+@main_bp.route('/api/todos', methods=['POST'])
+def add_todo():
+    """Ajoute une nouvelle tâche."""
+    try:
+        texte = request.form.get('texte')
+        if not texte:
+            return jsonify({'success': False, 'message': 'Le texte est requis'}), 400
+            
+        todo = Todo(texte=texte, status=0)
+        db.session.add(todo)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Tâche ajoutée avec succès',
+            'todo': {
+                'id': todo.id,
+                'texte': todo.texte,
+                'status': todo.status,
+                'created_at': todo.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            }
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@main_bp.route('/api/todos/<int:todo_id>/toggle', methods=['POST'])
+def toggle_todo(todo_id):
+    """Change le statut d'une tâche."""
+    try:
+        todo = Todo.query.get_or_404(todo_id)
+        data = request.get_json()
+        new_status = data.get('status')
+        
+        if new_status is not None:
+            todo.status = new_status
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Statut mis à jour avec succès'})
+        else:
+            return jsonify({'success': False, 'message': 'Statut non spécifié'}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@main_bp.route('/api/todos/<int:todo_id>', methods=['DELETE'])
+def delete_todo(todo_id):
+    """Supprime une tâche."""
+    try:
+        todo = Todo.query.get_or_404(todo_id)
+        db.session.delete(todo)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Tâche supprimée avec succès'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
