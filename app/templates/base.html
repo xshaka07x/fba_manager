@@ -150,16 +150,23 @@
 $(document).ready(function() {
     // DataTables initialization
     if ($('.data-table').length) {
-        $('.data-table').DataTable({
-            "paging": true,
-            "searching": true,
-            "info": true,
-            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tous"]],
-            "language": {
-                "search": "🔍 Rechercher :",
-                "lengthMenu": "Afficher _MENU_ entrées",
-                "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-                "paginate": { "first": "⏮", "last": "⏭", "next": "➡", "previous": "⬅" }
+        $('.data-table').each(function() {
+            if (!$.fn.DataTable.isDataTable(this)) {
+                $(this).DataTable({
+                    "paging": true,
+                    "searching": true,
+                    "info": true,
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tous"]],
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
+                    },
+                    "order": [[0, "desc"]],
+                    "pageLength": 10,
+                    "columnDefs": [
+                        { "orderable": false, "targets": -1 }
+                    ],
+                    "scrollX": false
+                });
             }
         });
     }
