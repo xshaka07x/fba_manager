@@ -498,6 +498,130 @@ input:focus, select:focus {
     }
 }
 
+/* 🗓️ Styles pour la page organisation */
+.organisation-card {
+    background-color: #202020;
+    border: 1px solid #333;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    margin-bottom: 1.5rem;
+}
+
+.organisation-card .card-header {
+    background-color: #2c2c2c;
+    border-bottom: 1px solid #333;
+    padding: 1rem;
+}
+
+.organisation-card .card-title {
+    color: #fff;
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.organisation-card .card-body {
+    padding: 1.25rem;
+}
+
+/* Styles pour le calendrier */
+#calendar {
+    background-color: #202020;
+    padding: 1rem;
+    border-radius: 0.35rem;
+    min-height: 500px;
+}
+
+.fc-theme-standard td, 
+.fc-theme-standard th {
+    border-color: #333;
+    color: #fff;
+}
+
+.fc-theme-standard .fc-scrollgrid {
+    border-color: #333;
+}
+
+.fc-day-today {
+    background-color: #2c2c2c !important;
+}
+
+.fc-event {
+    background-color: #4e73df;
+    border-color: #4e73df;
+    color: #fff;
+}
+
+.fc-toolbar-title {
+    color: #fff;
+}
+
+.fc-button {
+    background-color: #2c2c2c !important;
+    border-color: #333 !important;
+    color: #fff !important;
+}
+
+.fc-button:hover {
+    background-color: #333 !important;
+}
+
+/* Styles pour la liste des tâches */
+#todosTable {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+#todosTable th {
+    background-color: #2c2c2c;
+    color: #fff;
+    border-color: #333;
+}
+
+#todosTable td {
+    background-color: #202020;
+    color: #fff;
+    border-color: #333;
+}
+
+#todosTable tbody tr:hover td {
+    background-color: #2c2c2c;
+}
+
+.todo-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.delete-todo {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Styles pour le modal */
+.modal-content {
+    background-color: #202020;
+    border: 1px solid #333;
+}
+
+.modal-header {
+    background-color: #2c2c2c;
+    border-bottom: 1px solid #333;
+}
+
+.modal-footer {
+    background-color: #2c2c2c;
+    border-top: 1px solid #333;
+}
+
+.modal-title {
+    color: #fff;
+}
+
+.form-group label {
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
 
 
 

@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                window.location.reload();
             } else {
                 alert('Erreur lors de l\'ajout du déplacement');
             }
@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                window.location.reload();
             } else {
                 alert('Erreur lors de la mise à jour du déplacement');
             }
@@ -496,24 +496,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         });
-    });
-});
-
-// Initialisation de DataTables
-$(document).ready(function() {
-    if ($.fn.DataTable.isDataTable('#travelTable')) {
-        $('#travelTable').DataTable().destroy();
-    }
-    $('#travelTable').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
-        },
-        "order": [[0, "desc"]],
-        "pageLength": 10,
-        "columnDefs": [
-            { "orderable": false, "targets": 4 }
-        ],
-        "scrollX": false
     });
 });
 </script>

@@ -11,21 +11,27 @@
     </div>
 
     <div class="row">
-        <!-- Calendrier des événements -->
+        <!-- Calendrier Google -->
         <div class="col-xl-6 mb-4">
-            <div class="card">
+            <div class="card organisation-card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Calendrier des événements</h5>
                 </div>
                 <div class="card-body">
-                    <div id="calendar"></div>
+                    <iframe src="https://calendar.google.com/calendar/embed?src=YOUR_CALENDAR_ID&ctz=Europe%2FParis" 
+                            style="border: 0" 
+                            width="100%" 
+                            height="500" 
+                            frameborder="0" 
+                            scrolling="no">
+                    </iframe>
                 </div>
             </div>
         </div>
 
         <!-- Liste des tâches -->
         <div class="col-xl-6 mb-4">
-            <div class="card">
+            <div class="card organisation-card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Liste des tâches</h5>
                 </div>
@@ -95,25 +101,8 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialisation du calendrier
-    var calendarEl = document.getElementById('calendar');
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        events: [],
-        eventClick: function(info) {
-            alert('Event: ' + info.event.title);
-        }
-    });
-    calendar.render();
-
     // Initialisation de DataTables
     if ($.fn.DataTable.isDataTable('#todosTable')) {
         $('#todosTable').DataTable().destroy();
