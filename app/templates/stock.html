@@ -595,11 +595,13 @@
                     <th>EAN</th>
                     <th>Magasin</th>
                     <th>Prix d'achat</th>
+                    <th>Prix Amazon</th>
+                    <th>ROI</th>
+                    <th>Profit</th>
                     <th>Date d'achat</th>
                     <th>Quantité</th>
                     <th>Facture</th>
                     <th>Statut</th>
-                    <th>Alerte</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -617,6 +619,9 @@
                     <td>{{ item.ean }}</td>
                     <td>{{ item.magasin }}</td>
                     <td>{{ item.prix_achat }}€</td>
+                    <td>{% if item.prix_amazon %}{{ "%.2f"|format(item.prix_amazon) }}€{% else %}-{% endif %}</td>
+                    <td>{% if item.roi %}{{ "%.2f"|format(item.roi) }}%{% else %}-{% endif %}</td>
+                    <td>{% if item.profit %}{{ "%.2f"|format(item.profit) }}€{% else %}-{% endif %}</td>
                     <td>{{ item.date_achat.strftime("%d/%m/%y") }}</td>
                     <td>{{ item.quantite }}</td>
                     <td>
@@ -627,27 +632,14 @@
                         {% endif %}
                     </td>
                     <td>
-                        <div class="{% if item.statut == 'Acheté/en stock' %} bg-success text-white 
-                                    {% elif item.statut == 'Envoyé chez Amazon' %} bg-warning text-dark 
-                                    {% elif item.statut == 'Vendu' %} bg-danger text-white 
-                                    {% endif %} p-1 rounded text-center">
-                            <select class="form-select form-select-sm bg-transparent text-white status-select" 
-                                    data-original-value="{{ item.statut }}"
-                                    data-stock-id="{{ item.id }}">
-                                <option value="Acheté/en stock" {% if item.statut == 'Acheté/en stock' %}selected{% endif %}>Acheté/en stock</option>
-                                <option value="Envoyé chez Amazon" {% if item.statut == 'Envoyé chez Amazon' %}selected{% endif %}>Envoyé chez Amazon</option>
-                                <option value="Vendu" {% if item.statut == 'Vendu' %}selected{% endif %}>Vendu</option>
-                            </select>
-                        </div>
-                    </td>
-                    
-                    
-                    <td>
-                        {% if item.quantite <= item.seuil_alerte %}
-                            <span class="badge bg-danger">Stock bas !</span>
-                        {% else %}
-                            <span class="badge bg-success">OK</span>
-                        {% endif %}
+                        <select class="form-select form-select-sm status-select" 
+                                data-stock-id="{{ item.id }}" 
+                                style="width: auto;">
+                            <option value="en_stock" {% if item.status == 'en_stock' %}selected{% endif %}>En stock</option>
+                            <option value="expedie" {% if item.status == 'expedie' %}selected{% endif %}>Expédié</option>
+                            <option value="vendu" {% if item.status == 'vendu' %}selected{% endif %}>Vendu</option>
+                            <option value="retour" {% if item.status == 'retour' %}selected{% endif %}>Retour</option>
+                        </select>
                     </td>
                     <td class="text-nowrap">
                         <div class="btn-group btn-group-sm">
@@ -657,7 +649,6 @@
                             </form>
                         </div>
                     </td>
-                    
                 </tr>
                 {% endfor %}
             </tbody>

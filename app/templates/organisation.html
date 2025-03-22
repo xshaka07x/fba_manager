@@ -7,7 +7,7 @@
     <div class="row mb-4">
         <div class="col">
             <h1 class="h3 mb-0 text-gray-800">Organisation</h1>
-        </div>
+            </div>
         </div>
 
     <div class="row">
@@ -101,6 +101,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialisation de DataTables
@@ -109,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     $('#todosTable').DataTable({
         "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
+            "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
         },
         "order": [[2, "desc"]],
         "pageLength": 25,
@@ -147,6 +148,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Erreur lors de la mise à jour du statut');
                     this.checked = !this.checked;
                 }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la mise à jour du statut');
+                this.checked = !this.checked;
             });
         });
     });
@@ -156,7 +162,6 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
                 const id = this.dataset.id;
-
                 fetch(`/api/todos/${id}`, {
                     method: 'DELETE'
                 })
@@ -164,9 +169,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     if (data.success) {
                         window.location.reload();
-                    } else {
+    } else {
                         alert('Erreur lors de la suppression de la tâche');
                     }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la suppression de la tâche');
                 });
             }
         });
@@ -192,10 +201,14 @@ function addTodo() {
         } else {
             alert('Erreur lors de l\'ajout de la tâche');
         }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors de l\'ajout de la tâche');
     });
 }
 </script>
-{% endblock %}
+{% endblock %} 
 
 <style>
 .card {
