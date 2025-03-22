@@ -293,6 +293,63 @@
             max-width: 120px;
         }
     }
+
+    /* Optimisations pour le tableau */
+    .table {
+        font-size: 0.9rem;
+    }
+
+    .table td, .table th {
+        padding: 0.5rem;
+        white-space: nowrap;
+    }
+
+    .nom-col {
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Styles pour mobile */
+    @media (max-width: 768px) {
+        .table {
+            font-size: 0.8rem;
+        }
+
+        .table td, .table th {
+            padding: 0.3rem;
+        }
+
+        .nom-col {
+            max-width: 100px;
+        }
+
+        .btn-sm {
+            padding: 0.1rem 0.3rem;
+            font-size: 0.75rem;
+        }
+
+        .status-select {
+            font-size: 0.75rem;
+            padding: 0.1rem;
+        }
+    }
+
+    /* Styles pour très petits écrans */
+    @media (max-width: 576px) {
+        .table {
+            font-size: 0.7rem;
+        }
+
+        .table td, .table th {
+            padding: 0.2rem;
+        }
+
+        .nom-col {
+            max-width: 80px;
+        }
+    }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
@@ -590,19 +647,18 @@
         <table class="table table-dark table-hover data-table">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Nom</th>
-                    <th>EAN</th>
-                    <th>Magasin</th>
-                    <th>Prix d'achat</th>
-                    <th>Prix Amazon</th>
-                    <th>ROI</th>
-                    <th>Profit</th>
-                    <th>Date d'achat</th>
-                    <th>Quantité</th>
-                    <th>Facture</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
+                    <th style="width: 3%">#</th>
+                    <th style="width: 15%">Nom</th>
+                    <th style="width: 8%">Magasin</th>
+                    <th style="width: 7%">Prix d'achat</th>
+                    <th style="width: 7%">Prix Amazon</th>
+                    <th style="width: 6%">ROI</th>
+                    <th style="width: 7%">Profit</th>
+                    <th style="width: 8%">Date d'achat</th>
+                    <th style="width: 5%">Qté</th>
+                    <th style="width: 5%">Facture</th>
+                    <th style="width: 12%">Statut</th>
+                    <th style="width: 8%">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -610,31 +666,30 @@
                 <tr data-stock-id="{{ item.id }}" data-quantity="{{ item.quantite }}" 
                     {% if item.parent_id %}class="child-row" style="background-color: rgba(0,0,0,0.2);"{% endif %}>
                     <th scope="row">{{ loop.index }}</th>
-                    <td class="nom-col" title="{{ item.nom }}">
+                    <td class="nom-col text-truncate" title="{{ item.nom }}">
                         {% if item.parent_id %}
                             <i class="fas fa-level-up-alt fa-rotate-90 me-2"></i>
                         {% endif %}
                         {{ item.nom }}
                     </td>
-                    <td>{{ item.ean }}</td>
-                    <td>{{ item.magasin }}</td>
+                    <td class="text-truncate">{{ item.magasin }}</td>
                     <td>{{ item.prix_achat }}€</td>
                     <td>{% if item.prix_amazon %}{{ "%.2f"|format(item.prix_amazon) }}€{% else %}-{% endif %}</td>
-                    <td>{% if item.roi %}{{ "%.2f"|format(item.roi) }}%{% else %}-{% endif %}</td>
-                    <td>{% if item.profit %}{{ "%.2f"|format(item.profit) }}€{% else %}-{% endif %}</td>
+                    <td>{% if item.roi %}{{ "%.1f"|format(item.roi) }}%{% else %}-{% endif %}</td>
+                    <td>{% if item.profit %}{{ "%.1f"|format(item.profit) }}€{% else %}-{% endif %}</td>
                     <td>{{ item.date_achat.strftime("%d/%m/%y") }}</td>
                     <td>{{ item.quantite }}</td>
                     <td>
                         {% if item.facture_url %}
-                            <a href="{{ item.facture_url }}" target="_blank" class="btn btn-outline-info btn-sm">Voir</a>
+                            <a href="{{ item.facture_url }}" target="_blank" class="btn btn-outline-info btn-sm">📄</a>
                         {% else %}
-                            N/A
+                            -
                         {% endif %}
                     </td>
                     <td>
                         <select class="form-select form-select-sm status-select" 
                                 data-stock-id="{{ item.id }}" 
-                                style="width: auto;">
+                                style="width: 100%;">
                             <option value="en_stock" {% if item.status == 'en_stock' %}selected{% endif %}>En stock</option>
                             <option value="expedie" {% if item.status == 'expedie' %}selected{% endif %}>Expédié</option>
                             <option value="vendu" {% if item.status == 'vendu' %}selected{% endif %}>Vendu</option>

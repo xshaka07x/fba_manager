@@ -105,10 +105,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialisation de DataTables
-    if ($.fn.DataTable.isDataTable('#todosTable')) {
-        $('#todosTable').DataTable().destroy();
-    }
-    $('#todosTable').DataTable({
+    const table = $('#todosTable').DataTable({
         "language": {
             "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
         },
@@ -117,68 +114,62 @@ document.addEventListener('DOMContentLoaded', function() {
         "responsive": true
     });
 
-    // Gestion des checkboxes
-    document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
-        // Ajouter la classe completed aux tâches déjà cochées
-        if (checkbox.checked) {
-            checkbox.closest('tr').classList.add('completed');
-        }
+    // Gestion des checkboxes avec délégation d'événements
+    $('#todosTable').on('change', '.todo-checkbox', function() {
+        const checkbox = this;
+        const id = checkbox.dataset.id;
+        const status = checkbox.checked ? 1 : 0;
+        const row = checkbox.closest('tr');
 
-        checkbox.addEventListener('change', function() {
-            const id = this.dataset.id;
-            const status = this.checked ? 1 : 0;
-            const row = this.closest('tr');
+        fetch(`/api/todos/${id}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: status })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (checkbox.checked) {
+                    row.classList.add('completed');
+                } else {
+                    row.classList.remove('completed');
+                }
+            } else {
+                alert('Erreur lors de la mise à jour du statut');
+                checkbox.checked = !checkbox.checked;
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors de la mise à jour du statut');
+            checkbox.checked = !checkbox.checked;
+        });
+    });
 
-            fetch(`/api/todos/${id}/toggle`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ status: status })
+    // Gestion des boutons de suppression avec délégation d'événements
+    $('#todosTable').on('click', '.delete-todo', function() {
+        const button = this;
+        const id = button.dataset.id;
+        
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+            fetch(`/api/todos/${id}`, {
+                method: 'DELETE'
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    if (this.checked) {
-                        row.classList.add('completed');
-                    } else {
-                        row.classList.remove('completed');
-                    }
+                    table.row(button.closest('tr')).remove().draw();
                 } else {
-                    alert('Erreur lors de la mise à jour du statut');
-                    this.checked = !this.checked;
+                    alert('Erreur lors de la suppression de la tâche');
                 }
             })
             .catch(error => {
                 console.error('Erreur:', error);
-                alert('Erreur lors de la mise à jour du statut');
-                this.checked = !this.checked;
+                alert('Erreur lors de la suppression de la tâche');
             });
-        });
-    });
-
-    // Gestion des boutons de suppression
-    document.querySelectorAll('.delete-todo').forEach(button => {
-        button.addEventListener('click', function() {
-            if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
-                const id = this.dataset.id;
-                fetch(`/api/todos/${id}`, {
-                    method: 'DELETE'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.reload();
-    } else {
-                        alert('Erreur lors de la suppression de la tâche');
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur:', error);
-                    alert('Erreur lors de la suppression de la tâche');
-                });
-            }
-        });
+        }
     });
 });
 
