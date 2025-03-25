@@ -21,49 +21,82 @@ body {
     border-radius: 8px;
     width: 100%;
 }
+
 .card-body {
     overflow-x: hidden;
     white-space: normal;
     word-wrap: break-word;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between; /* Espace mieux géré */
     width: 100%;
-    min-height: 120px; /* Ajuste selon le besoin */
+    min-height: 120px;
     padding: 20px;
-    overflow: hidden; /* Évite la barre de scroll */
-    text-align: center;
+    overflow: hidden;
 }
 
+/* Style pour les colonnes dans les cards */
+.card .col-md-3,
+.card .col-md-4 {
+    display: flex;
+    justify-content: center;
+    padding: 15px;
+}
+
+/* Style pour les conteneurs d'information dans les cards */
+.card .border-start {
+    width: 100%;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    margin: 10px 0;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Ajustement des titres et textes dans les cards */
 .card-body h6 {
-    font-size: 1rem; /* Ajuste la taille du texte */
+    font-size: 1rem;
     white-space: nowrap;
+    margin-bottom: 15px;
 }
 
 .card-body h4 {
-    font-size: 1.5rem; /* Assure une bonne lisibilité */
-}
-
-
-.card-body h5 {
-    font-size: 1rem; /* Réduction du texte des titres */
-    margin-bottom: 8px; /* Espacement avec le chiffre */
+    font-size: 1.5rem;
+    margin: 10px 0;
 }
 
 .card-body h3 {
-    font-size: 1.8rem; /* Taille ajustée des valeurs */
-    margin-bottom: 10px; /* Espacement entre les sections */
-}
-
-hr.bg-light {
-    margin: 10px 0; /* Réduction des espaces entre les sections */
+    font-size: 1.8rem;
+    margin: 10px 0;
 }
 
 .card-body p {
-    font-size: 1.2rem; /* Ajustement des chiffres */
+    font-size: 1.2rem;
+    margin: 10px 0;
+    text-align: center;
 }
 
+/* Style pour les rangées dans les cards */
+.card .row {
+    width: 100%;
+    margin: 0;
+    padding: 10px 0;
+}
 
+/* Style pour les headers des cards */
+.card-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-header .d-flex {
+    justify-content: center;
+    width: 100%;
+}
 
 /* ✅ Correction du placeholder de la barre de recherche */
 input::placeholder {
