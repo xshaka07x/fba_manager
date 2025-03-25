@@ -52,59 +52,54 @@
             <div class="card bg-dark text-white shadow">
                 <div class="card-header">
                     <div class="d-flex align-items-center">
-                        <i class="fas fa-boxes fa-2x text-primary me-2"></i>
+                        <i class="fas fa-cubes fa-2x text-primary me-2"></i>
                         <h5 class="card-title text-uppercase fw-bold mb-0">ÉTAT GLOBAL</h5>
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <!-- Colonne État du Stock -->
-                        <div class="col-md-8">
-                            <div class="row g-4">
-                                <!-- En Stock -->
-                                <div class="col-md-4">
-                                    <div class="border-start border-primary border-4 ps-3">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <i class="fas fa-box text-primary me-2"></i>
-                                            <h6 class="mb-0 text-primary">En Stock</h6>
-                                        </div>
-                                        <h4 class="fw-bold mb-1">{{ nb_produits_en_stock }} produits</h4>
-                                        <p class="text-primary mb-0">Profit estimé: {{ "%.2f"|format(profit_potentiel_stock) }}€</p>
-                                    </div>
+                    <div class="row text-center">
+                        <!-- En Stock -->
+                        <div class="col-md-3">
+                            <div class="border-start border-primary border-4 ps-3">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="fas fa-box text-primary me-2"></i>
+                                    <h6 class="mb-0 text-primary">En Stock</h6>
                                 </div>
-                                <!-- Chez Amazon -->
-                                <div class="col-md-4">
-                                    <div class="border-start border-warning border-4 ps-3">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <i class="fab fa-amazon text-warning me-2"></i>
-                                            <h6 class="mb-0 text-warning">Chez Amazon</h6>
-                                        </div>
-                                        <h4 class="fw-bold mb-1">{{ nb_produits_amazon }} produits</h4>
-                                        <p class="text-warning mb-0">Profit estimé: {{ "%.2f"|format(profit_potentiel_amazon) }}€</p>
-                                    </div>
-                                </div>
-                                <!-- Vendus -->
-                                <div class="col-md-4">
-                                    <div class="border-start border-success border-4 ps-3">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <i class="fas fa-check-circle text-success me-2"></i>
-                                            <h6 class="mb-0 text-success">Vendus</h6>
-                                        </div>
-                                        <h4 class="fw-bold mb-1">{{ nb_produits_vendus }} produits</h4>
-                                        <p class="text-success mb-0">Profit réalisé: {{ "%.2f"|format(profit_produits_vendus) }}€</p>
-                                    </div>
-                                </div>
+                                <h3 class="fw-bold mb-1">{{ nb_produits_en_stock }} produits</h3>
+                                <p class="text-primary mb-0">Profit estimé:<br>{{ "%.2f"|format(profit_potentiel_stock) }}€</p>
                             </div>
                         </div>
-                        <!-- Colonne Balance Globale -->
-                        <div class="col-md-4">
-                            <div class="border-start border-info border-4 ps-3 mt-4 mt-md-0">
-                                <div class="d-flex align-items-center mb-2">
+                        <!-- Chez Amazon -->
+                        <div class="col-md-3">
+                            <div class="border-start border-warning border-4 ps-3">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="fab fa-amazon text-warning me-2"></i>
+                                    <h6 class="mb-0 text-warning">Chez Amazon</h6>
+                                </div>
+                                <h3 class="fw-bold mb-1">{{ nb_produits_amazon }} produits</h3>
+                                <p class="text-warning mb-0">Profit estimé:<br>{{ "%.2f"|format(profit_potentiel_amazon) }}€</p>
+                            </div>
+                        </div>
+                        <!-- Vendus -->
+                        <div class="col-md-3">
+                            <div class="border-start border-success border-4 ps-3">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <h6 class="mb-0 text-success">Vendus</h6>
+                                </div>
+                                <h3 class="fw-bold mb-1">{{ nb_produits_vendus }} produits</h3>
+                                <p class="text-success mb-0">Profit réalisé:<br>{{ "%.2f"|format(profit_produits_vendus) }}€</p>
+                            </div>
+                        </div>
+                        <!-- Balance Globale -->
+                        <div class="col-md-3">
+                            <div class="border-start border-info border-4 ps-3">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
                                     <i class="fas fa-balance-scale text-info me-2"></i>
                                     <h6 class="mb-0 text-info">Balance Globale</h6>
                                 </div>
                                 <h3 class="fw-bold text-info mb-1">{{ "%.2f"|format(recettes_total - depenses_total) }}€</h3>
-                                <p class="text-muted mb-0">Toutes périodes confondues</p>
+                                <p class="text-info opacity-75 mb-0">Toutes périodes confondues</p>
                             </div>
                         </div>
                     </div>
@@ -122,35 +117,35 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="row g-4">
+                    <div class="row text-center g-4">
                         <!-- Dépenses du Mois -->
                         <div class="col-md-4">
                             <div class="border-start border-danger border-4 ps-3">
-                                <div class="d-flex align-items-center mb-2">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
                                     <i class="fas fa-coins text-danger me-2"></i>
                                     <h6 class="mb-0 text-danger">Dépenses</h6>
                                 </div>
-                                <h3 class="fw-bold text-danger mb-0">{{ "%.2f"|format(depenses_total) }}€</h3>
+                                <h2 class="display-6 fw-bold text-danger mb-0">{{ "%.2f"|format(depenses_total) }}€</h2>
                             </div>
                         </div>
                         <!-- Recettes du Mois -->
                         <div class="col-md-4">
                             <div class="border-start border-success border-4 ps-3">
-                                <div class="d-flex align-items-center mb-2">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
                                     <i class="fas fa-cash-register text-success me-2"></i>
                                     <h6 class="mb-0 text-success">Recettes</h6>
                                 </div>
-                                <h3 class="fw-bold text-success mb-0">{{ "%.2f"|format(recettes_total) }}€</h3>
+                                <h2 class="display-6 fw-bold text-success mb-0">{{ "%.2f"|format(recettes_total) }}€</h2>
                             </div>
                         </div>
                         <!-- Balance du Mois -->
                         <div class="col-md-4">
                             <div class="border-start border-info border-4 ps-3">
-                                <div class="d-flex align-items-center mb-2">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
                                     <i class="fas fa-calculator text-info me-2"></i>
                                     <h6 class="mb-0 text-info">Balance</h6>
                                 </div>
-                                <h3 class="fw-bold text-info mb-0">{{ "%.2f"|format(recettes_total - depenses_total) }}€</h3>
+                                <h2 class="display-6 fw-bold text-info mb-0">{{ "%.2f"|format(recettes_total - depenses_total) }}€</h2>
                             </div>
                         </div>
                     </div>
