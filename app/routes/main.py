@@ -99,15 +99,37 @@ def delete_stock(stock_id):
 
 @main_bp.route('/edit_stock/<int:stock_id>', methods=['GET', 'POST'])
 def edit_stock(stock_id):
-    stock_item = db.session.query(Stock).get(stock_id)
-    if request.method == 'POST':
-        stock_item.nom = request.form.get('nom')
-        stock_item.magasin = request.form.get('magasin')
-        stock_item.prix_achat = float(request.form.get('prix_achat'))
-        stock_item.quantite = int(request.form.get('quantite'))
-        db.session.commit()
-        return redirect(url_for('main.stock'))
-    return render_template('edit_stock.html', stock_item=stock_item)
+    try:
+        stock_item = db.session.query(Stock).get_or_404(stock_id)
+        
+        if request.method == 'POST':
+            # Récupération des données du formulaire
+            stock_item.nom = request.form.get('nom')
+            stock_item.magasin = request.form.get('magasin')
+            stock_item.prix_achat = float(request.form.get('prix_achat'))
+            stock_item.quantite = int(request.form.get('quantite'))
+            stock_item.seuil_alerte = int(request.form.get('seuil_alerte', 0))
+            stock_item.facture_url = request.form.get('facture_url')
+            
+            # Mise à jour des données Keepa si le prix a changé
+            if stock_item.ean:
+                keepa_data = get_keepa_data(stock_item.ean, stock_item.prix_achat)
+                if keepa_data:
+                    stock_item.prix_amazon = keepa_data.get('prix_amazon', 0)
+                    stock_item.profit = keepa_data.get('profit', 0)
+                    stock_item.roi = (stock_item.profit * 100 / stock_item.prix_achat) if stock_item.prix_achat > 0 else 0
+            
+            db.session.commit()
+            return redirect(url_for('main.stock'))
+            
+        # Pour GET, on récupère la liste des magasins pour le formulaire
+        magasins = db.session.query(Magasin).all()
+        return render_template('edit_stock.html', stock_item=stock_item, magasins=magasins)
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Erreur lors de l'édition du stock : {e}")
+        return render_template('error.html', error=str(e)), 500
 
 
 
@@ -242,6 +264,11 @@ def update_stock_quantity():
         stock_item = Stock.query.get(stock_id)
         if not stock_item:
             return jsonify({'success': False, 'message': 'Article non trouvé'}), 404
+
+        # Validation du statut
+        valid_statuses = ["Acheté/en stock", "Chez Amazon", "Vendu"]
+        if new_status not in valid_statuses:
+            return jsonify({'success': False, 'message': 'Statut invalide'}), 400
 
         if quantity_type == 'all':
             # Mise à jour du statut pour tout le stock

@@ -49,45 +49,55 @@
     <h1 class="mb-4 text-center">🚀 Dashboard - Résumé de l'activité</h1>
 
     <!-- 📊 Résumé Financier -->
-    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
-        <!-- Profit Potentiel -->
+    <div class="row row-cols-1 row-cols-md-2 g-4 mb-5">
+        <!-- Carte de gauche : Profits et Dépenses -->
         <div class="col">
             <div class="card bg-dark text-white shadow h-100">
-                <div class="card-body text-center d-flex flex-column">
-                    <h5 class="text-uppercase fw-bold">Profit Potentiel du Stock</h5>
-                    <h3 class="fw-bold text-info">{{ profit_stock_total|round(2) }}€</h3>                                 
+                <div class="card-body">
+                    <h5 class="text-uppercase fw-bold mb-4">💰 Profits et Dépenses</h5>
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <h6 class="text-danger">Dépenses</h6>
+                            <h3 class="fw-bold">{{ depenses_total|round(2) }}€</h3>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-success">Recettes</h6>
+                            <h3 class="fw-bold">{{ recettes_total|round(2) }}€</h3>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-warning">Balance</h6>
+                            <h3 class="fw-bold text-info">{{ (recettes_total - depenses_total)|round(2) }}€</h3>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Nombre de Produits -->
+        <!-- Carte de droite : Stock et Profits Potentiels -->
         <div class="col">
             <div class="card bg-dark text-white shadow h-100">
-                <div class="card-body text-center d-flex flex-column">
-                    <h5 class="fw-bold">📦 Produits en Stock</h5>
-                    <h3 class="fw-bold text-primary">{{ nb_produits_en_stock }} - {{ profit_potentiel_stock|round(2) }}€</h3>
-                    <br>
-                    <h5 class="fw-bold">🏬 Produits stockés chez Amazon</h5>
-                    <h3 class="fw-bold text-warning">{{ nb_produits_amazon }} - {{ profit_potentiel_amazon|round(2) }}€</h3>
-                    <br>
-                    <h5 class="fw-bold">✅ Produits Vendu</h5>
-                    <h3 class="fw-bold text-success">{{ nb_produits_vendus }} - {{ profit_produits_vendus|round(2) }}€</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dépenses, Recettes et Balance -->
-        <div class="col">
-            <div class="card bg-dark text-white shadow h-100">
-                <div class="card-body text-center d-flex flex-column">
-                    <h5 class="fw-bold text-danger">💰 Dépenses</h5>
-                    <h3 class="fw-bold">{{ depenses_total|round(2) }}€</h3>
-                    <br>
-                    <h5 class="fw-bold text-success">📈 Recettes</h5>
-                    <h3 class="fw-bold">{{ recettes_total|round(2) }}€</h3> 
-                    <br>
-                    <h5 class="fw-bold text-warning">🔄 Balance</h5>
-                    <h3 class="fw-bold text-info">{{ (recettes_total - depenses_total)|round(2) }}€</h3>  
+                <div class="card-body">
+                    <h5 class="text-uppercase fw-bold mb-4">📦 État du Stock</h5>
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary">En Stock (Chez nous)</h6>
+                            <h3 class="fw-bold">{{ nb_produits_en_stock }} - {{ profit_potentiel_stock|round(2) }}€</h3>
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-warning">Chez Amazon</h6>
+                            <h3 class="fw-bold">{{ nb_produits_amazon }} - {{ profit_potentiel_amazon|round(2) }}€</h3>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-success">Vendus</h6>
+                            <h3 class="fw-bold">{{ nb_produits_vendus }} - {{ profit_produits_vendus|round(2) }}€</h3>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
