@@ -35,7 +35,21 @@ def dashboard():
     
     # Calcul du profit potentiel du stock
     stock_items = db.session.query(Stock).filter(Stock.statut == "Acheté/en stock").all()
-    profit_stock_total = sum((item.prix_amazon - item.prix_achat) * item.quantite if item.prix_amazon else 0 for item in stock_items)
+    profit_stock_total = 0
+    for item in stock_items:
+        if item.prix_amazon:
+            # Calcul des frais FBA
+            frais_vente = item.prix_amazon * 0.13  # 13% du prix de vente
+            frais_digital = 0.25
+            frais_gestion = frais_vente + frais_digital
+            frais_expedition = 5.87  # Tarif d'expédition de base
+            frais_stockage = 0.10  # Coût de stockage mensuel par unité
+            frais_totaux = frais_gestion + frais_expedition + frais_stockage
+            tva_frais = frais_totaux * 0.20
+            
+            # Calcul du profit en tenant compte des frais FBA
+            profit_unitaire = item.prix_amazon - item.prix_achat - frais_totaux - tva_frais
+            profit_stock_total += profit_unitaire * item.quantite
     
     # Calcul des dépenses (prix_achat * quantité pour tous les produits en stock)
     depenses_total = db.session.query(db.func.sum(Stock.prix_achat * Stock.quantite)).scalar() or 0
