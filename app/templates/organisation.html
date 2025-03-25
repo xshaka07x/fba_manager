@@ -7,8 +7,8 @@
     <div class="row mb-4">
         <div class="col">
             <h1 class="h3 mb-0 text-gray-800">Organisation</h1>
-            </div>
         </div>
+    </div>
 
     <div class="row">
         <!-- Calendrier Google -->
@@ -25,50 +25,33 @@
                             frameborder="0" 
                             scrolling="no">
                     </iframe>
+                </div>
             </div>
         </div>
-    </div>
 
         <!-- Liste des tâches -->
         <div class="col-xl-6 mb-4">
             <div class="card organisation-card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Liste des tâches</h5>
+                    <button class="btn btn-primary btn-sm" onclick="addNewTask()">
+                        <i class="fas fa-plus me-1"></i>Ajouter
+                    </button>
                 </div>
                 <div class="card-body">
-                    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addTodoModal">
-                        Nouvelle tâche
-                    </button>
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="todosTable">
-                            <thead>
-                                <tr>
-                                    <th>Statut</th>
-                                    <th>Tâche</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for todo in todos %}
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" class="todo-checkbox" 
-                                               data-id="{{ todo.id }}" 
-                                               {% if todo.status == 1 %}checked{% endif %}>
-                                    </td>
-                                    <td>{{ todo.texte }}</td>
-                                    <td>{{ todo.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-danger delete-todo" 
-                                                data-id="{{ todo.id }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <div class="todo-list">
+                        {% for todo in todos %}
+                        <div class="todo-item {% if todo.status == 1 %}completed{% endif %}" data-id="{{ todo.id }}">
+                            <div class="todo-content">
+                                <input type="checkbox" class="todo-checkbox" 
+                                       {% if todo.status == 1 %}checked{% endif %}>
+                                <span class="todo-text">{{ todo.texte }}</span>
+                            </div>
+                            <button class="btn btn-link text-danger delete-todo p-0" title="Supprimer">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -82,100 +65,87 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Nouvelle tâche</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label>Description de la tâche</label>
-                    <input type="text" class="form-control" id="newTodoText">
-                </div>
+                <input type="text" class="form-control" id="newTodoText" placeholder="Décrivez votre tâche...">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                 <button type="button" class="btn btn-primary" onclick="addTodo()">Ajouter</button>
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialisation de DataTables
-    const table = $('#todosTable').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
-        },
-        "order": [[2, "desc"]],
-        "pageLength": 25,
-        "responsive": true
-    });
+    // Gestion des checkboxes
+    document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const todoItem = this.closest('.todo-item');
+            const id = todoItem.dataset.id;
+            const status = this.checked ? 1 : 0;
 
-    // Gestion des checkboxes avec délégation d'événements
-    $('#todosTable').on('change', '.todo-checkbox', function() {
-        const checkbox = this;
-        const id = checkbox.dataset.id;
-        const status = checkbox.checked ? 1 : 0;
-        const row = checkbox.closest('tr');
-
-        fetch(`/api/todos/${id}/toggle`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ status: status })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                if (checkbox.checked) {
-                    row.classList.add('completed');
-                } else {
-                    row.classList.remove('completed');
-                }
-            } else {
-                alert('Erreur lors de la mise à jour du statut');
-                checkbox.checked = !checkbox.checked;
-            }
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-            alert('Erreur lors de la mise à jour du statut');
-            checkbox.checked = !checkbox.checked;
-        });
-    });
-
-    // Gestion des boutons de suppression avec délégation d'événements
-    $('#todosTable').on('click', '.delete-todo', function() {
-        const button = this;
-        const id = button.dataset.id;
-        
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
-            fetch(`/api/todos/${id}`, {
-                method: 'DELETE'
+            fetch(`/api/todos/${id}/toggle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: status })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    table.row(button.closest('tr')).remove().draw();
+                    todoItem.classList.toggle('completed', this.checked);
                 } else {
-                    alert('Erreur lors de la suppression de la tâche');
+                    this.checked = !this.checked;
+                    alert('Erreur lors de la mise à jour du statut');
                 }
             })
             .catch(error => {
                 console.error('Erreur:', error);
-                alert('Erreur lors de la suppression de la tâche');
+                this.checked = !this.checked;
+                alert('Erreur lors de la mise à jour du statut');
             });
-        }
+        });
+    });
+
+    // Gestion de la suppression
+    document.querySelectorAll('.delete-todo').forEach(button => {
+        button.addEventListener('click', function() {
+            const todoItem = this.closest('.todo-item');
+            const id = todoItem.dataset.id;
+            
+            if (confirm('Supprimer cette tâche ?')) {
+                fetch(`/api/todos/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        todoItem.remove();
+                    } else {
+                        alert('Erreur lors de la suppression');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la suppression');
+                });
+            }
+        });
     });
 });
 
-// Fonction pour ajouter une tâche
+function addNewTask() {
+    const modal = new bootstrap.Modal(document.getElementById('addTodoModal'));
+    modal.show();
+    document.getElementById('newTodoText').value = '';
+    document.getElementById('newTodoText').focus();
+}
+
 function addTodo() {
-    const text = document.getElementById('newTodoText').value;
+    const text = document.getElementById('newTodoText').value.trim();
     if (!text) return;
 
     fetch('/api/todos', {
@@ -199,56 +169,74 @@ function addTodo() {
     });
 }
 </script>
-{% endblock %} 
 
 <style>
-.card {
+.todo-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.2s;
+}
+
+.todo-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.todo-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.todo-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.todo-text {
+    color: #fff;
+    flex: 1;
+}
+
+.completed .todo-text {
+    text-decoration: line-through;
+    color: #666;
+}
+
+.delete-todo {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.todo-item:hover .delete-todo {
+    opacity: 1;
+}
+
+/* Style pour le modal */
+.modal-content {
     background-color: #202020;
     border: 1px solid #333;
-    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
 }
-.card-header {
-    background-color: #2c2c2c;
+
+.modal-header {
     border-bottom: 1px solid #333;
 }
-.card-title {
-    color: #fff;
-    margin: 0;
+
+.modal-footer {
+    border-top: 1px solid #333;
 }
-.form-control {
-    background-color: #2c2c2c;
-    border-color: #333;
-    color: #fff;
+
+.btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
 }
-.form-control:focus {
-    background-color: #2c2c2c;
-    border-color: #666;
-    color: #fff;
-}
-.btn-primary {
-    background-color: #4e73df;
-    border-color: #4e73df;
-}
-.btn-primary:hover {
-    background-color: #2e59d9;
-    border-color: #2653d4;
-}
-#calendar {
-    background-color: #202020;
-    padding: 1rem;
-    border-radius: 0.35rem;
-}
-.fc-theme-standard td, .fc-theme-standard th {
-    border-color: #333;
-}
-.fc-theme-standard .fc-scrollgrid {
-    border-color: #333;
-}
-.fc-day-today {
-    background-color: #2c2c2c !important;
-}
-.fc-event {
-    background-color: #4e73df;
-    border-color: #4e73df;
-}
-</style> 
+</style>
+{% endblock %} 
