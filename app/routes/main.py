@@ -150,8 +150,30 @@ def organisation():
 def stock():
     """📦 Route de la page de gestion du stock."""
     magasins = db.session.query(Magasin).all()
-    stock_items = db.session.query(Stock).order_by(Stock.date_achat.desc()).all()
-    return render_template('stock.html', stock_items=stock_items, magasins=magasins)
+    
+    # Récupérer tous les items triés par date d'achat et ID
+    stock_items = db.session.query(Stock).order_by(Stock.date_achat.desc(), Stock.id.asc()).all()
+    
+    # Fusionner les lignes ayant le même statut et le même group_id
+    merged_items = []
+    seen_groups = {}
+    
+    for item in stock_items:
+        if item.group_id not in seen_groups:
+            seen_groups[item.group_id] = item
+            merged_items.append(item)
+        else:
+            # Si l'item a le même group_id et le même statut que l'item précédent, fusionner
+            if item.statut == seen_groups[item.group_id].statut:
+                seen_groups[item.group_id].quantite += item.quantite
+                db.session.delete(item)
+            else:
+                # Si le statut est différent, ajouter comme nouvelle ligne
+                merged_items.append(item)
+    
+    db.session.commit()
+    
+    return render_template('stock.html', stock_items=merged_items, magasins=magasins)
 
 
 @main_bp.route('/search', methods=['GET'])
