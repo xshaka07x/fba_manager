@@ -690,10 +690,9 @@
                         <select class="form-select form-select-sm status-select" 
                                 data-stock-id="{{ item.id }}" 
                                 style="width: 100%;">
-                            <option value="en_stock" {% if item.status == 'en_stock' %}selected{% endif %}>En stock</option>
-                            <option value="expedie" {% if item.status == 'expedie' %}selected{% endif %}>Expédié</option>
-                            <option value="vendu" {% if item.status == 'vendu' %}selected{% endif %}>Vendu</option>
-                            <option value="retour" {% if item.status == 'retour' %}selected{% endif %}>Retour</option>
+                            <option value="Acheté/en stock" {% if item.statut == 'Acheté/en stock' %}selected{% endif %}>En stock</option>
+                            <option value="Chez Amazon" {% if item.statut == 'Chez Amazon' %}selected{% endif %}>Chez Amazon</option>
+                            <option value="Vendu" {% if item.statut == 'Vendu' %}selected{% endif %}>Vendu</option>
                         </select>
                     </td>
                     <td class="text-nowrap">
