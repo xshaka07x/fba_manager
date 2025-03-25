@@ -47,22 +47,33 @@
 
 <div class="container mt-4">
     <div class="row mb-4">
-        <!-- Card Profits et Dépenses -->
-        <div class="col-12 col-lg-6 mb-4">
+        <!-- Card Dépenses -->
+        <div class="col-12 col-lg-4 mb-4">
             <div class="card bg-dark text-white shadow h-100">
                 <div class="card-body">
-                    <h5 class="card-title text-uppercase fw-bold mb-4">💰 Profits et Dépenses</h5>
-                    <div class="row">
-                        <div class="col-6">
-                            <p class="text-danger mb-1">Dépenses</p>
+                    <h5 class="card-title text-uppercase fw-bold mb-4">💰 Dépenses</h5>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <p class="text-danger mb-1">Total Dépenses</p>
                             <h3 class="fw-bold text-danger">{{ "%.2f"|format(depenses_total) }}€</h3>
                         </div>
-                        <div class="col-6">
-                            <p class="text-success mb-1">Recettes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Recettes -->
+        <div class="col-12 col-lg-4 mb-4">
+            <div class="card bg-dark text-white shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-uppercase fw-bold mb-4">💸 Recettes</h5>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <p class="text-success mb-1">Total Recettes</p>
                             <h3 class="fw-bold text-success">{{ "%.2f"|format(recettes_total) }}€</h3>
                         </div>
                     </div>
-                    <div class="row mt-3">
+                    <div class="row">
                         <div class="col-12">
                             <p class="text-info mb-1">Balance</p>
                             <h3 class="fw-bold text-info">{{ "%.2f"|format(recettes_total - depenses_total) }}€</h3>
@@ -73,37 +84,37 @@
         </div>
 
         <!-- Card État du Stock -->
-        <div class="col-12 col-lg-6 mb-4">
+        <div class="col-12 col-lg-4 mb-4">
             <div class="card bg-dark text-white shadow h-100">
                 <div class="card-body">
                     <h5 class="card-title text-uppercase fw-bold mb-4">📦 État du Stock</h5>
                     <div class="row mb-3">
-                        <div class="col-7">
-                            <p class="text-primary mb-1">En Stock (Chez nous)</p>
-                            <h4 class="fw-bold">{{ nb_produits_en_stock }} produits</h4>
-                            <h5 class="text-primary">Profit potentiel: {{ "%.2f"|format(profit_potentiel_stock) }}€</h5>
+                        <div class="col-8">
+                            <p class="text-primary mb-1">En Stock</p>
+                            <h5 class="fw-bold">{{ nb_produits_en_stock }} produits</h5>
+                            <p class="text-primary small">Profit: {{ "%.2f"|format(profit_potentiel_stock) }}€</p>
                         </div>
-                        <div class="col-5 text-end">
+                        <div class="col-4 text-end">
                             <i class="fas fa-box fa-2x text-primary"></i>
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-7">
+                        <div class="col-8">
                             <p class="text-warning mb-1">Chez Amazon</p>
-                            <h4 class="fw-bold">{{ nb_produits_amazon }} produits</h4>
-                            <h5 class="text-warning">Profit potentiel: {{ "%.2f"|format(profit_potentiel_amazon) }}€</h5>
+                            <h5 class="fw-bold">{{ nb_produits_amazon }} produits</h5>
+                            <p class="text-warning small">Profit: {{ "%.2f"|format(profit_potentiel_amazon) }}€</p>
                         </div>
-                        <div class="col-5 text-end">
+                        <div class="col-4 text-end">
                             <i class="fab fa-amazon fa-2x text-warning"></i>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-7">
+                        <div class="col-8">
                             <p class="text-success mb-1">Vendus</p>
-                            <h4 class="fw-bold">{{ nb_produits_vendus }} produits</h4>
-                            <h5 class="text-success">Profit réalisé: {{ "%.2f"|format(profit_produits_vendus) }}€</h5>
+                            <h5 class="fw-bold">{{ nb_produits_vendus }} produits</h5>
+                            <p class="text-success small">Profit: {{ "%.2f"|format(profit_produits_vendus) }}€</p>
                         </div>
-                        <div class="col-5 text-end">
+                        <div class="col-4 text-end">
                             <i class="fas fa-check-circle fa-2x text-success"></i>
                         </div>
                     </div>
