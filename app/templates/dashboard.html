@@ -54,9 +54,6 @@
         <div class="col">
             <div class="card bg-dark text-white shadow h-100">
                 <div class="card-body text-center d-flex flex-column">
-                    <h5 class="text-uppercase fw-bold">Profit Potentiel des Scraps</h5>
-                    <h3 class="fw-bold text-success">{{ profit_scrapes_total|round(2) }}€</h3>   
-                    <br>
                     <h5 class="text-uppercase fw-bold">Profit Potentiel du Stock</h5>
                     <h3 class="fw-bold text-info">{{ profit_stock_total|round(2) }}€</h3>                                 
                 </div>
@@ -67,11 +64,14 @@
         <div class="col">
             <div class="card bg-dark text-white shadow h-100">
                 <div class="card-body text-center d-flex flex-column">
-                    <h5 class="fw-bold">📦 Produits Scrapés</h5>
-                    <h3 class="fw-bold text-warning">{{ nb_produits_keepa }}</h3>  
+                    <h5 class="fw-bold">📦 Produits en Stock</h5>
+                    <h3 class="fw-bold text-primary">{{ nb_produits_en_stock }} - {{ profit_potentiel_stock|round(2) }}€</h3>
                     <br>
-                    <h5 class="fw-bold">🏬 Produits en Stock</h5>
-                    <h3 class="fw-bold text-primary">{{ total_quantite_stock }}</h3>  
+                    <h5 class="fw-bold">🏬 Produits stockés chez Amazon</h5>
+                    <h3 class="fw-bold text-warning">{{ nb_produits_amazon }} - {{ profit_potentiel_amazon|round(2) }}€</h3>
+                    <br>
+                    <h5 class="fw-bold">✅ Produits Vendu</h5>
+                    <h3 class="fw-bold text-success">{{ nb_produits_vendus }} - {{ profit_produits_vendus|round(2) }}€</h3>
                 </div>
             </div>
         </div>

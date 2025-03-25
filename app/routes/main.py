@@ -24,15 +24,6 @@ def index():
 
 @main_bp.route('/dashboard')
 def dashboard():
-    # Récupération des produits de la table products_keepa
-    nb_produits_keepa = db.session.query(ProductKeepa).count()
-    
-    # Calcul du profit total des produits scrapés
-    profit_scrapes_total = db.session.query(db.func.sum(ProductKeepa.profit)).scalar() or 0
-    
-    # Calcul de la quantité totale en stock
-    total_quantite_stock = db.session.query(db.func.sum(Stock.quantite)).filter(Stock.statut == "Acheté/en stock").scalar() or 0
-    
     # Calcul du profit potentiel du stock
     stock_items = db.session.query(Stock).filter(Stock.statut == "Acheté/en stock").all()
     profit_stock_total = 0
@@ -58,6 +49,21 @@ def dashboard():
     stock_vendus = db.session.query(Stock).filter(Stock.statut == "Vendu").all()
     recettes_total = sum((item.prix_amazon * item.quantite if item.prix_amazon else 0) for item in stock_vendus)
     
+    # Statistiques des produits en stock
+    produits_en_stock = db.session.query(Stock).filter(Stock.statut == "Acheté/en stock").all()
+    nb_produits_en_stock = sum(item.quantite for item in produits_en_stock)
+    profit_potentiel_stock = profit_stock_total
+    
+    # Statistiques des produits stockés chez Amazon
+    produits_amazon = db.session.query(Stock).filter(Stock.statut == "Stocké chez Amazon").all()
+    nb_produits_amazon = sum(item.quantite for item in produits_amazon)
+    profit_potentiel_amazon = sum((item.prix_amazon - item.prix_achat) * item.quantite if item.prix_amazon else 0 for item in produits_amazon)
+    
+    # Statistiques des produits vendus
+    produits_vendus = db.session.query(Stock).filter(Stock.statut == "Vendu").all()
+    nb_produits_vendus = sum(item.quantite for item in produits_vendus)
+    profit_produits_vendus = recettes_total
+    
     # Top 50 produits avec le meilleur ROI
     top_roi_items = db.session.query(ProductKeepa).filter(
         ProductKeepa.roi.isnot(None),
@@ -68,10 +74,13 @@ def dashboard():
     recent_items = db.session.query(ProductKeepa).order_by(ProductKeepa.updated_at.desc()).limit(5).all()
 
     return render_template("dashboard.html",
-                        profit_scrapes_total=profit_scrapes_total,
                         profit_stock_total=profit_stock_total,
-                        nb_produits_keepa=nb_produits_keepa,
-                        total_quantite_stock=total_quantite_stock,
+                        nb_produits_en_stock=nb_produits_en_stock,
+                        profit_potentiel_stock=profit_potentiel_stock,
+                        nb_produits_amazon=nb_produits_amazon,
+                        profit_potentiel_amazon=profit_potentiel_amazon,
+                        nb_produits_vendus=nb_produits_vendus,
+                        profit_produits_vendus=profit_produits_vendus,
                         top_roi_items=top_roi_items,
                         recent_items=recent_items,
                         depenses_total=depenses_total,
