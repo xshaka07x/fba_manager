@@ -24,10 +24,18 @@ def index():
 
 @main_bp.route('/dashboard')
 def dashboard():
-    # Calcul du profit potentiel du stock
-    stock_items = db.session.query(Stock).filter(Stock.statut == "Acheté/en stock").all()
-    profit_stock_total = 0
-    for item in stock_items:
+    # Calcul des dépenses (prix_achat * quantité pour tous les produits)
+    depenses_total = db.session.query(db.func.sum(Stock.prix_achat * Stock.quantite)).scalar() or 0
+    
+    # Calcul des recettes (prix_amazon * quantité pour les produits vendus)
+    stock_vendus = db.session.query(Stock).filter(Stock.statut == "Vendu").all()
+    recettes_total = sum((item.prix_amazon * item.quantite if item.prix_amazon else 0) for item in stock_vendus)
+    
+    # Statistiques des produits en stock (chez nous)
+    produits_en_stock = db.session.query(Stock).filter(Stock.statut == "Acheté/en stock").all()
+    nb_produits_en_stock = sum(item.quantite for item in produits_en_stock)
+    profit_potentiel_stock = 0
+    for item in produits_en_stock:
         if item.prix_amazon:
             # Calcul des frais FBA
             frais_vente = item.prix_amazon * 0.13  # 13% du prix de vente
@@ -40,29 +48,42 @@ def dashboard():
             
             # Calcul du profit en tenant compte des frais FBA
             profit_unitaire = item.prix_amazon - item.prix_achat - frais_totaux - tva_frais
-            profit_stock_total += profit_unitaire * item.quantite
+            profit_potentiel_stock += profit_unitaire * item.quantite
     
-    # Calcul des dépenses (prix_achat * quantité pour tous les produits en stock)
-    depenses_total = db.session.query(db.func.sum(Stock.prix_achat * Stock.quantite)).scalar() or 0
-    
-    # Calcul des recettes (prix_amazon * quantité pour les produits vendus)
-    stock_vendus = db.session.query(Stock).filter(Stock.statut == "Vendu").all()
-    recettes_total = sum((item.prix_amazon * item.quantite if item.prix_amazon else 0) for item in stock_vendus)
-    
-    # Statistiques des produits en stock
-    produits_en_stock = db.session.query(Stock).filter(Stock.statut == "Acheté/en stock").all()
-    nb_produits_en_stock = sum(item.quantite for item in produits_en_stock)
-    profit_potentiel_stock = profit_stock_total
-    
-    # Statistiques des produits stockés chez Amazon
-    produits_amazon = db.session.query(Stock).filter(Stock.statut == "Stocké chez Amazon").all()
+    # Statistiques des produits chez Amazon
+    produits_amazon = db.session.query(Stock).filter(Stock.statut == "Chez Amazon").all()
     nb_produits_amazon = sum(item.quantite for item in produits_amazon)
-    profit_potentiel_amazon = sum((item.prix_amazon - item.prix_achat) * item.quantite if item.prix_amazon else 0 for item in produits_amazon)
+    profit_potentiel_amazon = 0
+    for item in produits_amazon:
+        if item.prix_amazon:
+            # Calcul des frais FBA
+            frais_vente = item.prix_amazon * 0.13
+            frais_digital = 0.25
+            frais_gestion = frais_vente + frais_digital
+            frais_expedition = 5.87
+            frais_stockage = 0.10
+            frais_totaux = frais_gestion + frais_expedition + frais_stockage
+            tva_frais = frais_totaux * 0.20
+            
+            profit_unitaire = item.prix_amazon - item.prix_achat - frais_totaux - tva_frais
+            profit_potentiel_amazon += profit_unitaire * item.quantite
     
     # Statistiques des produits vendus
     produits_vendus = db.session.query(Stock).filter(Stock.statut == "Vendu").all()
     nb_produits_vendus = sum(item.quantite for item in produits_vendus)
-    profit_produits_vendus = recettes_total
+    profit_produits_vendus = 0
+    for item in produits_vendus:
+        if item.prix_amazon:
+            frais_vente = item.prix_amazon * 0.13
+            frais_digital = 0.25
+            frais_gestion = frais_vente + frais_digital
+            frais_expedition = 5.87
+            frais_stockage = 0.10
+            frais_totaux = frais_gestion + frais_expedition + frais_stockage
+            tva_frais = frais_totaux * 0.20
+            
+            profit_unitaire = item.prix_amazon - item.prix_achat - frais_totaux - tva_frais
+            profit_produits_vendus += profit_unitaire * item.quantite
     
     # Top 50 produits avec le meilleur ROI
     top_roi_items = db.session.query(ProductKeepa).filter(
@@ -70,11 +91,7 @@ def dashboard():
         ProductKeepa.roi > 0
     ).order_by(ProductKeepa.roi.desc()).limit(50).all()
     
-    # 5 derniers produits scrapés
-    recent_items = db.session.query(ProductKeepa).order_by(ProductKeepa.updated_at.desc()).limit(5).all()
-
     return render_template("dashboard.html",
-                        profit_stock_total=profit_stock_total,
                         nb_produits_en_stock=nb_produits_en_stock,
                         profit_potentiel_stock=profit_potentiel_stock,
                         nb_produits_amazon=nb_produits_amazon,
@@ -82,7 +99,6 @@ def dashboard():
                         nb_produits_vendus=nb_produits_vendus,
                         profit_produits_vendus=profit_produits_vendus,
                         top_roi_items=top_roi_items,
-                        recent_items=recent_items,
                         depenses_total=depenses_total,
                         recettes_total=recettes_total)
 
