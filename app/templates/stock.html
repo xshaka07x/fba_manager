@@ -662,7 +662,8 @@
             <thead>
                 <tr>
                     <th style="width: 3%">#</th>
-                    <th style="width: 15%">Nom</th>
+                    <th style="width: 12%">Nom</th>
+                    <th style="width: 10%">EAN</th>
                     <th style="width: 8%">Magasin</th>
                     <th style="width: 7%">Prix d'achat</th>
                     <th style="width: 7%">Prix Amazon</th>
@@ -686,6 +687,7 @@
                         {% endif %}
                         {{ item.nom }}
                     </td>
+                    <td>{{ item.ean }}</td>
                     <td class="text-truncate">{{ item.magasin }}</td>
                     <td>{{ item.prix_achat }}€</td>
                     <td>{% if item.prix_amazon %}{{ "%.2f"|format(item.prix_amazon) }}€{% else %}-{% endif %}</td>
@@ -739,9 +741,9 @@ $(document).ready(function() {
         "responsive": true
     });
 
-    // Recherche en temps réel sur la colonne EAN
+    // Recherche en temps réel sur la colonne EAN (index 2)
     $('#eanSearch').on('keyup', function() {
-        table.column(0).search(this.value).draw();
+        table.column(2).search(this.value).draw();
     });
 
     // Gestion des boutons de mise à jour du statut
