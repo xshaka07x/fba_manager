@@ -13,11 +13,6 @@
         <div class="col-md-6">
             <div class="input-group">
                 <input type="text" id="eanSearch" class="form-control" placeholder="Rechercher par EAN...">
-                <div class="input-group-append">
-                    <span class="input-group-text">
-                        <i class="fas fa-search"></i>
-                    </span>
-                </div>
             </div>
         </div>
     </div>
@@ -731,36 +726,32 @@
 {% block scripts %}
 <script>
 $(document).ready(function() {
-    // Configuration de la recherche personnalisée pour l'EAN
-    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-        var searchValue = $('#eanSearch').val().toString();
-        var ean = data[2].toString(); // La colonne EAN est à l'index 2
-        
-        if (searchValue === '') {
-            return true;
-        }
-        
-        return ean.startsWith(searchValue);
-    });
-
-    // Initialisation de DataTables avec les bonnes options
+    // Initialisation de DataTables
     var table = $('#stockTable').DataTable({
         "language": {
             "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
         },
-        "pageLength": 25,
-        "dom": 't',  // Afficher uniquement la table, pas les contrôles de DataTables
+        "pageLength": -1,  // Afficher toutes les entrées
+        "dom": 't',  // Afficher uniquement la table
         "ordering": true,
-        "order": [[0, "asc"]], // Tri par défaut sur la première colonne
+        "order": [[0, "asc"]], 
         "responsive": true,
-        "search": {
-            "smart": false // Désactive la recherche "intelligente" pour une correspondance exacte
-        }
+        "searching": true
     });
 
-    // Recherche en temps réel
-    $('#eanSearch').on('keyup', function() {
-        table.draw(); // Redessine la table avec le nouveau filtre
+    // Recherche en temps réel sur la colonne EAN
+    $('#eanSearch').on('input', function() {
+        var searchText = $(this).val();
+        
+        // Filtrer les lignes du tableau
+        table.rows().every(function() {
+            var ean = this.data()[2]; // Index 2 = colonne EAN
+            if (ean && ean.toString().startsWith(searchText)) {
+                $(this.node()).show();
+            } else {
+                $(this.node()).hide();
+            }
+        });
     });
 });
 </script>
