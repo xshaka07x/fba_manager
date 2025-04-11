@@ -1,0 +1,2 @@
+[2025-04-02 01:41:51.707446] Début de l'analyse du fichier qojita.xlsx
+[2025-04-02 01:42:37.968361] ERROR: Erreur lors de l'analyse: La colonne 'GTIN' n'existe pas dans le fichier Excel

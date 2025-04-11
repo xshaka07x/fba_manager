@@ -1,0 +1,2 @@
+[2025-04-02 01:44:13.475531] Début de l'analyse du fichier qojita.xlsx
+[2025-04-02 01:44:23.030453] ERROR: Erreur lors de l'analyse: Erreur d'initialisation de l'API Keepa: 'NoneType' object is not subscriptable

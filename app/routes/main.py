@@ -9,6 +9,8 @@ import uuid
 from scraping.scraper import insert_or_update_product
 from app.utils.fetch_keepa import get_keepa_data
 from sqlalchemy import extract  # Ajout de l'import manquant
+from .scripts.analyze_excel import analyze_excel
+import os
 
 main_bp = Blueprint('main', __name__)
 from app import db
@@ -662,3 +664,40 @@ def delete_todo(todo_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
+
+@main_bp.route('/analyze_excel', methods=['GET', 'POST'])
+def analyze_excel_route():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return jsonify({'error': 'Aucun fichier n\'a été envoyé'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'Aucun fichier sélectionné'}), 400
+        
+        if not file.filename.endswith('.xlsx'):
+            return jsonify({'error': 'Le fichier doit être au format .xlsx'}), 400
+        
+        # Sauvegarder temporairement le fichier
+        temp_path = os.path.join(app.config['UPLOAD_FOLDER'], 'temp.xlsx')
+        file.save(temp_path)
+        
+        try:
+            # Analyser le fichier Excel
+            results_df = analyze_excel(temp_path)
+            
+            if results_df is not None:
+                # Convertir le DataFrame en liste de dictionnaires pour l'affichage
+                results = results_df.to_dict('records')
+                return render_template('analyze_results.html', results=results)
+            else:
+                return jsonify({'error': 'Erreur lors de l\'analyse du fichier'}), 500
+                
+        except Exception as e:
+            return jsonify({'error': f'Erreur: {str(e)}'}), 500
+        finally:
+            # Nettoyer le fichier temporaire
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+    
+    return render_template('analyze_excel.html')
