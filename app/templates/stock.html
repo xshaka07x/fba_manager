@@ -736,18 +736,32 @@ $(document).ready(function() {
         "ordering": true,
         "order": [[0, "asc"]], 
         "responsive": true,
+        "searching": true,
         "search": {
             "smart": false,  // Désactive la recherche "intelligente"
-            "regex": false,  // Pas de regex
+            "regex": true,  // Active les regex pour la recherche par début de chaîne
             "caseInsensitive": true  // Insensible à la casse
         }
     });
 
     // Recherche en temps réel sur la colonne EAN
-    $('#eanSearch').on('input', function() {
-        var searchValue = this.value;
-        // Applique le filtre sur la colonne EAN (index 2)
-        table.column(2).search('^' + searchValue, true, false).draw();
+    $('#eanSearch').on('keyup', function() {
+        var searchValue = $(this).val();
+        if(searchValue) {
+            // Recherche les EAN qui commencent par la valeur saisie
+            table.column(2).search('^' + searchValue, true, false).draw();
+        } else {
+            // Si le champ est vide, réinitialise la recherche
+            table.column(2).search('').draw();
+        }
+    });
+
+    // Désactive la soumission du formulaire lors de l'appui sur Entrée
+    $('#eanSearch').on('keypress', function(e) {
+        if (e.which == 13) {
+            e.preventDefault();
+            return false;
+        }
     });
 });
 </script>
