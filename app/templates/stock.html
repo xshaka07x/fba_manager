@@ -658,7 +658,7 @@
 
     <!-- Tableau du stock -->
     <div class="table-responsive">
-        <table class="table table-dark table-hover data-table">
+        <table class="table table-dark table-hover" id="stockTable">
             <thead>
                 <tr>
                     <th style="width: 3%">#</th>
@@ -731,36 +731,22 @@
 {% block scripts %}
 <script>
 $(document).ready(function() {
-    // Initialisation de DataTables
+    // Initialisation de DataTables avec les bonnes options
     var table = $('#stockTable').DataTable({
         "language": {
             "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
         },
-        "order": [[3, "desc"]], // Trier par quantité par défaut
         "pageLength": 25,
+        "dom": 't',  // Afficher uniquement la table, pas les contrôles de DataTables
+        "ordering": true,
+        "order": [[0, "asc"]], // Tri par défaut sur la première colonne
         "responsive": true
     });
 
-    // Recherche en temps réel sur la colonne EAN (index 2)
-    $('#eanSearch').on('keyup', function() {
-        table.column(2).search(this.value).draw();
-    });
-
-    // Gestion des boutons de mise à jour du statut
-    $('.update-status').click(function() {
-        var stockId = $(this).data('id');
-        $('#stockId').val(stockId);
-        $('#newStatus').val($(this).data('status'));
-    });
-
-    // Gestion des boutons de suppression
-    $('.delete-stock').click(function() {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
-            var stockId = $(this).data('id');
-            $.post('/delete_stock/' + stockId, function(response) {
-                location.reload();
-            });
-        }
+    // Recherche en temps réel sur la colonne EAN
+    $('#eanSearch').on('input', function() {
+        var searchValue = this.value;
+        table.column(2).search(searchValue).draw();
     });
 });
 </script>
