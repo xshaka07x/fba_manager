@@ -731,6 +731,18 @@
 {% block scripts %}
 <script>
 $(document).ready(function() {
+    // Configuration de la recherche personnalisée pour l'EAN
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        var searchValue = $('#eanSearch').val().toString();
+        var ean = data[2].toString(); // La colonne EAN est à l'index 2
+        
+        if (searchValue === '') {
+            return true;
+        }
+        
+        return ean.startsWith(searchValue);
+    });
+
     // Initialisation de DataTables avec les bonnes options
     var table = $('#stockTable').DataTable({
         "language": {
@@ -740,13 +752,15 @@ $(document).ready(function() {
         "dom": 't',  // Afficher uniquement la table, pas les contrôles de DataTables
         "ordering": true,
         "order": [[0, "asc"]], // Tri par défaut sur la première colonne
-        "responsive": true
+        "responsive": true,
+        "search": {
+            "smart": false // Désactive la recherche "intelligente" pour une correspondance exacte
+        }
     });
 
-    // Recherche en temps réel sur la colonne EAN
-    $('#eanSearch').on('input', function() {
-        var searchValue = this.value;
-        table.column(2).search(searchValue).draw();
+    // Recherche en temps réel
+    $('#eanSearch').on('keyup', function() {
+        table.draw(); // Redessine la table avec le nouveau filtre
     });
 });
 </script>
