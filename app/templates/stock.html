@@ -725,3 +725,41 @@
 
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Initialisation de DataTables
+    var table = $('#stockTable').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
+        },
+        "order": [[3, "desc"]], // Trier par quantité par défaut
+        "pageLength": 25,
+        "responsive": true
+    });
+
+    // Recherche en temps réel sur la colonne EAN
+    $('#eanSearch').on('keyup', function() {
+        table.column(0).search(this.value).draw();
+    });
+
+    // Gestion des boutons de mise à jour du statut
+    $('.update-status').click(function() {
+        var stockId = $(this).data('id');
+        $('#stockId').val(stockId);
+        $('#newStatus').val($(this).data('status'));
+    });
+
+    // Gestion des boutons de suppression
+    $('.delete-stock').click(function() {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
+            var stockId = $(this).data('id');
+            $.post('/delete_stock/' + stockId, function(response) {
+                location.reload();
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
