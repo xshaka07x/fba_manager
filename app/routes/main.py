@@ -9,7 +9,7 @@ import uuid
 from scraping.scraper import insert_or_update_product
 from app.utils.fetch_keepa import get_keepa_data
 from sqlalchemy import extract  # Ajout de l'import manquant
-from .scripts.analyze_excel import analyze_excel
+from app.scripts.analyze_excel import analyze_excel  # Correction du chemin d'import
 import os
 
 main_bp = Blueprint('main', __name__)
