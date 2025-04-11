@@ -736,22 +736,18 @@ $(document).ready(function() {
         "ordering": true,
         "order": [[0, "asc"]], 
         "responsive": true,
-        "searching": true
+        "search": {
+            "smart": false,  // Désactive la recherche "intelligente"
+            "regex": false,  // Pas de regex
+            "caseInsensitive": true  // Insensible à la casse
+        }
     });
 
     // Recherche en temps réel sur la colonne EAN
     $('#eanSearch').on('input', function() {
-        var searchText = $(this).val();
-        
-        // Filtrer les lignes du tableau
-        table.rows().every(function() {
-            var ean = this.data()[2]; // Index 2 = colonne EAN
-            if (ean && ean.toString().startsWith(searchText)) {
-                $(this.node()).show();
-            } else {
-                $(this.node()).hide();
-            }
-        });
+        var searchValue = this.value;
+        // Applique le filtre sur la colonne EAN (index 2)
+        table.column(2).search('^' + searchValue, true, false).draw();
     });
 });
 </script>
