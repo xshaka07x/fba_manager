@@ -15,7 +15,8 @@
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="input-group">
-                <input type="text" id="eanSearch" class="form-control" placeholder="Rechercher par EAN...">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Rechercher par nom ou EAN...">
             </div>
         </div>
     </div>
@@ -745,6 +746,21 @@ $(document).ready(function() {
                 return "Recherche en cours...";
             }
         }
+    }).on('select2:select', function(e) {
+        const autreMagasinDiv = $(this).parent().find('.autre-magasin');
+        const autreMagasinInput = autreMagasinDiv.find('input');
+        
+        if (e.params.data.text === 'Autre') {
+            autreMagasinDiv.show();
+            autreMagasinInput.prop('required', true);
+            $(this).attr('name', '_magasin');
+            autreMagasinInput.attr('name', 'magasin');
+        } else {
+            autreMagasinDiv.hide();
+            autreMagasinInput.prop('required', false);
+            $(this).attr('name', 'magasin');
+            autreMagasinInput.attr('name', 'autre_magasin');
+        }
     });
 
     // Initialisation de DataTables
@@ -759,50 +775,24 @@ $(document).ready(function() {
         "responsive": true,
         "searching": true,
         "search": {
-            "smart": false,  // Désactive la recherche "intelligente"
-            "regex": true,  // Active les regex pour la recherche par début de chaîne
+            "smart": true,  // Active la recherche "intelligente"
             "caseInsensitive": true  // Insensible à la casse
         }
     });
 
-    // Recherche en temps réel sur la colonne EAN
-    $('#eanSearch').on('keyup', function() {
+    // Recherche en temps réel sur les colonnes Nom et EAN
+    $('#searchInput').on('keyup', function() {
         var searchValue = $(this).val();
-        if(searchValue) {
-            // Recherche les EAN qui commencent par la valeur saisie
-            table.column(2).search('^' + searchValue, true, false).draw();
-        } else {
-            // Si le champ est vide, réinitialise la recherche
-            table.column(2).search('').draw();
-        }
+        // Recherche dans les colonnes Nom (index 1) et EAN (index 2)
+        table.columns([1, 2]).search(searchValue).draw();
     });
 
     // Désactive la soumission du formulaire lors de l'appui sur Entrée
-    $('#eanSearch').on('keypress', function(e) {
+    $('#searchInput').on('keypress', function(e) {
         if (e.which == 13) {
             e.preventDefault();
             return false;
         }
-    });
-
-    // Gestion des selects de magasin
-    document.querySelectorAll('.magasin-select').forEach(select => {
-        select.addEventListener('change', function() {
-            const autreMagasinDiv = this.parentElement.querySelector('.autre-magasin');
-            const autreMagasinInput = autreMagasinDiv.querySelector('input');
-            
-            if (this.value === 'Autre') {
-                autreMagasinDiv.style.display = 'block';
-                autreMagasinInput.required = true;
-                this.name = '_magasin'; // On change le nom du select pour éviter les conflits
-                autreMagasinInput.name = 'magasin'; // L'input devient le champ principal
-            } else {
-                autreMagasinDiv.style.display = 'none';
-                autreMagasinInput.required = false;
-                this.name = 'magasin'; // On remet le nom original
-                autreMagasinInput.name = 'autre_magasin';
-            }
-        });
     });
 
     // Validation des formulaires pour gérer "Autre" magasin
