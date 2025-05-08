@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Top 100 - FBA Manager{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">🏆 Top 100 des Produits</h1>
+
+    <!-- Barre de recherche -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Rechercher par nom ou EAN...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton pour afficher le formulaire d'ajout -->
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <i class="fas fa-plus"></i> Ajouter un produit
+        </button>
+    </div>
+
+    <!-- Modal pour ajouter un produit -->
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProductModalLabel">Ajouter un Produit au Top 100</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addProductForm" method="post" action="/add_top100">
+                        <div class="mb-3">
+                            <label class="form-label">Nom du produit</label>
+                            <input type="text" name="nom" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">EAN</label>
+                            <input type="text" name="ean" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Prix Retail (€)</label>
+                            <input type="number" step="0.01" name="prix_retail" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Prix Amazon (€)</label>
+                            <input type="number" step="0.01" name="prix_amazon" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Profit Potentiel (€)</label>
+                            <input type="number" step="0.01" name="profit_potentiel" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ventes/Mois</label>
+                            <input type="number" name="ventes_mois" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Magasin</label>
+                            <select name="magasin" class="form-select magasin-select select2-magasin" required>
+                                <option value="">Sélectionner un magasin</option>
+                                {% for magasin in magasins %}
+                                <option value="{{ magasin.nom }}">{{ magasin.nom }}</option>
+                                {% endfor %}
+                                <option value="Autre">Autre</option>
+                            </select>
+                            <div class="mt-2 autre-magasin" style="display: none;">
+                                <input type="text" class="form-control" placeholder="Nom du magasin" name="autre_magasin">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">✅ Ajouter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des produits -->
+    <div class="table-responsive">
+        <table class="table table-dark table-hover" id="top100Table">
+            <thead>
+                <tr>
+                    <th style="width: 3%">#</th>
+                    <th style="width: 20%">Nom</th>
+                    <th style="width: 10%">EAN</th>
+                    <th style="width: 10%">Prix Retail</th>
+                    <th style="width: 10%">Prix Amazon</th>
+                    <th style="width: 10%">Profit Potentiel</th>
+                    <th style="width: 10%">Ventes/Mois</th>
+                    <th style="width: 10%">Magasin</th>
+                    <th style="width: 7%">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <th scope="row">{{ loop.index }}</th>
+                    <td class="nom-col text-truncate" title="{{ product.nom }}">{{ product.nom }}</td>
+                    <td>{{ product.ean }}</td>
+                    <td>{{ "%.2f"|format(product.prix_retail) }}€</td>
+                    <td>{{ "%.2f"|format(product.prix_amazon) }}€</td>
+                    <td>{{ "%.2f"|format(product.profit_potentiel) }}€</td>
+                    <td>{{ product.ventes_mois }}</td>
+                    <td class="text-truncate">{{ product.magasin }}</td>
+                    <td class="text-nowrap">
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('main.edit_top100', product_id=product.id) }}" class="btn btn-warning">✏️</a>
+                            <form method="post" action="{{ url_for('main.delete_top100', product_id=product.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-danger">🗑️</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.table {
+    font-size: 0.9rem;
+}
+
+.table td, .table th {
+    padding: 0.5rem;
+    white-space: nowrap;
+}
+
+.nom-col {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Styles pour mobile */
+@media (max-width: 768px) {
+    .table {
+        font-size: 0.8rem;
+    }
+
+    .table td, .table th {
+        padding: 0.3rem;
+    }
+
+    .nom-col {
+        max-width: 100px;
+    }
+
+    .btn-sm {
+        padding: 0.1rem 0.3rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Styles pour très petits écrans */
+@media (max-width: 576px) {
+    .table {
+        font-size: 0.7rem;
+    }
+
+    .table td, .table th {
+        padding: 0.2rem;
+    }
+
+    .nom-col {
+        max-width: 80px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<!-- Ajout des scripts de Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialisation de Select2 pour les listes de magasins
+    $('.select2-magasin').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'Rechercher un magasin...',
+        allowClear: true,
+        language: {
+            noResults: function() {
+                return "Aucun résultat trouvé";
+            },
+            searching: function() {
+                return "Recherche en cours...";
+            }
+        }
+    }).on('select2:select', function(e) {
+        const autreMagasinDiv = $(this).parent().find('.autre-magasin');
+        const autreMagasinInput = autreMagasinDiv.find('input');
+        
+        if (e.params.data.text === 'Autre') {
+            autreMagasinDiv.show();
+            autreMagasinInput.prop('required', true);
+            $(this).attr('name', '_magasin');
+            autreMagasinInput.attr('name', 'magasin');
+        } else {
+            autreMagasinDiv.hide();
+            autreMagasinInput.prop('required', false);
+            $(this).attr('name', 'magasin');
+            autreMagasinInput.attr('name', 'autre_magasin');
+        }
+    });
+
+    // Initialisation de DataTables
+    var table = $('#top100Table').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
+        },
+        "pageLength": -1,  // Afficher toutes les entrées
+        "dom": 't',  // Afficher uniquement la table
+        "ordering": true,
+        "order": [[6, "desc"]], // Trier par ventes/mois par défaut
+        "responsive": true,
+        "searching": true,
+        "search": {
+            "smart": true,
+            "caseInsensitive": true
+        }
+    });
+
+    // Recherche en temps réel
+    $('#searchInput').on('keyup', function() {
+        var searchValue = $(this).val();
+        table.search(searchValue).draw();
+    });
+
+    // Désactive la soumission du formulaire lors de l'appui sur Entrée
+    $('#searchInput').on('keypress', function(e) {
+        if (e.which == 13) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // Validation du formulaire pour gérer "Autre" magasin
+    document.getElementById('addProductForm').addEventListener('submit', function(e) {
+        const magasinSelect = this.querySelector('.magasin-select');
+        const autreMagasinInput = this.querySelector('.autre-magasin input');
+        
+        if (magasinSelect.value === 'Autre' && !autreMagasinInput.value.trim()) {
+            e.preventDefault();
+            alert('Veuillez saisir le nom du magasin');
+        }
+    });
+});
+</script>
+{% endblock %} 

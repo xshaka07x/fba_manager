@@ -1,6 +1,6 @@
 # app/routes/main.py
 from flask import Blueprint, render_template, redirect, url_for, request, jsonify
-from app.models import Product, Stock, ProductKeepa, Magasin, Travel, Todo
+from app.models import Product, Stock, ProductKeepa, Magasin, Travel, Todo, Top100
 from datetime import datetime
 from datetime import timedelta  # ✅ Pour ajouter une heure
 from flask import jsonify
@@ -685,3 +685,82 @@ def delete_todo(todo_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
+
+@main_bp.route('/top100')
+def top100():
+    products = Top100.query.order_by(Top100.ventes_mois.desc()).all()
+    magasins = Magasin.query.order_by(Magasin.nom).all()
+    return render_template('top100.html', products=products, magasins=magasins)
+
+@main_bp.route('/add_top100', methods=['POST'])
+def add_top100():
+    nom = request.form.get('nom')
+    ean = request.form.get('ean')
+    prix_retail = float(request.form.get('prix_retail'))
+    prix_amazon = float(request.form.get('prix_amazon'))
+    profit_potentiel = float(request.form.get('profit_potentiel'))
+    ventes_mois = int(request.form.get('ventes_mois'))
+    magasin = request.form.get('magasin')
+    autre_magasin = request.form.get('autre_magasin')
+
+    # Si un nouveau magasin est fourni, l'ajouter à la table magasin
+    if autre_magasin:
+        magasin_existant = Magasin.query.filter_by(nom=autre_magasin).first()
+        if not magasin_existant:
+            nouveau_magasin = Magasin(nom=autre_magasin)
+            db.session.add(nouveau_magasin)
+            db.session.commit()
+        magasin = autre_magasin
+
+    nouveau_produit = Top100(
+        nom=nom,
+        ean=ean,
+        prix_retail=prix_retail,
+        prix_amazon=prix_amazon,
+        profit_potentiel=profit_potentiel,
+        ventes_mois=ventes_mois,
+        magasin=magasin
+    )
+
+    db.session.add(nouveau_produit)
+    db.session.commit()
+
+    return redirect(url_for('main.top100'))
+
+@main_bp.route('/edit_top100/<int:product_id>', methods=['GET', 'POST'])
+def edit_top100(product_id):
+    product = Top100.query.get_or_404(product_id)
+    magasins = Magasin.query.order_by(Magasin.nom).all()
+
+    if request.method == 'POST':
+        product.nom = request.form.get('nom')
+        product.ean = request.form.get('ean')
+        product.prix_retail = float(request.form.get('prix_retail'))
+        product.prix_amazon = float(request.form.get('prix_amazon'))
+        product.profit_potentiel = float(request.form.get('profit_potentiel'))
+        product.ventes_mois = int(request.form.get('ventes_mois'))
+        
+        magasin = request.form.get('magasin')
+        autre_magasin = request.form.get('autre_magasin')
+
+        if autre_magasin:
+            magasin_existant = Magasin.query.filter_by(nom=autre_magasin).first()
+            if not magasin_existant:
+                nouveau_magasin = Magasin(nom=autre_magasin)
+                db.session.add(nouveau_magasin)
+                db.session.commit()
+            product.magasin = autre_magasin
+        else:
+            product.magasin = magasin
+
+        db.session.commit()
+        return redirect(url_for('main.top100'))
+
+    return render_template('edit_top100.html', product=product, magasins=magasins)
+
+@main_bp.route('/delete_top100/<int:product_id>', methods=['POST'])
+def delete_top100(product_id):
+    product = Top100.query.get_or_404(product_id)
+    db.session.delete(product)
+    db.session.commit()
+    return redirect(url_for('main.top100'))

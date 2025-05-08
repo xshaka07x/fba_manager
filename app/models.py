@@ -141,3 +141,17 @@ class Todo(db.Model):
 
     def __repr__(self):
         return f'<Todo {self.id}: {self.texte[:20]}...>'
+
+class Top100(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(255), nullable=False)
+    ean = db.Column(db.String(13), unique=True)
+    prix_retail = db.Column(db.Float, nullable=False)
+    prix_amazon = db.Column(db.Float, nullable=False)
+    profit_potentiel = db.Column(db.Float, nullable=False)
+    ventes_mois = db.Column(db.Integer, nullable=False)
+    magasin = db.Column(db.String(100), db.ForeignKey('magasin.nom'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Top100 {self.nom}>'

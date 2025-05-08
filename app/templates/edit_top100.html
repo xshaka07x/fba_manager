@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier Produit - FBA Manager{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">✏️ Modifier le Produit</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card bg-dark text-white">
+                <div class="card-body">
+                    <form method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Nom du produit</label>
+                            <input type="text" name="nom" class="form-control" value="{{ product.nom }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">EAN</label>
+                            <input type="text" name="ean" class="form-control" value="{{ product.ean }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Prix Retail (€)</label>
+                            <input type="number" step="0.01" name="prix_retail" class="form-control" value="{{ product.prix_retail }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Prix Amazon (€)</label>
+                            <input type="number" step="0.01" name="prix_amazon" class="form-control" value="{{ product.prix_amazon }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Profit Potentiel (€)</label>
+                            <input type="number" step="0.01" name="profit_potentiel" class="form-control" value="{{ product.profit_potentiel }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ventes/Mois</label>
+                            <input type="number" name="ventes_mois" class="form-control" value="{{ product.ventes_mois }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Magasin</label>
+                            <select name="magasin" class="form-select magasin-select select2-magasin" required>
+                                <option value="">Sélectionner un magasin</option>
+                                {% for magasin in magasins %}
+                                <option value="{{ magasin.nom }}" {% if magasin.nom == product.magasin %}selected{% endif %}>{{ magasin.nom }}</option>
+                                {% endfor %}
+                                <option value="Autre">Autre</option>
+                            </select>
+                            <div class="mt-2 autre-magasin" style="display: none;">
+                                <input type="text" class="form-control" placeholder="Nom du magasin" name="autre_magasin">
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">✅ Enregistrer</button>
+                            <a href="{{ url_for('main.top100') }}" class="btn btn-secondary">❌ Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<!-- Ajout des scripts de Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialisation de Select2 pour les listes de magasins
+    $('.select2-magasin').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'Rechercher un magasin...',
+        allowClear: true,
+        language: {
+            noResults: function() {
+                return "Aucun résultat trouvé";
+            },
+            searching: function() {
+                return "Recherche en cours...";
+            }
+        }
+    }).on('select2:select', function(e) {
+        const autreMagasinDiv = $(this).parent().find('.autre-magasin');
+        const autreMagasinInput = autreMagasinDiv.find('input');
+        
+        if (e.params.data.text === 'Autre') {
+            autreMagasinDiv.show();
+            autreMagasinInput.prop('required', true);
+            $(this).attr('name', '_magasin');
+            autreMagasinInput.attr('name', 'magasin');
+        } else {
+            autreMagasinDiv.hide();
+            autreMagasinInput.prop('required', false);
+            $(this).attr('name', 'magasin');
+            autreMagasinInput.attr('name', 'autre_magasin');
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 
