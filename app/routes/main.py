@@ -128,14 +128,6 @@ def edit_stock(stock_id):
             stock_item.seuil_alerte = int(request.form.get('seuil_alerte', 0))
             stock_item.facture_url = request.form.get('facture_url')
             
-            # Mise à jour des données Keepa si le prix a changé
-            if stock_item.ean:
-                keepa_data = get_keepa_data(stock_item.ean, stock_item.prix_achat)
-                if keepa_data:
-                    stock_item.prix_amazon = keepa_data.get('prix_amazon', 0)
-                    stock_item.profit = keepa_data.get('profit', 0)
-                    stock_item.roi = (stock_item.profit * 100 / stock_item.prix_achat) if stock_item.prix_achat > 0 else 0
-            
             db.session.commit()
             return redirect(url_for('main.stock'))
             
@@ -260,18 +252,6 @@ def add_stock():
                 db.session.commit()
             magasin = autre_magasin
         
-        # Récupération des données Keepa
-        keepa_data = get_keepa_data(ean, prix_achat)
-        if not keepa_data:
-            return "Erreur : Impossible de récupérer les données Keepa.", 500
-            
-        prix_amazon = keepa_data.get('prix_amazon', 0)
-        difference = keepa_data.get('difference', 0)
-        profit = keepa_data.get('profit', 0)
-        
-        # Calcul du ROI comme dans scraper.py
-        roi = (profit * 100 / prix_achat) if prix_achat > 0 else 0
-        
         # Création de l'entrée dans le stock
         new_stock = Stock(
             group_id=str(uuid.uuid4()),  # Génération d'un nouveau UUID
@@ -279,9 +259,6 @@ def add_stock():
             nom=nom,
             magasin=magasin,
             prix_achat=prix_achat,
-            prix_amazon=prix_amazon,
-            roi=roi,
-            profit=profit,
             date_achat=datetime.now(),
             quantite=quantite,
             facture_url=facture_url,
