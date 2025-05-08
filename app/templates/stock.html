@@ -743,23 +743,27 @@ $(document).ready(function() {
     });
 
     // Validation des formulaires pour gérer "Autre" magasin
-    document.getElementById('addStockForm').addEventListener('submit', function(e) {
-        handleFormSubmit(e, this);
-    });
-
-    document.getElementById('scanStockForm').addEventListener('submit', function(e) {
-        handleFormSubmit(e, this);
-    });
-
-    function handleFormSubmit(e, form) {
-        const magasinSelect = form.querySelector('.magasin-select');
-        const autreMagasinInput = form.querySelector('.autre-magasin input');
+    $('#addStockForm').on('submit', function(e) {
+        const magasinSelect = $(this).find('.magasin-select');
+        const autreMagasinInput = $(this).find('.autre-magasin input');
         
-        if (magasinSelect.value === 'Autre' && !autreMagasinInput.value.trim()) {
+        if (magasinSelect.val() === 'Autre' && !autreMagasinInput.val().trim()) {
             e.preventDefault();
             alert('Veuillez saisir le nom du magasin');
+            return false;
         }
-    }
+    });
+
+    $('#scanStockForm').on('submit', function(e) {
+        const magasinSelect = $(this).find('.magasin-select');
+        const autreMagasinInput = $(this).find('.autre-magasin input');
+        
+        if (magasinSelect.val() === 'Autre' && !autreMagasinInput.val().trim()) {
+            e.preventDefault();
+            alert('Veuillez saisir le nom du magasin');
+            return false;
+        }
+    });
 });
 </script>
 {% endblock %}
