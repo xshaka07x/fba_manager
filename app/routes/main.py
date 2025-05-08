@@ -245,9 +245,20 @@ def add_stock():
         nom = request.form.get('nom')
         ean = request.form.get('ean')
         magasin = request.form.get('magasin')
+        autre_magasin = request.form.get('autre_magasin')
         prix_achat = float(request.form.get('prix_achat'))
         quantite = int(request.form.get('quantite'))
         facture_url = request.form.get('facture_url') or None
+        
+        # Si un nouveau magasin est saisi manuellement, l'ajouter à la table Magasin
+        if autre_magasin:
+            # Vérifier si le magasin existe déjà
+            existing_magasin = db.session.query(Magasin).filter_by(nom=autre_magasin).first()
+            if not existing_magasin:
+                new_magasin = Magasin(nom=autre_magasin)
+                db.session.add(new_magasin)
+                db.session.commit()
+            magasin = autre_magasin
         
         # Récupération des données Keepa
         keepa_data = get_keepa_data(ean, prix_achat)
@@ -405,10 +416,21 @@ def add_scanned_stock():
         nom = request.form.get('nom')
         ean = request.form.get('ean')
         magasin = request.form.get('magasin')
+        autre_magasin = request.form.get('autre_magasin')
         prix_achat = float(request.form.get('prix_achat'))
         quantite = int(request.form.get('quantite'))
         prix_amazon = float(request.form.get('prix_amazon', 0))
         url = request.form.get('url', '')
+        
+        # Si un nouveau magasin est saisi manuellement, l'ajouter à la table Magasin
+        if autre_magasin:
+            # Vérifier si le magasin existe déjà
+            existing_magasin = db.session.query(Magasin).filter_by(nom=autre_magasin).first()
+            if not existing_magasin:
+                new_magasin = Magasin(nom=autre_magasin)
+                db.session.add(new_magasin)
+                db.session.commit()
+            magasin = autre_magasin
         
         # Calcul du profit et du ROI
         profit = prix_amazon - prix_achat if prix_amazon > 0 else 0
