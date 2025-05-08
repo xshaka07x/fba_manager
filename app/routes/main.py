@@ -243,18 +243,18 @@ def add_stock():
         facture_url = request.form.get('facture_url') or None
         
         # Si un nouveau magasin est saisi manuellement, l'ajouter à la table Magasin
-        if autre_magasin:
+        if autre_magasin and autre_magasin.strip():
             # Vérifier si le magasin existe déjà
-            existing_magasin = db.session.query(Magasin).filter_by(nom=autre_magasin).first()
+            existing_magasin = db.session.query(Magasin).filter_by(nom=autre_magasin.strip()).first()
             if not existing_magasin:
-                new_magasin = Magasin(nom=autre_magasin)
+                new_magasin = Magasin(nom=autre_magasin.strip())
                 db.session.add(new_magasin)
                 db.session.commit()
-            magasin = autre_magasin
+            magasin = autre_magasin.strip()
         
         # Création de l'entrée dans le stock
         new_stock = Stock(
-            group_id=str(uuid.uuid4()),  # Génération d'un nouveau UUID
+            group_id=str(uuid.uuid4()),
             ean=ean,
             nom=nom,
             magasin=magasin,

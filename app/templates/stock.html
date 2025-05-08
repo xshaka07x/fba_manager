@@ -693,7 +693,10 @@ $(document).ready(function() {
                 return "Recherche en cours...";
             }
         }
-    }).on('select2:select', function(e) {
+    });
+
+    // Gestion du changement de sélection pour "Autre"
+    $('.select2-magasin').on('select2:select', function(e) {
         const autreMagasinDiv = $(this).parent().find('.autre-magasin');
         const autreMagasinInput = autreMagasinDiv.find('input');
         
@@ -715,42 +718,32 @@ $(document).ready(function() {
         "language": {
             "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
         },
-        "pageLength": -1,  // Afficher toutes les entrées
-        "dom": 't',  // Afficher uniquement la table
+        "pageLength": -1,
+        "dom": 't',
         "ordering": true,
-        "order": [[0, "asc"]], 
+        "order": [[0, "asc"]],
         "responsive": true,
-        "searching": true,
-        "search": {
-            "smart": true,  // Active la recherche "intelligente"
-            "caseInsensitive": true  // Insensible à la casse
-        }
+        "searching": true
     });
 
-    // Recherche en temps réel sur les colonnes Nom et EAN
+    // Recherche en temps réel
     $('#searchInput').on('keyup', function() {
-        var searchValue = $(this).val();
-        // Recherche dans les colonnes Nom (index 1) et EAN (index 2)
-        table.columns([1, 2]).search(searchValue).draw();
+        table.search(this.value).draw();
     });
 
-    // Désactive la soumission du formulaire lors de l'appui sur Entrée
-    $('#searchInput').on('keypress', function(e) {
-        if (e.which == 13) {
-            e.preventDefault();
-            return false;
-        }
-    });
-
-    // Validation des formulaires pour gérer "Autre" magasin
+    // Validation des formulaires
     $('#addStockForm').on('submit', function(e) {
         const magasinSelect = $(this).find('.magasin-select');
         const autreMagasinInput = $(this).find('.autre-magasin input');
         
-        if (magasinSelect.val() === 'Autre' && !autreMagasinInput.val().trim()) {
-            e.preventDefault();
-            alert('Veuillez saisir le nom du magasin');
-            return false;
+        if (magasinSelect.val() === 'Autre') {
+            if (!autreMagasinInput.val().trim()) {
+                e.preventDefault();
+                alert('Veuillez saisir le nom du magasin');
+                return false;
+            }
+            // S'assurer que le champ magasin contient la bonne valeur
+            magasinSelect.val(autreMagasinInput.val().trim());
         }
     });
 
@@ -758,10 +751,14 @@ $(document).ready(function() {
         const magasinSelect = $(this).find('.magasin-select');
         const autreMagasinInput = $(this).find('.autre-magasin input');
         
-        if (magasinSelect.val() === 'Autre' && !autreMagasinInput.val().trim()) {
-            e.preventDefault();
-            alert('Veuillez saisir le nom du magasin');
-            return false;
+        if (magasinSelect.val() === 'Autre') {
+            if (!autreMagasinInput.val().trim()) {
+                e.preventDefault();
+                alert('Veuillez saisir le nom du magasin');
+                return false;
+            }
+            // S'assurer que le champ magasin contient la bonne valeur
+            magasinSelect.val(autreMagasinInput.val().trim());
         }
     });
 });
