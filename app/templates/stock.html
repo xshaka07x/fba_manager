@@ -203,9 +203,6 @@
                             <label class="form-label">URL Amazon (optionnel)</label>
                             <input type="url" name="url" class="form-control">
                         </div>
-                        <div class="alert alert-info" id="keepaInfo" style="display: none;">
-                            <i class="fas fa-info-circle"></i> Les informations ci-dessus ont été récupérées depuis Keepa.
-                        </div>
                         <button type="submit" class="btn btn-primary">Ajouter au stock</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     </form>
@@ -479,60 +476,10 @@
 
         // Fonction pour traiter le code-barre
         function processBarcode(code) {
-            const params = new URLSearchParams({
-                key: 'ftclrhsi754hf3tblbljldbonk7n4cuthggk8gnt88c4k2sjkmre8th8cjf65jnc',
-                domain: 4,        // Amazon.fr
-                code: code,       // EAN du produit
-                offers: 20,       // Nombre minimum d'offres requis
-                history: 1,       // Historique des prix
-                stats: 1          // Statistiques de vente
-            });
-
-            fetch(`https://api.keepa.com/product?${params}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.products && data.products.length > 0) {
-                        const product = data.products[0];
-                        const productName = product.title || "Produit " + code;
-                        
-                        document.getElementById('scanNom').value = productName;
-                        document.getElementById('scanEan').value = code;
-                        document.getElementById('keepaInfo').style.display = 'block';
-                        
-                        scanModal.hide();
-                        scanInfoModal.show();
-                    } else {
-                        // Si le produit n'est pas trouvé dans Keepa
-                        document.getElementById('scanNom').value = "Produit " + code;
-                        document.getElementById('scanEan').value = code;
-                        document.getElementById('keepaInfo').style.display = 'none';
-                        
-                        // Afficher un message d'information
-                        const alertDiv = document.createElement('div');
-                        alertDiv.className = 'alert alert-warning';
-                        alertDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Produit non trouvé sur Keepa. Veuillez saisir les informations manuellement.';
-                        document.getElementById('scanStockForm').insertBefore(alertDiv, document.getElementById('scanStockForm').firstChild);
-                        
-                        scanModal.hide();
-                        scanInfoModal.show();
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur:', error);
-                    // En cas d'erreur
-                    document.getElementById('scanNom').value = "Produit " + code;
-                    document.getElementById('scanEan').value = code;
-                    document.getElementById('keepaInfo').style.display = 'none';
-                    
-                    // Afficher un message d'erreur
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert alert-danger';
-                    alertDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erreur lors de la recherche sur Keepa. Veuillez saisir les informations manuellement.';
-                    document.getElementById('scanStockForm').insertBefore(alertDiv, document.getElementById('scanStockForm').firstChild);
-                    
-                    scanModal.hide();
-                    scanInfoModal.show();
-                });
+            document.getElementById('scanNom').value = "Produit " + code;
+            document.getElementById('scanEan').value = code;
+            scanModal.hide();
+            scanInfoModal.show();
         }
 
         // Event listeners
