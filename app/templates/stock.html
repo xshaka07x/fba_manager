@@ -4,6 +4,9 @@
 
 {% block content %}
 
+<!-- Ajout des liens CSS de Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 
 <div class="container mt-4">
     <h1 class="mb-4">📦 Gestion du Stock</h1>
@@ -47,7 +50,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Magasin</label>
-                            <select name="magasin" class="form-select magasin-select" required>
+                            <select name="magasin" class="form-select magasin-select select2-magasin" required>
                                 <option value="">Sélectionner un magasin</option>
                                 {% for magasin in magasins %}
                                 <option value="{{ magasin.nom }}">{{ magasin.nom }}</option>
@@ -172,7 +175,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Magasin</label>
-                            <select name="magasin" class="form-select magasin-select" required>
+                            <select name="magasin" class="form-select magasin-select select2-magasin" required>
                                 <option value="">Sélectionner un magasin</option>
                                 {% for magasin in magasins %}
                                 <option value="{{ magasin.nom }}">{{ magasin.nom }}</option>
@@ -724,8 +727,26 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Ajout des scripts de Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(document).ready(function() {
+    // Initialisation de Select2 pour les listes de magasins
+    $('.select2-magasin').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'Rechercher un magasin...',
+        allowClear: true,
+        language: {
+            noResults: function() {
+                return "Aucun résultat trouvé";
+            },
+            searching: function() {
+                return "Recherche en cours...";
+            }
+        }
+    });
+
     // Initialisation de DataTables
     var table = $('#stockTable').DataTable({
         "language": {
@@ -763,6 +784,45 @@ $(document).ready(function() {
             return false;
         }
     });
+
+    // Gestion des selects de magasin
+    document.querySelectorAll('.magasin-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const autreMagasinDiv = this.parentElement.querySelector('.autre-magasin');
+            const autreMagasinInput = autreMagasinDiv.querySelector('input');
+            
+            if (this.value === 'Autre') {
+                autreMagasinDiv.style.display = 'block';
+                autreMagasinInput.required = true;
+                this.name = '_magasin'; // On change le nom du select pour éviter les conflits
+                autreMagasinInput.name = 'magasin'; // L'input devient le champ principal
+            } else {
+                autreMagasinDiv.style.display = 'none';
+                autreMagasinInput.required = false;
+                this.name = 'magasin'; // On remet le nom original
+                autreMagasinInput.name = 'autre_magasin';
+            }
+        });
+    });
+
+    // Validation des formulaires pour gérer "Autre" magasin
+    document.getElementById('addStockForm').addEventListener('submit', function(e) {
+        handleFormSubmit(e, this);
+    });
+
+    document.getElementById('scanStockForm').addEventListener('submit', function(e) {
+        handleFormSubmit(e, this);
+    });
+
+    function handleFormSubmit(e, form) {
+        const magasinSelect = form.querySelector('.magasin-select');
+        const autreMagasinInput = form.querySelector('.autre-magasin input');
+        
+        if (magasinSelect.value === 'Autre' && !autreMagasinInput.value.trim()) {
+            e.preventDefault();
+            alert('Veuillez saisir le nom du magasin');
+        }
+    }
 });
 </script>
 {% endblock %}
